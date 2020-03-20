@@ -1,0 +1,3 @@
+cfdemSolverMix.C
+
+EXE=$(CFDEM_APP_DIR)/cfdemSolverMix_1_0

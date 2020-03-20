@@ -1,2 +1,0 @@
-# MultiscaleCFDEMcoupling
-MultiscaleCFDEMcoupling

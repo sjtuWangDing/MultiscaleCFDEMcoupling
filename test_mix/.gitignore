@@ -1,0 +1,15 @@
+*/CFD/0.*
+*/CFD/processor*
+
+*/DEM/post
+
+# packages - anywhere
+*.tar.bz2
+*.tar.gz
+*.tar
+*.tgz
+*.gtgz
+
+# pictures
+*.png
+*.eps

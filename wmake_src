@@ -1,0 +1,1 @@
+cd $CFDEM_SRC_DIR/lagrangian/cfdemParticle; wmake; cd ../../../;

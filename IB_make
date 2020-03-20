@@ -1,0 +1,1 @@
+cd $CFDEM_SOLVER_DIR/cfdemSolverIB; rm -rf Make/linux64*; wmake; cd ../../;

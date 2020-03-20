@@ -1,0 +1,4 @@
+udef_cfdemCloudIB.C
+udef_cfdemSolverIB.C
+
+EXE=$(CFDEM_APP_DIR)/udef_cfdemSolverIB
