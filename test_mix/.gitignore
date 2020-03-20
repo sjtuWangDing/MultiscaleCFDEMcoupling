@@ -1,0 +1,16 @@
+*/CFD/0.*
+*/CFD/processor*
+*/CFD/octave/octave-workspace
+
+*/DEM/post
+
+# packages - anywhere
+*.tar.bz2
+*.tar.gz
+*.tar
+*.tgz
+*.gtgz
+
+# picture
+*.png
+*.eps

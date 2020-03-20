@@ -1,7 +1,0 @@
-FoamFile
-{version 2.0; format ascii;class Cloud<passiveParticle>; location 0;object  positions;}
-2
-(
-( 0.499974 0.499973 3.01121 ) 0 
-( 0.49996 0.49996 2.67576 ) 0 
-)

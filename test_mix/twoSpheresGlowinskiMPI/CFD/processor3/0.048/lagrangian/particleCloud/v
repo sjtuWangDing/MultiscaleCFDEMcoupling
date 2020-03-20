@@ -1,7 +1,0 @@
-FoamFile
-{version 2.0; format ascii;class vectorField; location 0;object  v;}
-2
-(
-( 0.000118027 0.000105028 -6.89342 )  
-( -0.00107234 -0.00113098 -6.98483 )  
-)
