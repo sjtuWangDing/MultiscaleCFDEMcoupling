@@ -1,0 +1,7 @@
+*.o
+*.dep
+log_*
+log.*
+*~
+/platforms
+src/lagrangian/cfdemParticle/etc/tmpFile.txt

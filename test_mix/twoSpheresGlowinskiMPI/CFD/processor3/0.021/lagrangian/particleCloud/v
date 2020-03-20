@@ -1,0 +1,7 @@
+FoamFile
+{version 2.0; format ascii;class vectorField; location 0;object  v;}
+2
+(
+( -3.10757e-05 -3.30099e-05 -4.14222 )  
+( -3.01301e-05 -3.05386e-05 -4.11655 )  
+)

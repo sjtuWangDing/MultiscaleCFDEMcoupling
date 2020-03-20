@@ -1,0 +1,7 @@
+FoamFile
+{version 2.0; format ascii;class Cloud<passiveParticle>; location 0;object  positions;}
+2
+(
+( 0.499975 0.499974 3.18642 ) 0 
+( 0.499973 0.499971 2.84642 ) 0 
+)
