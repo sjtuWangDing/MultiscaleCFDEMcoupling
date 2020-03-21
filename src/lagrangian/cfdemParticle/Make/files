@@ -40,6 +40,7 @@ $(HOME)/CFDEM/CFDEMcoupling-PUBLIC-5.x/applications/solvers/cfdemSolverMix/mixVo
 $(HOME)/CFDEM/CFDEMcoupling-PUBLIC-5.x/applications/solvers/cfdemSolverMix/mixDiFeliceDrag.C
 $(HOME)/CFDEM/CFDEMcoupling-PUBLIC-5.x/applications/solvers/cfdemSolverMix/mixArchimedes.C
 $(HOME)/CFDEM/CFDEMcoupling-PUBLIC-5.x/applications/solvers/cfdemSolverMix/mixArchimedesIB.C
+$(HOME)/CFDEM/CFDEMcoupling-PUBLIC-5.x/applications/solvers/cfdemSolverMix/mixTwoWayMPI.C
 
 $(cfdTools)/global.C
 $(cfdTools)/IOtools/json/json.C

@@ -107,7 +107,7 @@ cfdemCloudMix::~cfdemCloudMix() {
 void cfdemCloudMix::getDEMdata() {
   cfdemCloud::getDEMdata();
   if (usedForSolverPiso() == false) {
-    dataExchangeM().getData("omega","vector-atom",angularVelocities_);
+    dataExchangeM().getData("omega", "vector-atom", angularVelocities_);
   }
 }
 
@@ -449,9 +449,8 @@ bool cfdemCloudMix::evolve(volScalarField& alpha,
     if (dataExchangeM().doCoupleNow()) {
       Info << "\n// * * * * * * * * * * " << "Coupling" << " * * * * * * * * * * //\n" << endl;
       // 当 dataExchangeModel 为 twoWayMPI 时, couple(0) 函数从 DEM 求解器读取颗粒数量, 同时调用 reAllocArray 函数分配内存
-      Info << "number of particles = " << numberOfParticles() << endl;
       dataExchangeM().couple(0);
-      Info << "number of particles = " << numberOfParticles() << endl;
+      Info << "number of particles = " << numberOfParticles() << "\n" << endl;
       doCouple = true;
 
       if (verbose_) {

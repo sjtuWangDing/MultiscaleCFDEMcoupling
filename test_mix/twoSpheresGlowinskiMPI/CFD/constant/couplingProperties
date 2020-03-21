@@ -36,13 +36,13 @@ couplingInterval 10;
 
 depth 0;
 
-voidFractionModel mix;  // IB  // bigParticle  // centre
+voidFractionModel mix;        // IB  // bigParticle  // centre
 
-locateModel engineIB;  // standard;
+locateModel engineIB;         // standard;
 
 meshMotionModel noMeshMotion;
 
-dataExchangeModel twoWayMPI;  // twoWayFiles
+dataExchangeModel mixTwoWayMPI;  // twoWayFiles  // twoWayMPI
 
 IOModel basicIO;
 
@@ -89,6 +89,12 @@ twoWayFilesProps
 }
 
 twoWayMPIProps
+{
+    maxNumberOfParticles 10100;
+    liggghtsPath "../DEM/in.liggghts_run";
+}
+
+mixTwoWayMPIProps
 {
     maxNumberOfParticles 10100;
     liggghtsPath "../DEM/in.liggghts_run";

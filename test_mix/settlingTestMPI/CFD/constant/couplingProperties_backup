@@ -44,7 +44,7 @@ IOModel basicIO;                   // trackIO
 
 probeModel off;
 
-dataExchangeModel twoWayMPI;       // M2M
+dataExchangeModel mixTwoWayMPI;       // M2M // twoWayMPI // mixTwoWayMPI
 
 averagingModel mixDense;           // dense // dilute
 
@@ -168,7 +168,7 @@ oneWayVTKProps
     maxNumberOfParticles 30000;
 }
 
-"(twoWayMPIProps|M2MProps)"
+"(mixTwoWayMPIProps|twoWayMPIProps|M2MProps)"
 {
     liggghtsPath "../DEM/in.liggghts_run";
 }

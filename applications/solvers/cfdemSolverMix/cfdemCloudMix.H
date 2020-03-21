@@ -42,8 +42,31 @@ SourceFiles
 #define cfdemCloudMix_H
 
 #include "cfdemCloud.H"
+#include <unistd.h>
 
 namespace Foam {
+
+template<typename _T>
+void mainThreadPrint(const std::string& _Name, const _T& _V) {
+  int numProc, myProc;
+  MPI_Comm_size(MPI_COMM_WORLD, &numProc);
+  MPI_Comm_rank(MPI_COMM_WORLD, &myProc);
+  if (myProc == 0) {
+    std::cout << "\n" << _Name << ": " << _V << "\n" << std::endl;
+    usleep(500000);
+  }
+}
+
+template<typename _T>
+void mainThreadPrint(const std::string& _Name, _T const * const& _P) {
+  int numProc, myProc;
+  MPI_Comm_size(MPI_COMM_WORLD, &numProc);
+  MPI_Comm_rank(MPI_COMM_WORLD, &myProc);
+  if (myProc == 0) {
+    std::cout << "\n" << _Name << ": " << (void*)_P << "\n" << std::endl;
+    usleep(500000);
+  }
+}
 
 class cfdemCloudMix: public cfdemCloud {
 
