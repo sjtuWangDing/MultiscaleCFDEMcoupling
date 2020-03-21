@@ -5,3 +5,7 @@ log.*
 *~
 /platforms
 src/lagrangian/cfdemParticle/etc/tmpFile.txt
+
+# picture
+*.png
+*.eps

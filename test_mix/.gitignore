@@ -10,7 +10,3 @@
 *.tar
 *.tgz
 *.gtgz
-
-# picture
-*.png
-*.eps
