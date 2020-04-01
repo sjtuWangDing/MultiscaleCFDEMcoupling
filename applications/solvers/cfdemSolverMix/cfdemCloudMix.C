@@ -118,88 +118,28 @@ void cfdemCloudMix::giveDEMdata() {
   }
 }
 
-void cfdemCloudMix::mixResetFieldKernel() {
-  Info << "\nReset volume fields ..." << endl;
-  // 重置局部平均颗粒速度
-  averagingM().UsPrev() == averagingM().UsNext();
-  averagingM().UsNext() == dimensionedVector("zero",  averagingM().UsNext().dimensions(), vector::zero);
-  Info << "\tReset Us fields - done" << endl;
-
-  // 重置空隙率场
-  voidFractionM().resetVoidFractions();
-  Info << "\tReset voidfraction fields - done" << endl;
-
-  // 重置体积分数场
-  voidFractionM().resetVolumeFractions();
-  Info << "\tReset volumefraction fields - done" << endl;
-
-  // 重置隐式力场
-  averagingM().resetVectorAverage(forceM(0).impParticleForces(),
-                                  forceM(0).impParticleForces(), true);
-  Info << "\tReset implicit force fields - done" << endl;
-
-  // 重置显式力场
-  averagingM().resetVectorAverage(forceM(0).expParticleForces(),
-                                  forceM(0).expParticleForces(), true);
-  Info << "\tReset Explicit force fields - done" << endl;
-
-  // 重置颗粒速度影响因数场
-  averagingM().UsWeightField() == dimensionedScalar("zero", averagingM().UsWeightField().dimensions(), 0.0);
-  Info << "\tReset Us weight fields - done" << endl;
-
-  // 重置单位体积动量交换场
-  for (int i = 0; i < momCoupleModels_.size(); i++) {
-    // momCoupleM(i).KslPrev_ == momCoupleM(i).KslNext_;
-    // momCoupleM(i).KslNext_ ==  dimensionedScalar("zero", momCoupleM(i).KslNext_.dimensions(), 0.0);
-    momCoupleM(i).resetMomSourceField();
+void cfdemCloudMix::doCoupleDebug() {
+  if (verbose_) {
+    int timeIndex = mesh().time().timeIndex();
+    int timeIndexOffset = dataExchangeM().timeIndexOffset();
+    scalar CFDts = mesh().time().deltaT().value();         // 流体时间步长
+    int cfdStep = timeIndex - timeIndexOffset;             // 发生耦合的流体时间步数
+    scalar couplingTime = dataExchangeM().couplingTime();  // 耦合时间步长
+    int couplingStep = dataExchangeM().couplingStep();     // 耦合时间步数
+    Info << "current cfdStep: " << cfdStep << endl;
+    Info << "current couplingStep: " << couplingStep << endl;
+    Info << "cfdStep * CFDts: " << cfdStep * CFDts - SMALL << endl;
+    Info << "couplingStep * couplingTime: " << couplingStep * couplingTime << endl;
   }
-  Info << "\tReset Ksl fields - done" << endl;
-  Info << "Reset volume fields - done" << endl;
 }
 
-// @brief 强制重新分配内存
-void cfdemCloudMix::mixForceReAllocArrays() {
-  
-}
-
-void cfdemCloudMix::mixCouplingKernel() {
-  Info << "\n// * * * * * * * * * * " << "Coupling" << " * * * * * * * * * * //\n" << endl;
-
-  // 当 dataExchangeModel 为 twoWayMPI or mixTwoWayMPI 时, couple 函数从 DEM 求解器读取颗粒数量, 同时调用 reAllocArray 函数分配内存
-  // 注意: 在 reAllocArrays 函数中针对所有尺度的颗粒分配内存
-  dataExchangeM().couple(0);
-  Info << "number of particles: " << numberOfParticles() << endl;              // 颗粒数量
-  Info << "current couplingStep: " << dataExchangeM().couplingStep() << endl;  // 当前耦合时间步
-
-  // 重置场量
-  mixResetFieldKernel();
-
-  // 获取 DEM 数据(颗粒半径, 颗粒位置矢量, 颗粒速度...)
-  if (verbose_) { Info << "\ncfdemCloudMix::getDEMdata()..." << endl; }
-  getDEMdata();
-  if (verbose_) { Info << "cfdemCloudMix::getDEMdata() - done" << endl; }
-
-  // 定位颗粒中心所在网格的编号
-  if (verbose_) { Info << "\ncfdemCloudMix::findCell()..." << endl; }
-  // 创建临时空间存放颗粒中心所在网格的编号
-  std::vector<double> cellIDs_vec(numberOfParticles_, -1);
-  std::vector<double*> ptr_vec(numberOfParticles_, NULL);
-  for (int i = 0; i < numberOfParticles_; ++i) {
-    ptr_vec[i] = cellIDs_vec.data() + i;
+void cfdemCloudMix::findCellDebug() {
+  if (verbose_) {
+    for (int index = 0; index < numberOfParticles(); ++index) {
+      Info << "particle index: " << index << ", position: " << position(index) << ", cellIDs: "
+        << cellIDs()[index][0] << ", cell centre: " << mesh().C()[cellIDs()[index][0]] << endl;
+    }
   }
-  cellIDs_ = ptr_vec.data();
-  findCells();  // <==> locateM().findCell(NULL, positions_, cellIDs_, numberOfParticles());
-  if (verbose_) { Info << "cfdemCloudMix::findCell() - done" << endl; }
-
-  // 计算颗粒尺寸与其周围网格平均尺寸的比值, 并将颗粒索引按照颗粒尺寸归类
-  if (verbose_) { Info << "\nvoidFractionModel::getDimensionRatios()..." << endl; }
-  const_cast<voidFractionModel&>(voidFractionM()).getDimensionRatios(dimensionRatios_);
-  if (verbose_) { Info << "voidFractionModel::getDimensionRatios() - done" << endl; }
-
-  // 根据颗粒尺度分配内存
-  mixForceReAllocArrays();
-
-  Info << "\n// * * * * * * * * * * " << "Coupling - done" << " * * * * * * * * * * //\n" << endl;
 }
 
 bool cfdemCloudMix::reAllocArrays() const {
@@ -301,214 +241,93 @@ bool cfdemCloudMix::reAllocArrays(int nP, bool forceRealloc) const {
   return false;
 }
 
-void cfdemCloudMix::doCoupleDebug() {
-  if (verbose_) {
-    int timeIndex = mesh().time().timeIndex();
-    int timeIndexOffset = dataExchangeM().timeIndexOffset();
-    scalar CFDts = mesh().time().deltaT().value();         // 流体时间步长
-    int cfdStep = timeIndex - timeIndexOffset;             // 发生耦合的流体时间步数
-    scalar couplingTime = dataExchangeM().couplingTime();  // 耦合时间步长
-    int couplingStep = dataExchangeM().couplingStep();     // 耦合时间步数
-    Info << "current cfdStep: " << cfdStep << endl;
-    Info << "current couplingStep: " << couplingStep << endl;
-    Info << "cfdStep * CFDts: " << cfdStep * CFDts - SMALL << endl;
-    Info << "couplingStep * couplingTime: " << couplingStep * couplingTime << endl;
+void cfdemCloudMix::mixResetFieldKernel() {
+  Info << "\nReset volume fields ..." << endl;
+  // 重置局部平均颗粒速度
+  averagingM().UsPrev() == averagingM().UsNext();
+  averagingM().UsNext() == dimensionedVector("zero",  averagingM().UsNext().dimensions(), vector::zero);
+  Info << "\tReset Us fields - done" << endl;
+
+  // 重置空隙率场
+  voidFractionM().resetVoidFractions();
+  Info << "\tReset voidfraction fields - done" << endl;
+
+  // 重置体积分数场
+  voidFractionM().resetVolumeFractions();
+  Info << "\tReset volumefraction fields - done" << endl;
+
+  // 重置隐式力场
+  averagingM().resetVectorAverage(forceM(0).impParticleForces(),
+                                  forceM(0).impParticleForces(), true);
+  Info << "\tReset implicit force fields - done" << endl;
+
+  // 重置显式力场
+  averagingM().resetVectorAverage(forceM(0).expParticleForces(),
+                                  forceM(0).expParticleForces(), true);
+  Info << "\tReset Explicit force fields - done" << endl;
+
+  // 重置颗粒速度影响因数场
+  averagingM().UsWeightField() == dimensionedScalar("zero", averagingM().UsWeightField().dimensions(), 0.0);
+  Info << "\tReset Us weight fields - done" << endl;
+
+  // 重置单位体积动量交换场
+  for (int i = 0; i < momCoupleModels_.size(); i++) {
+    // momCoupleM(i).KslPrev_ == momCoupleM(i).KslNext_;
+    // momCoupleM(i).KslNext_ ==  dimensionedScalar("zero", momCoupleM(i).KslNext_.dimensions(), 0.0);
+    momCoupleM(i).resetMomSourceField();
   }
+  Info << "\tReset Ksl fields - done" << endl;
+  Info << "Reset volume fields - done" << endl;
 }
 
-void cfdemCloudMix::findCellDebug() {
-  if (verbose_) {
-    for (int index = 0; index < numberOfParticles(); ++index) {
-      Info << "particle index: " << index << ", position: " << position(index) << ", cellIDs: "
-        << cellIDs()[index][0] << ", cell centre: " << mesh().C()[cellIDs()[index][0]] << endl;
-    }
-  }
+// @brief 强制重新分配内存
+void cfdemCloudMix::mixForceReAllocArrays() {
+  MPI_Barrier(MPI_COMM_WORLD);
+
+  Pout << "coarsePariticleNumber: " << coarsePariticleNumber_ << endl;
+
+  MPI_Barrier(MPI_COMM_WORLD);
 }
 
-// // @brief 更新欧拉场
-// // @param alpha  <[in, out] 小颗粒空隙率场
-// // @param Us     <[in, out] 局部平均小颗粒速度场
-// // @param U      <[in] 流体速度场
-// bool cfdemCloudMix::evolve(volScalarField& alpha,
-//                            volVectorField& Us,
-//                            volVectorField& U) {
-//   Info << "\n// * * * * * * * * * * * * * * * " << "Foam::cfdemCloudMix::evolve()" << " * * * * * * * * * * * * * * * //\n" << endl;
-//   numberOfParticlesChanged_ = false;
-//   arraysReallocated_ = false;
-//   bool doCouple = false;
+void cfdemCloudMix::mixCouplingKernel() {
+  Info << "\n// * * * * * * * * * * " << "Coupling" << " * * * * * * * * * * //\n" << endl;
 
-//   if (!ignore()) {
-//     if (!writeTimePassed_ && mesh_.time().outputTime()) {
-//       writeTimePassed_ = true;
-//     }
-//     // 因为耦合时间步长 = 流体时间步长的整数倍，所以判断当前流体时间步是否同时也是耦合时间步
-//     doCoupleDebug();
-//     if (dataExchangeM().doCoupleNow()) {
-//       Info << "\n// * * * * * * * * * * " << "Coupling" << " * * * * * * * * * * //\n" << endl;
-//       // 当 dataExchangeModel 为 twoWayMPI 时, couple(0) 函数从 DEM 求解器读取颗粒数量, 同时调用 reAllocArray 函数分配内存
-//       Info << "number of particles = " << numberOfParticles() << endl;
-//       dataExchangeM().couple(0);
-//       Info << "number of particles = " << numberOfParticles() << endl;
-//       doCouple = true;
+  // 当 dataExchangeModel 为 twoWayMPI or mixTwoWayMPI 时, couple 函数从 DEM 求解器读取颗粒数量, 同时调用 reAllocArray 函数分配内存
+  // 注意: 在 reAllocArrays 函数中针对所有尺度的颗粒分配内存
+  dataExchangeM().couple(0);
+  Info << "number of particles: " << numberOfParticles() << endl;              // 颗粒数量
+  Info << "current couplingStep: " << dataExchangeM().couplingStep() << endl;  // 当前耦合时间步
 
-//       if (verbose_) {
-//         Info << "\n// * * * * * * * * * * " << "ResetVolFields" << " * * * * * * * * * * //\n" << endl;
-//         Info << "number of particles = " << numberOfParticles() << endl;
-//         // dataExchangeM().couplingStep() 返回当前耦合时间步
-//         Info << "current couplingStep: " << dataExchangeM().couplingStep() << endl;
-//       }
+  // 重置场量
+  mixResetFieldKernel();
 
-//       // 重置局部平均颗粒速度
-//       // averagingM().UsPrev() == averagingM().UsNext();
-//       // averagingM().UsNext() == dimensionedVector("zero",  averagingM().UsNext().dimensions(), vector::zero);
-//       averagingM().resetVectorAverage(averagingM().UsPrev(),
-//                                       averagingM().UsNext(), false);
+  // 获取 DEM 数据(颗粒半径, 颗粒位置矢量, 颗粒速度...)
+  if (verbose_) { Info << "\ncfdemCloudMix::getDEMdata()..." << endl; }
+  getDEMdata();
+  if (verbose_) { Info << "cfdemCloudMix::getDEMdata() - done" << endl; }
 
-//       // 重置小颗粒空隙率场
-//       // voidfractionPrev_ == voidfractionNext_;
-//       // voidfractionNext_ == dimensionedScalar("one", voidfractionNext_.dimensions(), 1.);
-//       resetVoidFraction();
+  // 定位颗粒中心所在网格的编号
+  if (verbose_) { Info << "\ncfdemCloudMix::findCell()..." << endl; }
+  // 创建临时空间存放颗粒中心所在网格的编号
+  std::vector<double> cellIDs_vec(numberOfParticles_, -1);
+  std::vector<double*> ptr_vec(numberOfParticles_, NULL);
+  for (int i = 0; i < numberOfParticles_; ++i) {
+    ptr_vec[i] = cellIDs_vec.data() + i;
+  }
+  cellIDs_ = ptr_vec.data();
+  findCells();  // <==> locateM().findCell(NULL, positions_, cellIDs_, numberOfParticles());
+  if (verbose_) { Info << "cfdemCloudMix::findCell() - done" << endl; }
 
-//       // 重置隐式力场
-//       // forceM(0).impParticleForces() ==
-//       //   dimensionedVector("zero", forceM(0).impParticleForces().dimensions(), vector::zero);
-//       averagingM().resetVectorAverage(forceM(0).impParticleForces(),
-//                                       forceM(0).impParticleForces(), true);
+  // 计算颗粒尺寸与其周围网格平均尺寸的比值, 并将颗粒索引按照颗粒尺寸归类
+  if (verbose_) { Info << "\nvoidFractionModel::getDimensionRatios()..." << endl; }
+  const_cast<voidFractionModel&>(voidFractionM()).getDimensionRatios(dimensionRatios_);
+  if (verbose_) { Info << "voidFractionModel::getDimensionRatios() - done" << endl; }
 
-//       // 重置显式力场
-//       // forceM(0).expParticleForces() ==
-//       //   dimensionedVector("zero", forceM(0).expParticleForces().dimensions(), vector::zero);
-//       averagingM().resetVectorAverage(forceM(0).expParticleForces(),
-//                                       forceM(0).expParticleForces(), true);
+  // 根据颗粒尺度分配内存
+  mixForceReAllocArrays();
 
-//       // 重置颗粒速度影响因数场
-//       // averagingM().resetWeightFields();
-//       averagingM().UsWeightField() == dimensionedScalar("zero", averagingM().UsWeightField().dimensions(), 0.0);
-
-//       // 重置动量交换场
-//       for (int i = 0; i < momCoupleModels_.size(); i++) {
-//         // momCoupleM(i).KslPrev_ == momCoupleM(i).KslNext_;
-//         // momCoupleM(i).KslNext_ ==  dimensionedScalar("zero", momCoupleM(i).KslNext_.dimensions(),  0.0);
-//         momCoupleM(i).resetMomSourceField();
-//       }
-//       if (verbose_) {
-//         Info << "\n// * * * * * * * * * * " << "ResetVolFields - done" << " * * * * * * * * * * //\n" << endl;
-//       }
-
-//       // End of reset fields, start of evolve fields!
-
-//       // 获取 DEM 数据
-//       if (verbose_) { Info << "cfdemCloudMix::getDEMdata()..." << endl; }
-//       getDEMdata();
-//       if (verbose_) { Info << "cfdemCloudMix::getDEMdata() - done\n" << endl; }
-
-//       // search cellIDs of particles
-//       if (verbose_) { Info << "cfdemCloudMix::findCell()..." << endl; }
-//       // locateM().findCell(NULL, positions_, cellIDs_, numberOfParticles());
-//       findCells();
-//       if (verbose_) { Info << "cfdemCloudMix::findCell() - done\n" << endl; }
-
-//       // 计算颗粒尺寸与其周围网格平均尺寸的比值, 并将颗粒索引按照颗粒尺寸归类
-//       if (verbose_) { Info << "voidFractionModel::getDimensionRatios()..." << endl; }
-//       const_cast<voidFractionModel&>(voidFractionM()).getDimensionRatios(dimensionRatios_);
-//       if (verbose_) { Info << "voidFractionModel::getDimensionRatios() - done\n " << endl; }
-
-//       // 设置小颗粒空隙率场
-//       if (verbose_) Info << "cfdemCloudMix::setvoidFraction()..." << endl;
-//       voidFractionM().voidFractionModelInit(voidfractions_,
-//                                             particleWeights_,
-//                                             particleVolumes_,
-//                                             particleV_,
-//                                             dimensionRatios_);
-//       // @brief 设置空隙率和流体体积分数前, 必须先调用 voidFractionModelInit 函数
-//       voidFractionM().setVoidFractionAndVolumeFraction(NULL,
-//                                                        volumefractions_,
-//                                                        voidfractions_,
-//                                                        particleWeights_,
-//                                                        particleVolumes_,
-//                                                        particleV_,
-//                                                        dimensionRatios_);
-//       // setVoidFraction();
-//       if (verbose_) Info << "cfdemCloudMix::setvoidFraction() - done\n" << endl;
-
-//       // 设置局部平均颗粒速度场，将小颗粒的速度 velocities_ 映射到局部平局小颗粒速度，本质上是将拉格朗日场映射到欧拉场
-//       // setVectorAverages();
-//       if (verbose_) Info << "cfdemCloudMix::setVectorAverage()..." << endl;
-//       averagingM().setVectorAverage(averagingM().UsNext(),
-//                                     velocities_,
-//                                     particleWeights_,
-//                                     averagingM().UsWeightField(),
-//                                     NULL,
-//                                     NULL,
-//                                     false);
-//       if (verbose_) Info << "cfdemCloudMix::setVectorAverage() - done\n" << endl;
-
-//       // smoothen "next" fields
-//       smoothingM().dSmoothing();
-//       smoothingM().smoothen(voidFractionM().voidFractionNext());
-//       // only smoothen if we use implicit force coupling in cells void of particles
-//       // because we need unsmoothened Us field to detect cells for explicit force coupling
-//       if (!treatVoidCellsAsExplicitForce()) {
-//         smoothingM().smoothenReferenceField(averagingM().UsNext());
-//       }
-//       Info << "\n// * * * * * * * * * * " << "Coupling - done" << " * * * * * * * * * * //\n" << endl;
-//     }  // End of doCoupleNow
-
-//     // 获取 timeStepFraction，以防止使用自适应流体时间步
-//     if (verbose_) { Info << "timeStepFraction() = " << dataExchangeM().timeStepFraction() << endl; }
-//     if (dataExchangeM().timeStepFraction() > 1.001 ||
-//        dataExchangeM().timeStepFraction() < -0.001) {
-//       FatalError << "cfdemCloud::dataExchangeM().timeStepFraction() = "<< dataExchangeM().timeStepFraction()
-//         << " must be >1 or <0 : This might be due to the fact that you used a adjustable CFD time step. Please use a fixed CFD time step."
-//         << abort(FatalError);
-//     }
-
-//     // update voidFractionField
-//     setAlpha(alpha);
-//     if (dataExchangeM().couplingStep() < 2) {
-//       alpha.oldTime() = alpha; // supress volume src
-//       alpha.oldTime().correctBoundaryConditions();
-//     }
-//     alpha.correctBoundaryConditions();
-
-//     // calc ddt(voidfraction)
-//     calcDdtVoidfraction(alpha, Us);
-
-//     // update mean particle velocity Field
-//     Us = averagingM().UsInterp();
-//     Us.correctBoundaryConditions();
-
-//     if (doCouple) {
-//       // set particles forces
-//       if (verbose_) { Info << "cfdemCloudMix::setForce()..." << endl; }
-//       setForces();
-//       if (verbose_) { Info << "cfdemCloudMix::setForce() - done\n" << endl; }
-
-//       if (verbose_) { Info << "cfdemCloudMix::ncalcMultiphaseTurbulence()..." << endl; }
-//       calcMultiphaseTurbulence();
-//       if (verbose_) { Info << "cfdemCloudMix::calcMultiphaseTurbulence() - done\n" << endl; }
-
-//       // get next force field
-//       if (verbose_) { Info << "cfdemCloudMix::nsetParticleForceField()..." << endl; }
-//       setParticleForceField();
-//       if (verbose_) { Info << "cfdemCloudMix::setParticleForceField() - done\n" << endl; }
-
-//       // write DEM data
-//       if (verbose_) { Info << "cfdemCloudMix::ngiveDEMdata()..." << endl; }
-//       giveDEMdata();
-//       if (verbose_) { Info << "cfdemCloudMix::giveDEMdata() - done\n" << endl; }
-
-//       dataExchangeM().couple(1);
-//     }
-//     if (verbose_) {
-//       // #include "debugInfo.H"
-//     }
-//     // do particle IO
-//     IOM().dumpDEMdata();
-//   }  // End of ignore
-//   Info << "\n// * * * * * * * * * * * * * * * " << "Foam::cfdemCloudMix::evolve() - done" << " * * * * * * * * * * * * * * * //\n" << endl;
-//   return doCouple;
-// }
+  Info << "\n// * * * * * * * * * * " << "Coupling - done" << " * * * * * * * * * * //\n" << endl;
+}
 
 // @brief 更新函数
 // @param alpha  <[in, out] 小颗粒空隙率场
