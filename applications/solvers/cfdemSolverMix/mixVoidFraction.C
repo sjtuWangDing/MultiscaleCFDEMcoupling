@@ -1,6 +1,7 @@
 #include "error.H"
 #include "mixVoidFraction.H"
 #include "addToRunTimeSelectionTable.H"
+#include "mpi.h"
 
 namespace Foam {
 
@@ -112,17 +113,9 @@ mixVoidFraction::mixVoidFraction(const dictionary& dict,
 }
 
 // @brief 计算颗粒尺寸与其周围网格平均尺寸的比值, 并将颗粒索引按照颗粒尺寸归类
-void mixVoidFraction::getDimensionRatios(std::vector<double>& dimensionRatios,
-                                         std::vector<int>& fineParticleIndexs,
-                                         std::vector<int>& middleParticleIndexs,
-                                         std::vector<int>& coarseParticleIndexs,
-                                         std::vector<int>& missingParticleIndexs) {
-  // 清空所有的集合
+void mixVoidFraction::getDimensionRatios(std::vector<double>& dimensionRatios) {
   dimensionRatios.clear();
-  fineParticleIndexs.clear();
-  middleParticleIndexs.clear();
-  coarseParticleIndexs.clear();
-  missingParticleIndexs.clear();
+  MPI_Barrier(MPI_COMM_WORLD);
 
   for (int index = 0; index < particleCloud_.numberOfParticles(); ++index) {
     // 获取颗粒中心所在网格编号
@@ -135,36 +128,83 @@ void mixVoidFraction::getDimensionRatios(std::vector<double>& dimensionRatios,
     if (particleCenterCellID >= 0) {  // particle found
       // 定义初始化模糊哈希集合
       labelHashSet initHashSett;
-
       // 构建初始化哈希集合
       buildLabelHashSetForDimensionRatio(index,
                                          positionCenter,
                                          particleCenterCellID,
                                          initHashSett, 1.0);
-
       // 计算颗粒周围网格的平均尺寸
       scalar Vmesh = 0.0;
-      for (label i = 0; i < initHashSett.size(); ++i) {
+      forAll (initHashSett, i) {
         label cellI = initHashSett.toc()[i];
         Vmesh += particleCloud_.mesh().V()[cellI];
       }
-      Vmesh /= initHashSett.size();
-
-      // 计算颗粒尺寸与其周围网格平均尺寸的比值
-      double ratio = pow(Vmesh, 1.0 / 3.0) / (2.0 * radius);
+      // 计算颗粒尺寸与颗粒中心所在网格尺寸的比值
+      double ratio = pow(Vmesh / static_cast<double>(initHashSett.size()), 1.0 / 3.0) / (2.0 * radius);
       dimensionRatios.push_back(ratio);
-
-      // 颗粒索引按照颗粒尺寸归类
-      if (particleCloud_.checkFineParticle(ratio)) { fineParticleIndexs.push_back(index); continue; }
-      if (particleCloud_.checkMiddleParticle(ratio)) { middleParticleIndexs.push_back(index); continue; }
-      if (particleCloud_.checkCoarseParticle(ratio)) { coarseParticleIndexs.push_back(index); continue; }
-
     } else {
-      // 如果在当前处理器没有搜索到颗粒覆盖的网格, 则将 dimensionRatios[index] 置为 -1.0
+      // 如果在当前处理器没有搜索到颗粒覆盖的网格, 则置为 -1.0
       dimensionRatios.push_back(-1);
-      missingParticleIndexs.push_back(index);
     }
   }  // End of index
+
+  // 这里必须调用 particleCloud_.mesh().C(), 否则在下面的 MPI_Barrier 中进程会阻塞
+  Pout << "Mesh number in current Proc: " << particleCloud_.mesh().C().size() << endl;
+  MPI_Barrier(MPI_COMM_WORLD);
+
+  // 主节点汇总其他节点的 dimension ratio 等信息
+  int numberOfParticles = particleCloud_.numberOfParticles();
+  int coarseParticleNumber = 0;
+  int numProc, myProc;
+  MPI_Comm_size(MPI_COMM_WORLD, &numProc);
+  MPI_Comm_rank(MPI_COMM_WORLD, &myProc);
+  int dimensionRatios_tag = 100, coarseParticleNumber_tag = 101;
+
+  if (myProc != 0) {
+    // 不是主节点
+    MPI_Request myRequest;
+    MPI_Status myStatus;
+    // 发送 dimensionRatios 给主节点( MPI_Isend 非阻塞)
+    MPI_Isend(dimensionRatios.data(), numberOfParticles, MPI_DOUBLE, 0, dimensionRatios_tag,
+              MPI_COMM_WORLD, &myRequest);
+    MPI_Wait(&myRequest, &myStatus);
+    // 从主节点接收 coarse particle number
+    MPI_Irecv(&coarseParticleNumber, 1, MPI_INT, 0, coarseParticleNumber_tag,
+              MPI_COMM_WORLD, &myRequest);
+    MPI_Wait(&myRequest, &myStatus);
+  }
+  if (myProc == 0) {
+    std::vector<MPI_Request> myRequest_vec(numProc);
+    std::vector<MPI_Status> myStatus_vec(numProc);
+    std::vector<double> dimensionRatios_vec(numProc * numberOfParticles, -1);
+    // 如果是主节点, 则接收其他节点的信息
+    for (int inode = 1; inode < numProc; ++inode) {
+      MPI_Irecv(dimensionRatios_vec.data() + inode * numberOfParticles,
+                numberOfParticles, MPI_DOUBLE, inode, dimensionRatios_tag,
+                MPI_COMM_WORLD, myRequest_vec.data() + inode);
+    }  // End of loop sub node
+    // 主节点等待 Irecv 执行完成
+    MPI_Waitall(numProc - 1, myRequest_vec.data() + 1, myStatus_vec.data() + 1);
+    for (int i = 0; i < numberOfParticles; ++i) {
+      dimensionRatios_vec[i] = dimensionRatios[i];
+    }
+    // 统计 coarse particle 的个数
+    for (int j = 0; j < numberOfParticles; ++j) {
+      for (int i = 0; i < numProc; ++i) {
+        double dimensionRatio = dimensionRatios_vec[j + i * numberOfParticles];
+        if (particleCloud_.checkCoarseParticle(dimensionRatio)) {
+          coarseParticleNumber += 1;
+          break;
+        }
+      }
+    }
+    for (int inode = 1; inode < numProc; ++inode) {
+      MPI_Isend(&coarseParticleNumber, 1, MPI_INT, inode, coarseParticleNumber_tag,
+                MPI_COMM_WORLD, myRequest_vec.data() + inode);
+    }
+  }
+  MPI_Barrier(MPI_COMM_WORLD);
+  particleCloud_.setCoarseParticleNumber(coarseParticleNumber);
 }
 
 // @brief 计算被 middle 颗粒影响到的网格编号
@@ -217,6 +257,8 @@ void mixVoidFraction::buildLabelHashSetForDimensionRatio(const int index,
                                                          const label& cellID,
                                                          labelHashSet& hashSett,
                                                          const double& scale) const {
+  if (cellID < 0) { return; }
+
   hashSett.insert(cellID);
   // 获取 cellID 网格的所有 neighbour cell 的链表
   const labelList& nc = particleCloud_.mesh().cellCells()[cellID];
@@ -224,19 +266,17 @@ void mixVoidFraction::buildLabelHashSetForDimensionRatio(const int index,
   // 遍历链表
   forAll(nc, i) {
     // 获取相邻网格索引, 以及网格中心坐标
-    label neighbour = nc[i];
+    double neighbour = nc[i];
 
     if (neighbour >= 0) {  // 判断是否搜索到边界
       vector cellCentrePosition = particleCloud_.mesh().C()[neighbour];
 
-      if (false == hashSett.found(neighbour) &&
-          pointInParticle(index, position, cellCentrePosition, scale) < 0.0 ) {  // 如果 neighbour 网格中心在颗粒中, 并且在哈希集合中没有 neighbour 网格的索引
-
-        // 以 neighbour 为中心递归构建哈希集合
-        buildLabelHashSetForDimensionRatio(index, position, neighbour, hashSett, scale);
+      if (false == hashSett.found(neighbour)) {
+        if (pointInParticle(index, position, cellCentrePosition, scale) < 0.0 ) {  // 如果 neighbour 网格中心在颗粒中, 并且在哈希集合中没有 neighbour 网格的索引
+          // 以 neighbour 为中心递归构建哈希集合
+          buildLabelHashSetForDimensionRatio(index, position, neighbour, hashSett, scale);
+        }
       }
-    } else { // 如果搜索到边界, 则跳过本次循环
-      continue ;
     }
   }
 }
@@ -448,7 +488,7 @@ void mixVoidFraction::setvoidFractionForSingleParticle(const int index,
   scalar cellVol(0.);
   scalar scaleVol = weight();
   scalar scaleRadius = cbrt(porosity());
-  const boundBox& globalBb = particleCloud_.mesh().bounds();
+  // const boundBox& globalBb = particleCloud_.mesh().bounds();
 
   // 获取颗粒 index 中心坐标, 颗粒中心所在网格编号, 以及颗粒半径
   vector position = particleCloud_.position(index);
@@ -478,17 +518,17 @@ void mixVoidFraction::setvoidFractionForSingleParticle(const int index,
       // 获取标志点的绝对位置
       vector subPosition = position + radius * offsets[i];
 
-      // 检查周期性边界
-      if (particleCloud_.checkPeriodicCells()) {
-        for (int iDir = 0; iDir < 3; iDir++) {
-          // 如果标志点在计算区域外部, 那么获取在计算区域内部的标志点
-          if (subPosition[iDir] > globalBb.max()[iDir]) {
-            subPosition[iDir] -= globalBb.max()[iDir] - globalBb.min()[iDir];
-          } else if (subPosition[iDir] < globalBb.min()[iDir]) {
-            subPosition[iDir] += globalBb.max()[iDir] - globalBb.min()[iDir];
-          }
-        }
-      }
+      // // 检查周期性边界
+      // if (particleCloud_.checkPeriodicCells()) {
+      //   for (int iDir = 0; iDir < 3; iDir++) {
+      //     // 如果标志点在计算区域外部, 那么获取在计算区域内部的标志点
+      //     if (subPosition[iDir] > globalBb.max()[iDir]) {
+      //       subPosition[iDir] -= globalBb.max()[iDir] - globalBb.min()[iDir];
+      //     } else if (subPosition[iDir] < globalBb.min()[iDir]) {
+      //       subPosition[iDir] += globalBb.max()[iDir] - globalBb.min()[iDir];
+      //     }
+      //   }
+      // }
 
       // 根据修正后的标志点坐标定位标志点所在网格的索引
       label partCellId = particleCloud_.locateM().findSingleCell(subPosition, cellID);

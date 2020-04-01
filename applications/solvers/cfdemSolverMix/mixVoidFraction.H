@@ -68,11 +68,7 @@ public:
                                   const scalar& searchScale = 4) const;
 
   // @brief 计算颗粒尺寸与其周围网格平均尺寸的比值, 并将颗粒索引按照颗粒尺寸归类
-  virtual void getDimensionRatios(std::vector<double>& dimensionRatios,
-                                  std::vector<int>& fineParticleIndexs,
-                                  std::vector<int>& middleParticleIndexs,
-                                  std::vector<int>& coarseParticleIndexs,
-                                  std::vector<int>& missingParticleIndexs);
+  virtual void getDimensionRatios(std::vector<double>& dimensionRatios);
 
   // @brief 设置空隙率以及颗粒体积分数前必须调用该初始化函数
   virtual void voidFractionModelInit(double**& voidfractions,

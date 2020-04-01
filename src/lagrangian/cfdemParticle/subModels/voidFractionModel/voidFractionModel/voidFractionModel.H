@@ -102,12 +102,8 @@ public:
       << abort(FatalError);
   }
 
-  // @brief 计算颗粒尺寸与其周围网格平均尺寸的比值, 并将颗粒索引按照颗粒尺寸归类
-  virtual void getDimensionRatios(std::vector<double>& dimensionRatios,
-                                  std::vector<int>& fineParticleIndexs,
-                                  std::vector<int>& middleParticleIndexs,
-                                  std::vector<int>& coarseParticleIndexs,
-                                  std::vector<int>& missingParticleIndexs) {
+  // @brief 计算颗粒尺寸与其周围网格平均尺寸的比值
+  virtual void getDimensionRatios(std::vector<double>& dimensionRatios) {
     FatalError << "voidFractionModel::getDimensionRatios(): using base class function, please use derived class function\n"
       << abort(FatalError);
   }
@@ -118,17 +114,6 @@ public:
                                      double**& particleVolumes,
                                      double**& particleV,
                                      const std::vector<double>& dimensionRatios) const {}
-
-  // // @brief 设置索引为 index 的单个颗粒的空隙率
-  // virtual void setvoidFractionForSingleParticle(const int index,
-  //                                               double**& particleWeights,
-  //                                               double**& particleVolumes,
-  //                                               double**& particleV,
-  //                                               const double& dimensionRatio) const {}
-
-  // // @brief 设置索引为 index 的单个颗粒的体积分数场
-  // virtual void setVolumeFractionForSingleParticle(const int index,
-  //                                                 const double& dimensionRatio) const {}
 
   // @brief 设置空隙率以及流体体积分数
   // @note for cfdemSolverMix used
@@ -175,30 +160,30 @@ public:
 
   // Access Functions
 
-  volScalarField& voidFractionPrev() const { return voidfractionPrev_; }
+  inline volScalarField& voidFractionPrev() const { return voidfractionPrev_; }
 
-  volScalarField& voidFractionNext() const { return voidfractionNext_; }
+  inline volScalarField& voidFractionNext() const { return voidfractionNext_; }
 
-  scalar weight() const { return weight_; }
+  inline scalar weight() const { return weight_; }
 
-  scalar porosity() const { return porosity_; }
+  inline scalar porosity() const { return porosity_; }
 
-  double ** const& cellsPerParticle() const { return cellsPerParticle_; }
+  inline double ** const& cellsPerParticle() const { return cellsPerParticle_; }
 
-  int maxCellsPerParticle() const { return maxCellsPerParticle_; }
+  inline int maxCellsPerParticle() const { return maxCellsPerParticle_; }
 
-  int maxCellsNumPerFineParticle() const { return maxCellsNumPerFineParticle_; }
+  inline int maxCellsNumPerFineParticle() const { return maxCellsNumPerFineParticle_; }
 
-  int maxCellsNumPerMiddleParticle() const { return maxCellsNumPerMiddleParticle_; }
+  inline int maxCellsNumPerMiddleParticle() const { return maxCellsNumPerMiddleParticle_; }
 
-  int maxCellsNumPerCoarseParticle() const { return maxCellsNumPerCoarseParticle_; }
+  inline int maxCellsNumPerCoarseParticle() const { return maxCellsNumPerCoarseParticle_; }
 
-  bool requiresSuperquadric() const { return requiresSuperquadric_; }
+  inline bool requiresSuperquadric() const { return requiresSuperquadric_; }
 
 #if __VF_MIX__
-  volScalarField& volumeFractionPrev() const { return volumefractionPrev_; }
+  inline volScalarField& volumeFractionPrev() const { return volumefractionPrev_; }
 
-  volScalarField& volumeFractionNext() const { return volumefractionNext_; }
+  inline volScalarField& volumeFractionNext() const { return volumefractionNext_; }
 #endif
 
 };  // End of class voidFractionModel

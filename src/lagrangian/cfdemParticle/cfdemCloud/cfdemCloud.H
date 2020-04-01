@@ -104,7 +104,7 @@ public:
     return checkFineParticle(ratio) || checkMiddleParticle(ratio);
   }
 
-private:
+protected:
 
   // @brief 是否用于求解器 cfdemSolverIB
   bool usedForSolverIB_;
@@ -112,11 +112,19 @@ private:
   // @brief 是否用于求解器 cfdemSolverPiso
   bool usedForSolverPiso_;
 
+  int coarsePariticleNumber_;
+
 public:
 
   inline bool usedForSolverIB() const { return usedForSolverIB_; }
 
   inline bool usedForSolverPiso() const { return usedForSolverPiso_; }
+
+  inline void setCoarseParticleNumber(const int& coarsePariticleNumber) {
+    coarsePariticleNumber_ = std::max(0, coarsePariticleNumber);
+  }
+
+  inline const int& coarsePariticleNumber() { return coarsePariticleNumber_; }
 
 #endif  // __MIXCLOUD__
 

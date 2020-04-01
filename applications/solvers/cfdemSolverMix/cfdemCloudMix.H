@@ -43,30 +43,9 @@ SourceFiles
 
 #include "cfdemCloud.H"
 #include <unistd.h>
+#include <functional>
 
 namespace Foam {
-
-template<typename _T>
-void mainThreadPrint(const std::string& _Name, const _T& _V) {
-  int numProc, myProc;
-  MPI_Comm_size(MPI_COMM_WORLD, &numProc);
-  MPI_Comm_rank(MPI_COMM_WORLD, &myProc);
-  if (myProc == 0) {
-    std::cout << "\n" << _Name << ": " << _V << "\n" << std::endl;
-    usleep(500000);
-  }
-}
-
-template<typename _T>
-void mainThreadPrint(const std::string& _Name, _T const * const& _P) {
-  int numProc, myProc;
-  MPI_Comm_size(MPI_COMM_WORLD, &numProc);
-  MPI_Comm_rank(MPI_COMM_WORLD, &myProc);
-  if (myProc == 0) {
-    std::cout << "\n" << _Name << ": " << (void*)_P << "\n" << std::endl;
-    usleep(500000);
-  }
-}
 
 class cfdemCloudMix: public cfdemCloud {
 
@@ -105,6 +84,15 @@ protected:
   // @brief 颗粒体积分数
   mutable double** volumefractions_;
 
+  // @brief 颗粒网格尺寸比
+  std::vector<double> dimensionRatios_;
+
+  // @brief 颗粒覆盖当前求解器上网格的总个数
+  std::vector<double> sumCellsNumbers_;
+
+  // @brief 颗粒覆盖当前求解器上网格的总体积
+  std::vector<double> sumCellsVolumes_;
+
   // @brief fine 颗粒索引
   std::vector<int> fineParticleIndexs_;
 
@@ -113,12 +101,6 @@ protected:
 
   // @brief coarse 颗粒索引
   std::vector<int> coarseParticleIndexs_;
-
-  // @brief 丢失颗粒索引
-  std::vector<int> missingParticleIndexs_;
-
-  // @brief 颗粒网格尺寸比
-  std::vector<double> dimensionRatios_;
 
   // @brief 颗粒影响的网格集合
   // @note 用于计算 drag force for middle particle
@@ -150,6 +132,13 @@ public:
 
   // @brief force number of particles during reallocation
   virtual bool reAllocArrays(int nP, bool forceRealloc) const;
+
+  // @brief 强制重新分配内存
+  void mixForceReAllocArrays();
+
+  void mixResetFieldKernel();
+
+  void mixCouplingKernel();
 
   // @brief 更新函数
   // @param alphaVoidfraction  <[in, out] 小颗粒空隙率场
