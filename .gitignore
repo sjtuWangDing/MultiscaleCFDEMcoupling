@@ -7,3 +7,4 @@ log.*
 src/lagrangian/cfdemParticle/etc/tmpFile.txt
 
 /test_mix
+/gitCmdDoc
