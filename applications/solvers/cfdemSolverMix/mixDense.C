@@ -46,14 +46,16 @@ mixDense::mixDense(const dictionary& dict, cfdemCloud& sm): averagingModel(dict,
 // @brief Destructor
 mixDense::~mixDense() {}
 
-// @brief 设置局部平均标量场
-// @param field                      <[in, out] 需要被局部平均化场
-// @param value                      <[in] 用于局部平均化的颗粒(lagrange)变量
-// @param weight                     <[in] 用于局部平均化的权重系数(lagrange)
-// @param weightField                <[in, out] 权重系数平均化场
-// @param& mask
-// @param& weight2                   <[in] 指定第二权重系数
-// @param weightWithWeight2 = false  <[in] 是否使用第二权重系数
+/*!
+ * \brief 设置局部平均矢量场
+ * \param field                      <[in, out] 需要被局部平均化场
+ * \param value                      <[in] 用于局部平均化的颗粒(lagrange)变量
+ * \param weight                     <[in] 用于局部平均化的权重系数(lagrange)
+ * \param weightField                <[in, out] 权重系数平均化场
+ * \param mask
+ * \param weight2                    <[in] 指定第二权重系数
+ * \param weightWithWeight2 = false  <[in] 是否使用第二权重系数
+ */
 void mixDense::setScalarAverage(volScalarField& field,
                                 double**& value,
                                 double**& weight,
@@ -64,14 +66,16 @@ void mixDense::setScalarAverage(volScalarField& field,
   FatalError << "mixDense::setScalarAverage() not implemented" << abort(FatalError);
 }
 
-// @brief 设置局部平均矢量场
-// @param field                      <[in, out] 需要被局部平均化场
-// @param value                      <[in] 用于局部平均化的颗粒(lagrange)变量
-// @param weight                     <[in] 用于局部平均化的权重系数(lagrange)
-// @param weightField                <[in, out] 权重系数平均化场
-// @param& mask
-// @param& weight2                   <[in] 指定第二权重系数
-// @param weightWithWeight2 = false  <[in] 是否使用第二权重系数
+/*!
+ * \brief 设置局部平均矢量场
+ * \param field                      <[in, out] 需要被局部平均化场
+ * \param value                      <[in] 用于局部平均化的颗粒(lagrange)变量
+ * \param weight                     <[in] 用于局部平均化的权重系数(lagrange)
+ * \param weightField                <[in, out] 权重系数平均化场
+ * \param mask
+ * \param weight2                    <[in] 指定第二权重系数
+ * \param weightWithWeight2 = false  <[in] 是否使用第二权重系数
+ */
 void mixDense::setVectorAverage(volVectorField& field,
                                 double**& value,
                                 double**& weight,
@@ -110,6 +114,57 @@ void mixDense::setVectorAverage(volVectorField& field,
       }  // End of cellI >= 0
     }  // End of subCell
   }  // End of index
+  // correct cell values to patches
+  field.correctBoundaryConditions();
+}
+
+/*!
+ * \brief 设置局部平均矢量场
+ * \param value              <[in] 用于局部平均化的颗粒(lagrange)变量
+ * \param weight             <[in] 用于局部平均化的权重系数(lagrange)
+ * \param dimensionRatios    <[in] 颗粒网格尺寸比
+ * \param weightField        <[in, out] 权重系数平均化场
+ * \param field              <[in, out] 需要被局部平均化场
+ * \param mask
+ */
+void mixDense::setMixVectorAverage(double **& value,
+                                   double **& weight,
+                                   std::vector<double>& dimensionRatios,
+                                   volVectorField& field,
+                                   volScalarField& weightField,
+                                   double **const& mask) const {
+  label cellI;
+  vector valueVec;
+  scalar weightP;
+  for (int index = 0; index < particleCloud_.numberOfParticles(); index++) {
+
+    //skip this particle if not correct type
+    if (!checkParticleType(index)) { continue; }
+
+    if (particleCloud_.checkFAndMParticle(dimensionRatios[index])) {
+
+      for (int subcell = 0; subcell < particleCloud_.cellsPerParticle()[index][0]; ++subcell) {
+        // 获取颗粒覆盖的第 subcell 个网格的 cellI
+        cellI = particleCloud_.cellIDs()[index][subcell];
+
+        if (cellI >= 0) {
+          for (int i = 0; i < 3; ++i) { valueVec[i] = value[index][i]; }
+
+          // 获取权重系数
+          weightP = weight[index][subcell];
+
+          if (weightField[cellI] == 0) {  // first entry in this cell
+            field[cellI] = valueVec;
+            weightField[cellI] = weightP;
+          } else {  // not first entry in this cell
+            field[cellI] = (field[cellI] * weightField[cellI] + valueVec * weightP) / (weightField[cellI] + weightP);
+            weightField[cellI] += weightP;
+          }
+        }  // Cell found in domain
+      } // End of subcell
+    }  // End of fine and middle particles
+  }  // End of index
+
   // correct cell values to patches
   field.correctBoundaryConditions();
 }

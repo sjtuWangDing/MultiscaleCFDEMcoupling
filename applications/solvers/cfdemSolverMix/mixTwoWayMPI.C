@@ -107,6 +107,15 @@ void mixTwoWayMPI::destroy(double**& array, int) const {
   if (array == NULL) { return; }
   free(array[0]);
   free(array);
+  array = NULL;
+}
+
+// @brief Allocate and destroy for 1-D array
+// @note DType = double
+void mixTwoWayMPI::destroy(double*& array) const {
+  if (array == NULL) { return; }
+  free(array);
+  array = NULL;
 }
 
 void mixTwoWayMPI::allocateArray(double**& array,
@@ -130,6 +139,43 @@ void mixTwoWayMPI::destroy(int**& array, int) const {
   if (array == NULL) { return; }
   free(array[0]);
   free(array);
+  array = NULL;
+}
+
+// @brief Allocate and destroy for 1-D array
+// @note DType = int
+void mixTwoWayMPI::destroy(int*& array) const {
+  if (array == NULL) { return; }
+  free(array);
+  array = NULL;
+}
+
+// @brief 释放离散内存
+void mixTwoWayMPI::destroyDiscreteMemory(double** const& array, int len) const {
+  if (array == NULL || len == 0) { return; }
+  double**& ptr = const_cast<double**&>(array);
+  for (int i = 0; i < len; ++i) {
+    if (array[i] != NULL) {
+      free(ptr[i]);
+      ptr[i] = NULL;
+    }
+  }
+  free(ptr);
+  ptr = NULL;
+}
+
+// @brief 释放离散内存
+void mixTwoWayMPI::destroyDiscreteMemory(int** const& array, int len) const {
+  if (array == NULL || len == 0) { return; }
+  int**& ptr = const_cast<int**&>(array);
+  for (int i = 0; i < len; ++i) {
+    if (array[i] != NULL) {
+      free(ptr[i]);
+      ptr[i] = NULL;
+    }
+  }
+  free(ptr);
+  ptr = NULL;
 }
 
 void mixTwoWayMPI::allocateArray(int**& array,
@@ -155,8 +201,7 @@ bool mixTwoWayMPI::couple(int i) const {
     coupleNow = true;
 
     // 开始执行 liggghts 脚本
-    Info << "\n// * * * * * * * * * * " << "mixTwoWayMPI::couple(): Starting up LIGGGHTS"
-      << " * * * * * * * * * * //\n" << endl;
+    Info << "mixTwoWayMPI::couple(): Starting up LIGGGHTS..." << endl;
 
     // check if liggghtsCommandModels with exaxt timing are being run
     bool exactTiming(false);
@@ -259,8 +304,7 @@ bool mixTwoWayMPI::couple(int i) const {
         }
       }
     }  // End of exactTiming
-    Info << "\n// * * * * * * * * * * " << "mixTwoWayMPI::couple(): LIGGGHTS finished"
-      << " * * * * * * * * * * //\n" << endl;
+    Info << "mixTwoWayMPI::couple(): LIGGGHTS - done\n" << endl;
 
     // give number of particles to cloud
     double newNpart = liggghts_get_maxtag(lmp);
@@ -268,9 +312,9 @@ bool mixTwoWayMPI::couple(int i) const {
     setNumberOfClumps(-2);
 
     // re-allocate arrays of cloud
-    Info << "\nmixTwoWayMPI::couple(0): invoke particleCloud_.reAllocArrays()" <<endl;
+    Info << "\nmixTwoWayMPI::couple(0): invoke particleCloud_.reAllocArrays()..." << endl;
     particleCloud_.reAllocArrays();
-    Info << "mixTwoWayMPI::couple(0): particleCloud_.reAllocArrays() - done\n" <<endl;
+    Info << "mixTwoWayMPI::couple(0): particleCloud_.reAllocArrays() - done\n" << endl;
   }  // End of i == 0
   return coupleNow;
 }

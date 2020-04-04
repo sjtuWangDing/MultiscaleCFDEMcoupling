@@ -113,13 +113,20 @@ mixVoidFraction::mixVoidFraction(const dictionary& dict,
 }
 
 // @brief 计算颗粒尺寸与其周围网格平均尺寸的比值, 并将颗粒索引按照颗粒尺寸归类
-void mixVoidFraction::getDimensionRatios(std::vector<double>& dimensionRatios) {
+void mixVoidFraction::getDimensionRatios(std::vector<double>& dimensionRatios,
+                                         std::vector<double>& globalDimensionRatios,
+                                         std::vector<double>& sumCellsNumbers,
+                                         std::vector<double>& sumCellsVolumes,
+                                         const std::vector<double*>& centreCellIDs) {
   dimensionRatios.clear();
+  globalDimensionRatios.clear();
+  sumCellsNumbers.clear();
+  sumCellsVolumes.clear();
   MPI_Barrier(MPI_COMM_WORLD);
 
   for (int index = 0; index < particleCloud_.numberOfParticles(); ++index) {
     // 获取颗粒中心所在网格编号
-    label particleCenterCellID = particleCloud_.cellIDs()[index][0];
+    label particleCenterCellID = *(centreCellIDs[index]);
     // 获取颗粒半径
     scalar radius = particleCloud_.radius(index);
     // 获取颗粒中心位置
@@ -142,10 +149,16 @@ void mixVoidFraction::getDimensionRatios(std::vector<double>& dimensionRatios) {
       // 计算颗粒尺寸与颗粒中心所在网格尺寸的比值
       double ratio = pow(Vmesh / static_cast<double>(initHashSett.size()), 1.0 / 3.0) / (2.0 * radius);
       dimensionRatios.push_back(ratio);
+      sumCellsNumbers.push_back(static_cast<double>(initHashSett.size()));
+      sumCellsVolumes.push_back(static_cast<double>(Vmesh));
     } else {
       // 如果在当前处理器没有搜索到颗粒覆盖的网格, 则置为 -1.0
       dimensionRatios.push_back(-1);
+      sumCellsNumbers.push_back(-1);
+      sumCellsVolumes.push_back(-1);
     }
+    // 对所有颗粒都置为 -1
+    globalDimensionRatios.push_back(-1);
   }  // End of index
 
   // 这里必须调用 particleCloud_.mesh().C(), 否则在下面的 MPI_Barrier 中进程会阻塞
@@ -154,57 +167,74 @@ void mixVoidFraction::getDimensionRatios(std::vector<double>& dimensionRatios) {
 
   // 主节点汇总其他节点的 dimension ratio 等信息
   int numberOfParticles = particleCloud_.numberOfParticles();
-  int coarseParticleNumber = 0;
   int numProc, myProc;
   MPI_Comm_size(MPI_COMM_WORLD, &numProc);
   MPI_Comm_rank(MPI_COMM_WORLD, &myProc);
-  int dimensionRatios_tag = 100, coarseParticleNumber_tag = 101;
+  int globalDimensionRatios_tag = 100;
+  int sumCellsNumbers_tag = 102;
+  int sumCellsVolumes_tag = 103;
 
   if (myProc != 0) {
     // 不是主节点
-    MPI_Request myRequest;
-    MPI_Status myStatus;
-    // 发送 dimensionRatios 给主节点( MPI_Isend 非阻塞)
-    MPI_Isend(dimensionRatios.data(), numberOfParticles, MPI_DOUBLE, 0, dimensionRatios_tag,
-              MPI_COMM_WORLD, &myRequest);
-    MPI_Wait(&myRequest, &myStatus);
-    // 从主节点接收 coarse particle number
-    MPI_Irecv(&coarseParticleNumber, 1, MPI_INT, 0, coarseParticleNumber_tag,
-              MPI_COMM_WORLD, &myRequest);
-    MPI_Wait(&myRequest, &myStatus);
+    MPI_Request myRequest[3];
+    MPI_Status myStatus[3];
+    // 发送 sumCellsNumbers 给主节点( MPI_Isend 非阻塞)
+    MPI_Isend(sumCellsNumbers.data(), numberOfParticles, MPI_DOUBLE, 0,
+              sumCellsNumbers_tag, MPI_COMM_WORLD, &myRequest[0]);
+    MPI_Isend(sumCellsVolumes.data(), numberOfParticles, MPI_DOUBLE, 0,
+              sumCellsVolumes_tag, MPI_COMM_WORLD, &myRequest[1]);
+    // 从主节点接收 globalDimensionRatios
+    MPI_Irecv(globalDimensionRatios.data(), numberOfParticles, MPI_DOUBLE, 0,
+              globalDimensionRatios_tag, MPI_COMM_WORLD, &myRequest[2]);
+    MPI_Wait(myRequest + 2, myStatus + 2);
   }
+
   if (myProc == 0) {
     std::vector<MPI_Request> myRequest_vec(numProc);
     std::vector<MPI_Status> myStatus_vec(numProc);
-    std::vector<double> dimensionRatios_vec(numProc * numberOfParticles, -1);
-    // 如果是主节点, 则接收其他节点的信息
+    std::vector<double> sumCellsNumbers_vec(numProc * numberOfParticles, -1);
+    std::vector<double> sumCellsVolumes_vec(numProc * numberOfParticles, -1);
+
+    // 如果是主节点, 则接收其他节点的 sumCellsNumbers 信息
     for (int inode = 1; inode < numProc; ++inode) {
-      MPI_Irecv(dimensionRatios_vec.data() + inode * numberOfParticles,
-                numberOfParticles, MPI_DOUBLE, inode, dimensionRatios_tag,
+      MPI_Irecv(sumCellsNumbers_vec.data() + inode * numberOfParticles,
+                numberOfParticles, MPI_DOUBLE, inode, sumCellsNumbers_tag,
                 MPI_COMM_WORLD, myRequest_vec.data() + inode);
     }  // End of loop sub node
     // 主节点等待 Irecv 执行完成
     MPI_Waitall(numProc - 1, myRequest_vec.data() + 1, myStatus_vec.data() + 1);
-    for (int i = 0; i < numberOfParticles; ++i) {
-      dimensionRatios_vec[i] = dimensionRatios[i];
-    }
-    // 统计 coarse particle 的个数
-    for (int j = 0; j < numberOfParticles; ++j) {
-      for (int i = 0; i < numProc; ++i) {
-        double dimensionRatio = dimensionRatios_vec[j + i * numberOfParticles];
-        if (particleCloud_.checkCoarseParticle(dimensionRatio)) {
-          coarseParticleNumber += 1;
-          break;
-        }
-      }
-    }
+
+    // 如果是主节点, 则接收其他节点的 sumCellsVolumes 信息
     for (int inode = 1; inode < numProc; ++inode) {
-      MPI_Isend(&coarseParticleNumber, 1, MPI_INT, inode, coarseParticleNumber_tag,
+      MPI_Irecv(sumCellsVolumes_vec.data() + inode * numberOfParticles,
+                numberOfParticles, MPI_DOUBLE, inode, sumCellsVolumes_tag,
                 MPI_COMM_WORLD, myRequest_vec.data() + inode);
+    }  // End of loop sub node
+    // 主节点等待 Irecv 执行完成
+    MPI_Waitall(numProc - 1, myRequest_vec.data() + 1, myStatus_vec.data() + 1);
+
+    // 由主节点计算 globalDimensionRatios
+    for (int i = 0; i < numberOfParticles; ++i) {
+      double Nmesh = 0, Vmesh = 0;
+      double radius = particleCloud_.radius(i);
+      for (int j = 0; j < numProc; ++j) {
+        if (j == 0) {
+          Nmesh += std::max(sumCellsNumbers[i], 0.);
+          Vmesh += std::max(sumCellsVolumes[i], 0.);
+        }
+        Nmesh += std::max(sumCellsNumbers_vec[i + j * numberOfParticles], 0.);
+        Vmesh += std::max(sumCellsVolumes_vec[i + j * numberOfParticles], 0.);
+      }
+      double globalRatio = pow(Vmesh / Nmesh, 1.0 / 3.0) / (2.0 * radius);
+      globalDimensionRatios[i] = globalRatio;
+    }
+
+    for (int inode = 1; inode < numProc; ++inode) {
+      MPI_Isend(globalDimensionRatios.data(), numberOfParticles, MPI_DOUBLE, inode,
+                globalDimensionRatios_tag, MPI_COMM_WORLD, myRequest_vec.data() + inode);
     }
   }
   MPI_Barrier(MPI_COMM_WORLD);
-  particleCloud_.setCoarseParticleNumber(coarseParticleNumber);
 }
 
 // @brief 计算被 middle 颗粒影响到的网格编号
@@ -360,8 +390,7 @@ void mixVoidFraction::setvoidFraction(double** const& mask,
 }
 
 // @brief 设置空隙率以及颗粒体积分数前必须调用该初始化函数
-void mixVoidFraction::voidFractionModelInit(double**& voidfractions,
-                                            double**& particleWeights,
+void mixVoidFraction::voidFractionModelInit(double**& particleWeights,
                                             double**& particleVolumes,
                                             double**& particleV,
                                             const std::vector<double>& dimensionRatios) const {
@@ -385,8 +414,8 @@ void mixVoidFraction::voidFractionModelInit(double**& voidfractions,
     double ratio = dimensionRatios[index];
 
     // (4) fine and middle 颗粒重置
-    if (particleCloud_.checkFineParticle(ratio) || particleCloud_.checkMiddleParticle(ratio)) {
-      for (int subcell = 0; subcell < cellsPerParticle_[index][0]; subcell++) {
+    if (particleCloud_.checkFAndMParticle(ratio)) {
+      for (int subcell = 0; subcell < std::max(maxCellsNumPerFineParticle_, maxCellsNumPerMiddleParticle_); subcell++) {
         particleWeights[index][subcell] = 0.;
         particleVolumes[index][subcell] = 0.;
       }

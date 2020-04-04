@@ -146,6 +146,18 @@ public:
   virtual void destroy(int*& array) const;
   virtual void allocateArray(int*& array, int initVal, int length) const;
 
+  // @brief 释放离散内存
+  virtual void destroyDiscreteMemory(double** const& array, int len) const {
+    FatalError << "dataExchangeModel::destroyDiscreteMemory(): using base class function, please use derived class function\n"
+      << abort(FatalError);
+  }
+
+  // @brief 释放离散内存
+  virtual void destroyDiscreteMemory(int** const& array, int len) const {
+    FatalError << "dataExchangeModel::destroyDiscreteMemory(): using base class function, please use derived class function\n"
+      << abort(FatalError);
+  }
+
   virtual bool couple(int) const;
 
   // @brief 因为耦合时间步长 = 流体时间步长的整数倍，所以 timeStepFraction() 用于计算每个流体时间步在耦合时间步中的所占比例，

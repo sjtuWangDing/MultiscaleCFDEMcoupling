@@ -92,14 +92,16 @@ public:
 
   void applyDebugSettings(bool debug) const;
 
-  // @brief 纯虚函数，由子类提供覆盖版本
-  // @param field                      <[in, out] 需要被局部平均化场
-  // @param value                      <[in] 用于局部平均化的颗粒(lagrange)变量
-  // @param weight                     <[in] 用于局部平均化的权重系数(lagrange)
-  // @param weightField                <[in, out] 权重系数平均化场
-  // @param& mask
-  // @param& weight2                   <[in] 指定第二权重系数
-  // @param weightWithWeight2 = false  <[in] 是否使用第二权重系数
+  /*!
+   * \brief 设置局部平均标量场(纯虚函数，由子类提供覆盖版本)
+   * \param field                      <[in, out] 需要被局部平均化场
+   * \param value                      <[in] 用于局部平均化的颗粒(lagrange)变量
+   * \param weight                     <[in] 用于局部平均化的权重系数(lagrange)
+   * \param weightField                <[in, out] 权重系数平均化场
+   * \param mask
+   * \param weight2                    <[in] 指定第二权重系数
+   * \param weightWithWeight2 = false  <[in] 是否使用第二权重系数
+   */
   virtual void setScalarAverage(volScalarField& field,
                                 double**& value,
                                 double**& weight,
@@ -108,14 +110,16 @@ public:
                                 double** const& weight2,
                                 bool weightWithWeight2 = false) const = 0;
 
-  // @brief 纯虚函数，由子类提供覆盖版本
-  // @param field                      <[in, out] 需要被局部平均化场
-  // @param value                      <[in] 用于局部平均化的颗粒(lagrange)变量
-  // @param weight                     <[in] 用于局部平均化的权重系数(lagrange)
-  // @param weightField                <[in, out] 权重系数平均化场
-  // @param& mask
-  // @param& weight2                   <[in] 指定第二权重系数
-  // @param weightWithWeight2 = false  <[in] 是否使用第二权重系数
+  /*!
+   * \brief 设置局部平均矢量场(纯虚函数，由子类提供覆盖版本)
+   * \param field                      <[in, out] 需要被局部平均化场
+   * \param value                      <[in] 用于局部平均化的颗粒(lagrange)变量
+   * \param weight                     <[in] 用于局部平均化的权重系数(lagrange)
+   * \param weightField                <[in, out] 权重系数平均化场
+   * \param mask
+   * \param weight2                    <[in] 指定第二权重系数
+   * \param weightWithWeight2 = false  <[in] 是否使用第二权重系数
+   */
   virtual void setVectorAverage(volVectorField& field,
                                 double**& value,
                                 double**& weight,
@@ -124,15 +128,39 @@ public:
                                 double** const& weight2,
                                 bool weightWithWeight2 = false) const = 0;
 
-void setVectorSum(volVectorField& field,
-                  double**& value,
-                  double**& weight,
-                  double** const& mask) const;
+  /*!
+   * \brief 设置局部平均矢量场
+   * \param value              <[in] 用于局部平均化的颗粒(lagrange)变量
+   * \param weight             <[in] 用于局部平均化的权重系数(lagrange)
+   * \param dimensionRatios    <[in] 颗粒网格尺寸比
+   * \param weightField        <[in, out] 权重系数平均化场
+   * \param field              <[in, out] 需要被局部平均化场
+   * \param mask
+   */
+  virtual void setMixVectorAverage(double **& value,
+                                   double **& weight,
+                                   std::vector<double>& dimensionRatios,
+                                   volVectorField& field,
+                                   volScalarField& weightField,
+                                   double **const& mask) const {
+    FatalError << "averagingModel::setMixVectorAverage() not implemented, please use dense model."
+      << abort(FatalError);
+  }
 
-void setScalarSum(volScalarField& field,
-                  double**& value,
-                  double**const& weight,
-                  double**const& mask) const;
+  void setVectorSum(volVectorField& field,
+                    double**& value,
+                    double**& weight,
+                    double** const& mask) const;
+
+  void setVectorSum(volVectorField& field,
+                    double**& value,
+                    double**& weight,
+                    const std::vector<double>& dimensionRatios) const;
+
+  void setScalarSum(volScalarField& field,
+                    double**& value,
+                    double**const& weight,
+                    double**const& mask) const;
 
   // * * * * * * * * * * * * * *  Not Implemented * * * * * * * * * * * * * * * * //
 
