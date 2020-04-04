@@ -422,11 +422,21 @@ Foam::cfdemCloud::~cfdemCloud() {
   dataExchangeM().destroy(DEMForces_, 3);
   dataExchangeM().destroy(Cds_, 1);
   dataExchangeM().destroy(radii_, 1);
-  dataExchangeM().destroy(voidfractions_, 1);
+  dataExchangeM().destroy(particleV_, 1);
+
+#if __MIXCLOUD__
+  if (usedForSolverPiso_ || usedForSolverIB_) {
+    dataExchangeM().destroy(cellIDs_, 1);
+    dataExchangeM().destroy(voidfractions_, 1);
+    dataExchangeM().destroy(particleWeights_, 1);
+    dataExchangeM().destroy(particleVolumes_, 1);
+  }
+#else
   dataExchangeM().destroy(cellIDs_, 1);
+  dataExchangeM().destroy(voidfractions_, 1);
   dataExchangeM().destroy(particleWeights_, 1);
   dataExchangeM().destroy(particleVolumes_, 1);
-  dataExchangeM().destroy(particleV_, 1);
+#endif  // __MIXCLOUD__
 
   int iUser=0;
   for(std::vector<double**>::iterator it = particleDatFieldsUserCFDEMToExt.begin();

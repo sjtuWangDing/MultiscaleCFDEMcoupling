@@ -87,20 +87,23 @@ protected:
   // @brief 颗粒网格尺寸比
   std::vector<double> dimensionRatios_;
 
+  // @brief 全局颗粒网格尺寸比
+  std::vector<double> globalDimensionRatios_;
+
   // @brief 颗粒覆盖当前求解器上网格的总个数
   std::vector<double> sumCellsNumbers_;
 
   // @brief 颗粒覆盖当前求解器上网格的总体积
   std::vector<double> sumCellsVolumes_;
 
-  // @brief fine 颗粒索引
-  std::vector<int> fineParticleIndexs_;
+  // // @brief fine 颗粒索引
+  // std::vector<int> fineParticleIndexs_;
 
-  // @brief middle 颗粒索引
-  std::vector<int> middleParticleIndexs_;
+  // // @brief middle 颗粒索引
+  // std::vector<int> middleParticleIndexs_;
 
-  // @brief coarse 颗粒索引
-  std::vector<int> coarseParticleIndexs_;
+  // // @brief coarse 颗粒索引
+  // std::vector<int> coarseParticleIndexs_;
 
   // @brief 颗粒影响的网格集合
   // @note 用于计算 drag force for middle particle
@@ -144,14 +147,28 @@ public:
   // @param alphaVoidfraction  <[in, out] 小颗粒空隙率场
   // @param Us                 <[in, out] 局部平均小颗粒速度场
   // @param U                  <[in] 流体速度场
+  // @note used for cfdemSolverPiso
   virtual bool evolve(volScalarField& alphaVoidfraction,
                       volVectorField& Us,
                       volVectorField& U);
+
+  // @brief 更新函数
+  // @param alphaVoidfraction    <[in, out] 小颗粒空隙率场
+  // @param alphaVolumefraction  <[in, out] 大颗粒体积分数场
+  // @param Us                   <[in, out] 局部平均小颗粒速度场
+  // @param U                    <[in] 流体速度场
+  // @note used for cfdemSolverMix
+  bool evolve(volScalarField& alphaVoidfraction,
+              volScalarField& alphaVolumefraction,
+              volVectorField& Us,
+              volVectorField& U,
+              volScalarField& interFace);
 
 
   // @brief 更新函数
   // @param alpha      <[in, out] 大颗粒体积分数场
   // @param interFace  <[in, out]
+  // @note used for cfdemSolverIB
   bool evolve(volScalarField& alpha,
               volScalarField& interFace);
 

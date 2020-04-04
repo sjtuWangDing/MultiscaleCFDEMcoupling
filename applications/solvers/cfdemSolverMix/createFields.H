@@ -69,6 +69,21 @@ volScalarField voidfraction
   mesh
 );
 
+Info << "\nReading volumefraction field volumefraction = (Vgas/Vparticle)\n" << endl;
+volScalarField volumefraction
+(
+  IOobject
+  (
+    "volumefraction",
+    runTime.timeName(),
+    mesh,
+    IOobject::READ_IF_PRESENT,
+    IOobject::AUTO_WRITE
+  ),
+  mesh,
+  dimensionedScalar("zero", dimensionSet(0, 0, 0, 0, 0), 1)
+);
+
 Info << "\nReading density field rho\n" << endl;
 volScalarField rho
 (
@@ -122,4 +137,19 @@ singlePhaseTransportModel laminarTransport(U, phi);
 
 autoPtr<incompressible::turbulenceModel> turbulence(
   incompressible::turbulenceModel::New(U, phi, laminarTransport)
+);
+
+Info << "Reading field interFace\n" << endl;
+volScalarField interFace
+(
+  IOobject
+  (
+    "interFace",
+    runTime.timeName(),
+    mesh,
+    IOobject::READ_IF_PRESENT,
+    IOobject::AUTO_WRITE
+  ),
+  mesh,
+  dimensionedScalar("0", dimensionSet(0, 0, 0, 0, 0), 0.0)
 );

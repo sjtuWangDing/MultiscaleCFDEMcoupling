@@ -112,6 +112,27 @@ void averagingModel::setVectorSum(volVectorField& field,
   field.correctBoundaryConditions();
 }
 
+void averagingModel::setVectorSum(volVectorField& field,
+                                  double**& value,
+                                  double**& weight,
+                                  const std::vector<double>& dimensionRatios) const {
+  label cellI(-1);
+  vector valueVec(0, 0, 0);
+  for(int index = 0; index < particleCloud_.numberOfParticles(); index++) {
+    for(int subCell = 0; subCell < particleCloud_.cellsPerParticle()[index][0]; subCell++) {
+      if (particleCloud_.checkFAndMParticle(dimensionRatios[index])) {
+        cellI = particleCloud_.cellIDs()[index][subCell];
+        if (cellI >= 0) {
+          for (int i = 0; i < 3; ++i) { valueVec[i] = value[index][i]; }
+          field[cellI] += valueVec * weight[index][subCell];
+        }
+      }
+    }
+  }
+  // correct cell values to patches
+  field.correctBoundaryConditions();
+}
+
 void averagingModel::setScalarSum(volScalarField& field,
                                   double**& value,
                                   double** const& weight,

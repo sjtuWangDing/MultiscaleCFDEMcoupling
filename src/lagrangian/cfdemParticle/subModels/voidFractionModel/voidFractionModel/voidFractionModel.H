@@ -103,14 +103,17 @@ public:
   }
 
   // @brief 计算颗粒尺寸与其周围网格平均尺寸的比值
-  virtual void getDimensionRatios(std::vector<double>& dimensionRatios) {
+  virtual void getDimensionRatios(std::vector<double>& dimensionRatios,
+                                  std::vector<double>& globalDimensionRatios,
+                                  std::vector<double>& sumCellsNumbers,
+                                  std::vector<double>& sumCellsVolumes,
+                                  const std::vector<double*>& centreCellIDs) {
     FatalError << "voidFractionModel::getDimensionRatios(): using base class function, please use derived class function\n"
       << abort(FatalError);
   }
 
   // @brief 设置空隙率以及颗粒体积分数前必须调用该初始化函数
-  virtual void voidFractionModelInit(double**& voidfractions,
-                                     double**& particleWeights,
+  virtual void voidFractionModelInit(double**& particleWeights,
                                      double**& particleVolumes,
                                      double**& particleV,
                                      const std::vector<double>& dimensionRatios) const {}

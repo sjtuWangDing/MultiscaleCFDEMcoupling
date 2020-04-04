@@ -115,7 +115,7 @@ int main(int argc, char *argv[]) {
 #endif
 
     // 更新: 小颗粒空隙率场, 局部平均小颗粒速度场
-    bool hasEvolved = particleCloud.evolve(voidfraction, Us, U);
+    bool hasEvolved = particleCloud.evolve(voidfraction, volumefraction, Us, U, interFace);
 
     if (hasEvolved) {
       // 光滑隐式力场

@@ -83,6 +83,7 @@ class liggghtsCommandModel;
 class cfdemCloud {
 
 #if __MIXCLOUD__
+
 public:
   // @brief 颗粒尺度系数
   static double fineParticleRatio_;
@@ -112,7 +113,7 @@ protected:
   // @brief 是否用于求解器 cfdemSolverPiso
   bool usedForSolverPiso_;
 
-  int coarsePariticleNumber_;
+  int numberOfCoarseParticles_;
 
 public:
 
@@ -120,11 +121,11 @@ public:
 
   inline bool usedForSolverPiso() const { return usedForSolverPiso_; }
 
-  inline void setCoarseParticleNumber(const int& coarsePariticleNumber) {
-    coarsePariticleNumber_ = std::max(0, coarsePariticleNumber);
+  inline void setCoarseParticleNumber(const int& numberOfCoarseParticles) {
+    numberOfCoarseParticles_ = std::max(0, numberOfCoarseParticles);
   }
 
-  inline const int& coarsePariticleNumber() { return coarsePariticleNumber_; }
+  inline const int& numberOfCoarseParticles() { return numberOfCoarseParticles_; }
 
 #endif  // __MIXCLOUD__
 
