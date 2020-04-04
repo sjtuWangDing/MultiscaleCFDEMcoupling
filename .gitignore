@@ -3,8 +3,7 @@
 log_*
 log.*
 *~
+
+#忽略根目录下的 platforms 文件
 /platforms
 src/lagrangian/cfdemParticle/etc/tmpFile.txt
-
-/test_mix
-/gitCmdDoc
