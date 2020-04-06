@@ -59,5 +59,4 @@ test_mix/*/CFD/octave/*.png
 test_mix/*/CFD/octave/*.eps
 
 # add ignore for files in DEM/
-test_mix/*/DEM/post/dump.*
-test_mix/*/DEM/post/restart/
+test_mix/*/DEM/post/
