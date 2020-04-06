@@ -57,6 +57,9 @@ test_mix/*/CFD/processor*/
 test_mix/*/CFD/0.*/
 test_mix/*/CFD/octave/*.png
 test_mix/*/CFD/octave/*.eps
+test_mix/*/CFD/octave/octave-workspace
+test_mix/*/CFD/postProcessing/
 
 # add ignore for files in DEM/
-test_mix/*/DEM/post/
+test_mix/*/DEM/post/restart/*
+test_mix/*/DEM/post/*
