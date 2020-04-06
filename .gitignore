@@ -1,9 +1,64 @@
+# C++.gitignore from github
+# Compiled Object files
+*.slo
+*.lo
 *.o
+*.obj
+
+# Precompiled Headers
+*.gch
+*.pch
+
+# Compiled Dynamic libraries
+*.so
+*.dylib
+*.dll
+
+# Compiled Static libraries
+*.lai
+*.la
+*.a
+*.lib
+
+# Executables
+*.exe
+*.out
+*.app
+
+# editor and misc backup files - anywhere
+*~
+.*~
+*.bak
+*.bak[0-9][0-9]
+*.orig
+*.orig[0-9][0-9]
+\#*\#
+
+# dependency files - anywhere
 *.dep
+
+# build folders - anywhere
+linux*Clang*/
+linux*Gcc*/
+linux*Icc*/
+linuxming*/
+SiCortex*Gcc*/
+solaris*Gcc*/
+SunOS*Gcc*/
+platforms/
+
+# ignore log files
 log_*
 log.*
-*~
 
-#忽略根目录下的 platforms 文件
-/platforms
-src/lagrangian/cfdemParticle/etc/tmpFile.txt
+# add ignore for files in CFD/
+text_mix/*/CFD/constant/polyMesh/
+text_mix/*/CFD/processor*/
+text_mix/*/CFD/0.*/
+
+test_mix/*/CFD/octave/*.png
+test_mix/*/CFD/octave/*.eps
+
+# add ignore for files in DEM/
+text_mix/*/DEM/post/dump.*
+text_mix/*/DEM/post/restart/
