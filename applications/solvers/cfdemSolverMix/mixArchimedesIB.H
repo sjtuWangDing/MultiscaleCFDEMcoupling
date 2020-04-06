@@ -56,6 +56,10 @@ private:
 
   bool twoDimensional_;
 
+  word voidfractionFieldName_;
+
+  const volScalarField& voidfractions_;
+
   word volumefractionFieldName_;
 
   const volScalarField& volumefractions_;
@@ -80,9 +84,12 @@ public:
   // @brief Destructor
   ~mixArchimedesIB();
 
+  void calForceKernel(const int& index,
+                      vector& force) const;
+
   virtual void setForce() const;
 
-  virtual void setForce(const std::vector<double>& dimensionRatios) const;
+  virtual void setMixForce(const std::vector<double>& dimensionRatios) const;
 
 };  // End of class mixArchimedesIB
 

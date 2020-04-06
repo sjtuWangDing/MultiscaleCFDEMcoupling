@@ -171,6 +171,10 @@ public:
 
   virtual void setForce() const = 0;
 
+  virtual void setMixForce(const std::vector<double>& dimensionRatios) const {
+    FatalError << "forceModel:setMixForce(): using base class function, please use derived class function\n" << abort(FatalError);
+  }
+
   void applyDebugSettings(bool) const;
 
   // @brief 对于不包含任何颗粒的网格使用显式力耦合

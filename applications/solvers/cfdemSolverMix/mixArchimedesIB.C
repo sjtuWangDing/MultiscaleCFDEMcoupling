@@ -46,10 +46,14 @@ mixArchimedesIB::mixArchimedesIB(const dictionary& dict,
   forceModel(dict, sm),
   propsDict_(dict.subDict(typeName + "Props")),
   twoDimensional_(false),
+  // 从 dict 读取空隙率场的名称
+  voidfractionFieldName_(propsDict_.lookup("voidfractionFieldName")),
+  // 获取空隙率场的引用
+  voidfractions_(sm.mesh().lookupObject<volScalarField>(voidfractionFieldName_)),
   // 从 dict 读取体积分数场的名称
-  volumefractionFieldName_(propsDict_.lookup("volmefracionFieldName")),
+  volumefractionFieldName_(propsDict_.lookup("volumefractionFieldName")),
   // 获取体积分数场的引用
-  volumefractions_(sm.mesh().lookupObject<volScalarField> (volumefractionFieldName_)),
+  volumefractions_(sm.mesh().lookupObject<volScalarField>(volumefractionFieldName_)),
   gravityFieldName_(propsDict_.lookup("gravityFieldName")),
 #if defined(version21) || defined(version16ext)
   g_(sm.mesh().lookupObject<uniformDimensionedVectorField>(gravityFieldName_))
@@ -91,30 +95,59 @@ mixArchimedesIB::mixArchimedesIB(const dictionary& dict,
 // @brief Destructor
 mixArchimedesIB::~mixArchimedesIB() {}
 
-void mixArchimedesIB::setForce() const {
-  FatalError << "mixArchimedesIB.H: setForce() only used to cover pure virtual function in base class"
-    << abort(FatalError);
+void mixArchimedesIB::calForceKernel(const int& index,
+                                     vector& force) const {
+  force = vector::zero;
+  for(int subCell = 0; subCell < particleCloud_.cellsPerParticle()[index][0]; subCell++) {
+    label cellI = particleCloud_.cellIDs()[index][subCell];
+    if (cellI >= 0) {  // cell found
+      if (particleCloud_.usedForSolverIB()) {
+        force += -g_.value() * forceSubM(0).rhoField()[cellI] * particleCloud_.mesh().V()[cellI] * (1 - voidfractions_[cellI]);
+        continue;
+      }
+      force += -g_.value() * forceSubM(0).rhoField()[cellI] * particleCloud_.mesh().V()[cellI] * (1 - volumefractions_[cellI]);
+    }  // End of cell Found
+  }  // End of loop all subCell
 }
 
-void mixArchimedesIB::setForce(const std::vector<double>& dimensionRatios) const {
-
-  Info << "Setting mixArchimedesIB force......" << endl;
+void mixArchimedesIB::setForce() const {
+  Info << "Setting mixArchimedesIB force..." << endl;
 
   #include "setupProbeModel.H"
+  vector force(0, 0, 0);
+  for (int index = 0; index <  particleCloud_.numberOfParticles(); ++index) {
+    force = vector::zero;
+    calForceKernel(index, force);
+
+    if (probeIt_) {
+      #include "setupProbeModelfields.H"
+      // Note: for other than ext one could use vValues.append(x)
+      // instead of setSize
+      vValues.setSize(vValues.size() + 1, force);
+      particleCloud_.probeM().writeProbe(index, sValues, vValues);
+    }
+    // set force on particle
+    if (twoDimensional_) {
+      Warning << "mixArchimedesIB model doesn't work for 2D right now!!\n" << endl;
+    }
+    // write particle based data to global array
+    forceSubM(0).partToArray(index, force, vector::zero);
+  }  // End of loop all particles
+
+  Info << "Setting mixArchimedesIB - done" << endl;
+}
+
+void mixArchimedesIB::setMixForce(const std::vector<double>& dimensionRatios) const {
+  if (dimensionRatios.size() == 0) { return setForce(); }
+  Info << "Setting mixArchimedesIB force..." << endl;
+
+  #include "setupProbeModel.H"
+  vector force = vector::zero;
 
   for (int index = 0; index <  particleCloud_.numberOfParticles(); ++index) {
-
     if (particleCloud_.checkCoarseParticle(dimensionRatios[index])) {
-
-      vector force = vector::zero;
-
-      for(int subCell = 0; subCell < particleCloud_.cellsPerParticle()[index][0]; subCell++) {
-
-        label cellI = particleCloud_.cellIDs()[index][subCell];
-        if (cellI >= 0) {  // cell found
-          force += -g_.value() * forceSubM(0).rhoField()[cellI] * particleCloud_.mesh().V()[cellI] * (1 - volumefractions_[cellI]);
-        }  // End of cell Found
-      }  // End of loop all subCell
+      force = vector::zero;
+      calForceKernel(index, force);
 
       if (probeIt_) {
         #include "setupProbeModelfields.H"
@@ -123,17 +156,16 @@ void mixArchimedesIB::setForce(const std::vector<double>& dimensionRatios) const
         vValues.setSize(vValues.size() + 1, force);
         particleCloud_.probeM().writeProbe(index, sValues, vValues);
       }
-
       // set force on particle
       if (twoDimensional_) {
         Warning << "mixArchimedesIB model doesn't work for 2D right now!!\n" << endl;
       }
-
       // write particle based data to global array
       forceSubM(0).partToArray(index, force, vector::zero);
-
     }  // End of check coarse particles
   }  // End of loop all particles
+
+  Info << "Setting mixArchimedesIB - done" << endl;
 }
 
 }  // End of namespcae Foam

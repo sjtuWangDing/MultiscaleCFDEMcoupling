@@ -91,40 +91,42 @@ mixArchimedes::mixArchimedes(const dictionary& dict, cfdemCloud& sm):
   forceSubM(0).readSwitches();
 }
 
-
 // @brief Destructor
 mixArchimedes::~mixArchimedes() {}
 
+void mixArchimedes::calForceKernel(const int& index,
+                                   const int& cellI,
+                                   vector& force) const {
+  if (twoDimensional_) {
+    scalar r = particleCloud_.radius(index);
+    force = -g_.value() * forceSubM(0).rhoField()[cellI] * r * r * M_PI;
+    Warning << "mixArchimedes::calForceKernel() : this functionality is not tested!" << endl;
+  } else {
+    // 真实颗粒直径
+    scalar dReal = particleCloud_.d(index);
+    // 定义修正直径
+    scalar dScale = particleCloud_.d(index);
+    // scale diameter
+    forceSubM(0).scaleDia(dScale, index);
+    // 颗粒体积
+    scalar Vs = dScale * dScale * dScale * M_PI / 6.0;
+    // 计算 Archimedes force
+    force = -g_.value() * forceSubM(0).rhoField()[cellI] * Vs;
+    forceSubM(0).scaleForce(force, dReal);
+  }
+}
+
 void mixArchimedes::setForce() const {
-  Info << "Setting Archimedes force......" << endl;
+  Info << "Setting mixArchimedes force..." << endl;
 
-  vector force(0,0,0);
-
+  vector force(0, 0, 0);
   #include "setupProbeModel.H"
 
   for (int index = 0; index < particleCloud_.numberOfParticles(); ++index) {
     label cellI = particleCloud_.cellIDs()[index][0];
     force = vector::zero;
-
     if (cellI >= 0) {
-
-      if (twoDimensional_) {
-        scalar r = particleCloud_.radius(index);
-        force = -g_.value() * forceSubM(0).rhoField()[cellI] * r * r * M_PI;
-        Warning << "Archimedes::setForce() : this functionality is not tested!" << endl;
-      } else {
-        // 真实颗粒直径
-        scalar dReal = particleCloud_.d(index);
-        // 定义修正直径
-        scalar dScale = particleCloud_.d(index);
-        // scale diameter
-        forceSubM(0).scaleDia(dScale, index);
-        // 颗粒体积
-        scalar Vs = dScale * dScale * dScale * M_PI / 6.0;
-        // 计算 Archimedes force
-        force = -g_.value() * forceSubM(0).rhoField()[cellI] * Vs;
-        forceSubM(0).scaleForce(force, dReal);
-      }
+      calForceKernel(index, cellI, force);
 
       // Set value fields and write the probe
       if (probeIt_) {
@@ -135,12 +137,41 @@ void mixArchimedes::setForce() const {
         particleCloud_.probeM().writeProbe(index, sValues, vValues);
       }
     }  // End of cellI >= 0
-
     // 将每个颗粒的总阻力以及总显式阻力传递到 cfdemCloud 中的 impForces()[index] 和 expForces()[index] 中
     forceSubM(0).partToArray(index, force, vector::zero);
   }  // End of index
 
-  Info << "Setting Archimedes force - done" << endl;
+  Info << "Setting mixArchimedes force - done" << endl;
+}
+
+void mixArchimedes::setMixForce(const std::vector<double>& dimensionRatios) const {
+  if (dimensionRatios.size() == 0) { return setForce(); }
+  Info << "Setting mixArchimedes force..." << endl;
+
+  vector force(0, 0, 0);
+  #include "setupProbeModel.H"
+
+  for (int index = 0; index < particleCloud_.numberOfParticles(); ++index) {
+    force = vector::zero;
+    if (particleCloud_.checkFAndMParticle(dimensionRatios[index])) {
+      label cellI = particleCloud_.cellIDs()[index][0];
+      if (cellI >= 0) {
+        calForceKernel(index, cellI, force);
+        // Set value fields and write the probe
+        if (probeIt_) {
+          #include "setupProbeModelfields.H"
+          // Note: for other than ext one could use vValues.append(x) instead of setSize
+          vValues.setSize(vValues.size()+1, force);  // first entry must the be the force
+          sValues.setSize(sValues.size()+1, particleCloud_.particleVolume(index)); 
+          particleCloud_.probeM().writeProbe(index, sValues, vValues);
+        }
+      }  // End of cellI >= 0
+      // 将每个颗粒的总阻力以及总显式阻力传递到 cfdemCloud 中的 impForces()[index] 和 expForces()[index] 中
+      forceSubM(0).partToArray(index, force, vector::zero);
+    }  // End of fine and middle particle
+  }  // End of index
+
+  Info << "Setting mixArchimedes force - done" << endl;
 }
 
 }  // End of namespace Foam

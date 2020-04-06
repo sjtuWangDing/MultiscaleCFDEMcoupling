@@ -30,6 +30,7 @@ Description
 
     Di Felice drag law (Zhou et al. (2010), JFM)
 
+
 Class
     mixDiFeliceDrag
 
@@ -82,7 +83,17 @@ public:
   ~mixDiFeliceDrag();
 
   // Member Functions
-  void setForce() const;
+  void calForceKernel(const int& index,
+                      const int& cellI,
+                      const volScalarField& nufField,
+                      const volScalarField& rhoField,
+                      vector& drag, vector& Ufluid, scalar& dragCoefficient,
+                      scalar& voidfraction, vector& Ur,
+                      scalar& Rep, scalar& Cd) const;
+
+  virtual void setForce() const;
+
+  virtual void setMixForce(const std::vector<double>& dimensionRatios) const;
 
 };  // End of class mixDiFeliceDrag
 

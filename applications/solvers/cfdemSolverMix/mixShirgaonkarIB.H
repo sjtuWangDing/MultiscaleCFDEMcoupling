@@ -28,63 +28,72 @@ Description
     This code is designed to realize coupled CFD-DEM simulations using LIGGGHTS
     and OpenFOAM(R). Note: this code is not part of OpenFOAM(R) (see DISCLAIMER).
 
-    Archimedes buoyancy force for sphere / cylinder (2d)
-    basic "on-off" handling of buoyancy at the interface
+    drag law for ficticious domain method calculating: sum(mu*nabla*u-laplace*p)
+    contribution from Alice Hager
 
 Class
-    mixArchimedes
+    mixShirgaonkarIB
 
 SourceFiles
-    mixArchimedes.C
+    mixShirgaonkarIB.C
 
 \*---------------------------------------------------------------------------*/
 
-#ifndef mixArchimedes_H
-#define mixArchimedes_H
+#ifndef mixShirgaonkarIB_H
+#define mixShirgaonkarIB_H
 
 #include "forceModel.H"
 
 namespace Foam {
 
-class mixArchimedes: public forceModel {
+class mixShirgaonkarIB: public forceModel {
 
 private:
 
   dictionary propsDict_;
 
+  bool verbose_;
+
   bool twoDimensional_;
 
-  word gravityFieldName_;
+  double depth_;
 
-#ifdef version21
-  const uniformDimensionedVectorField& g_;
-#elif defined(version16ext) || defined(version15)
-  const dimensionedVector& g_;
-#endif
+  // @brief 速度场名称
+  word velFieldName_;
+
+  // @brief 速度场的常引用
+  const volVectorField& U_;
+
+  // @brief 压力场的名称
+  word pressureFieldName_;
+
+  // @brief 压力场的常引用
+  const volScalarField& p_;
+
+  bool useTorque_;
 
 public:
 
   // @brief Runtime type information
-  TypeName("mixArchimedes");
-
+  TypeName("mixShirgaonkarIB");
 
   // @brief Constructors
-  mixArchimedes(const dictionary& dict, cfdemCloud& sm);
+  mixShirgaonkarIB(const dictionary& dict,
+                   cfdemCloud& sm);
 
   // @brief Destructor
-  ~mixArchimedes();
+  ~mixShirgaonkarIB();
 
-  // Member Functions
   void calForceKernel(const int& index,
-                      const int& cellI,
-                      vector& force) const;
+                      const volVectorField& IBDrag,
+                      vector& drag, vector& torque) const;
 
   virtual void setForce() const;
 
   virtual void setMixForce(const std::vector<double>& dimensionRatios) const;
 
-};  // End of class mixArchimedes
+};  // End of class mixShirgaonkarIB
 
 }  // End of namespace Foam
 
-#endif  // mixArchimedes_H
+#endif  // mixShirgaonkarIB_H

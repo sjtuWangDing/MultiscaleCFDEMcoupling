@@ -470,7 +470,17 @@ bool cfdemCloudMix::evolve(volScalarField& alphaVoidfraction,
 
     if (doCouple) {  // 如果当前时间步是耦合时间步
       if (verbose_) { Info << "cfdemCloudMix::setForce()..." << endl; }
-      setForces();
+      // setForces();
+      resetArray(impForces_, numberOfParticles_, 3, 0.0);  // 重置颗粒对流体的隐式力
+      resetArray(expForces_, numberOfParticles_, 3, 0.0);  // 重置颗粒对流体的显式力
+      resetArray(DEMForces_, numberOfParticles_, 3, 0.0);  // 重置流体对颗粒的总作用力
+      resetArray(fluidVel_, numberOfParticles_, 3, 0.0);   // 重置小颗粒所在网格的流体速度
+      resetArray(Cds_, numberOfParticles_, 1, 0.0);        // 重置阻力系数
+      //reset all USER-defined particle fields
+      zeroizeParticleDatFieldsUserCFDEMToExt();
+      for (int i = 0; i < cfdemCloud::nrForceModels(); i++) {
+        cfdemCloud::forceM(i).setMixForce(dimensionRatios_);
+      }
       if (verbose_) { Info << "cfdemCloudMix::setForce() - done\n" << endl; }
 
       if (verbose_) { Info << "cfdemCloudMix::calcMultiphaseTurbulence()..." << endl; }

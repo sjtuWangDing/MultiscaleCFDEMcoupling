@@ -57,7 +57,8 @@ smoothingModel off;
 forceModels
 (
     ShirgaonkarIB
-    ArchimedesIB
+    // ArchimedesIB
+    mixArchimedesIB
 );
 
 momCoupleModels
@@ -80,6 +81,13 @@ ArchimedesIBProps
 {
     gravityFieldName "g";
     voidfractionFieldName "voidfractionNext";
+}
+
+mixArchimedesIBProps
+{
+    gravityFieldName "g";
+    voidfractionFieldName "voidfractionNext";
+    volumefractionFieldName "volumefractionNext";
 }
 
 twoWayFilesProps
