@@ -63,3 +63,7 @@ test_mix/*/CFD/postProcessing/
 # add ignore for files in DEM/
 test_mix/*/DEM/post/restart/*
 test_mix/*/DEM/post/*
+
+# add ignore for origin file
+aaorig_*
+aaorig.*

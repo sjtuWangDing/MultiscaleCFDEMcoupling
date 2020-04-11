@@ -209,14 +209,14 @@ public:
   void partToArrayAnisotropic(const label& index,
                               const vector& CdExtra,
                               const vector& dragEx = vector::zero) const {
-    FatalError << "forceSubModel::partToArrayAnisotropic(): not implemented, please refer to aaorig_forceSubModel.C" << endl;
+    FatalError << "forceSubModel::partToArrayAnisotropic(): not implemented, please refer to forceSubModel.C in https://github.com/CFDEMproject/CFDEMcoupling-PUBLIC" << endl;
   }
 
   // @brief function to set anisotropic torque components for DEM side only.
   void partToArrayAnisotropicTorque(const label& index,
                                     const vector& CdTorque,
                                     const vector& torqueTotal = vector::zero) const {
-    FatalError << "forceSubModel::partToArrayAnisotropicTorque(): not implemented, please refer to aaorig_forceSubModel.C" << endl;
+    FatalError << "forceSubModel::partToArrayAnisotropicTorque(): not implemented, please refer to forceSubModel.C in https://github.com/CFDEMproject/CFDEMcoupling-PUBLIC" << endl;
   }
 
   virtual void constructorCalls(word typeName) const {}

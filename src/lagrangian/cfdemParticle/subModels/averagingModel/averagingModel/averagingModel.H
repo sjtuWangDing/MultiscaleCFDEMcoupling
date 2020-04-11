@@ -164,13 +164,13 @@ public:
 
   // * * * * * * * * * * * * * *  Not Implemented * * * * * * * * * * * * * * * * //
 
-  // @note If need，refer to aaorig_averagingModel.C
+  // @note If need, refer to averagingModel.C in https://github.com/CFDEMproject/CFDEMcoupling-PUBLIC
   void setVectorSumSimple(volVectorField& field,
                           double**& value,
                           double**& weight,
                           int nP) const {}
 
-  // @note If need，refer to aaorig_averagingModel.C
+  // @note If need, refer to averagingModel.C in https://github.com/CFDEMproject/CFDEMcoupling-PUBLIC
   void undoVectorAverage(volVectorField& fieldPrev,
                          volVectorField& fieldNext,
                          volScalarField& weightField,
@@ -179,13 +179,13 @@ public:
                          double**const& mask,
                          bool single = false) const {}
 
-  // @note If need，refer to aaorig_averagingModel.C
+  // @note If need, refer to averagingModel.C in https://github.com/CFDEMproject/CFDEMcoupling-PUBLIC
   void undoVectorSum(volVectorField& field,
                      double** const& value,
                      double** const& weight,
                      double**const& mask) const {}
 
-  // @note If need，refer to aaorig_averagingModel.C
+  // @note If need, refer to averagingModel.C in https://github.com/CFDEMproject/CFDEMcoupling-PUBLIC
   void setDSauter(volScalarField& dSauter,
                   double**& weight,
                   volScalarField& weightField,
