@@ -28,9 +28,11 @@ FoamFile
 
 usedForSolverPiso false;
 
-usedForSolverIB true;
+usedForSolverIB false;
 
-modelType none;
+useDynamicRefineMesh true;
+
+modelType none; // A or B or Bfull or none
 
 couplingInterval 10;
 
@@ -44,28 +46,33 @@ meshMotionModel noMeshMotion;
 
 dataExchangeModel mixTwoWayMPI;    // M2M // twoWayMPI // mixTwoWayMPI
 
-IOModel basicIO;
+IOModel basicIO;                   // trackIO
 
 probeModel off;
 
-averagingModel dilute;            // dense // dilute
+averagingModel mixDense;           // dense // dilute
 
-clockModel off;
+clockModel off;                    // standardClock
 
-smoothingModel off;
+smoothingModel off; // constDiffSmoothing
 
 forceModels
 (
-    
-    // ArchimedesIB
-	// ShirgaonkarIB
     mixArchimedesIB
-	mixShirgaonkarIB
+    mixShirgaonkarIB
 );
 
 momCoupleModels
 (
+    mixImplicitCouple
 );
+
+mixImplicitCoupleProps
+{
+    velFieldName "U";
+    granVelFieldName "Us";
+    voidfractionFieldName "voidfraction";
+}
 
 //turbulenceModelType RASProperties;//LESProperties; //OFversion24x
 turbulenceModelType turbulenceProperties; //OFversion30x
@@ -73,16 +80,16 @@ turbulenceModelType turbulenceProperties; //OFversion30x
 //===========================================================================//
 // sub-model properties
 
-ArchimedesIBProps
-{
-    gravityFieldName "g";
-    voidfractionFieldName "voidfractionNext";
-}
-
 ShirgaonkarIBProps
 {
     velFieldName "U";
     pressureFieldName "p";
+}
+
+ArchimedesIBProps
+{
+    gravityFieldName "g";
+    voidfractionFieldName "voidfractionNext";
 }
 
 mixArchimedesIBProps

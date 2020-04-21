@@ -423,9 +423,7 @@ void mixVoidFraction::voidFractionModelInit(double**& particleWeights,
     }  // End of fine or middle particles
   }  // End of index
 
-  // (5) coarse 颗粒重置
-  volumefractionNext_ == dimensionedScalar("one", volumefractionNext_.dimensions(), 1.);
-
+  // (5) 如果在 evolve 函数中没有调用 resetVoidFractions() or resetVolumeFractions()，那么这里需要调用
   hasInit_ = true;
 }
 
@@ -444,61 +442,122 @@ void mixVoidFraction::setVoidFractionAndVolumeFraction(double** const& mask,
   }
 
   for (int index = 0; index < particleCloud_.numberOfParticles(); index++) {
-    // skip this particle if not correct type
-    if (!checkParticleType(index)) { continue; }
-
-    double ratio = dimensionRatios[index];
-
-    if (particleCloud_.checkFAndMParticle(ratio)) {  // 如果颗粒是 fine or middle
-      // 设置索引为 index 的颗粒的空隙率
-      setvoidFractionForSingleParticle(index,
-                                       particleWeights,
-                                       particleVolumes,
-                                       particleV);
-    } else {  // 如果颗粒是 coasre
-      setVolumeFractionForSingleParticle(index);
-    }
-  }  // End of loop all particles
-
-  voidfractionNext_.correctBoundaryConditions();
-#if 0
-  // 如果使用 dynamicRefineMesh, 则在此处不能修正边界条件
-  volumefractionNext_.correctBoundaryConditions();
-#endif
-
-  if (verbose_) { Pout << "Total particle volume neglected: " << tooMuch_<< endl; }
+    setVolumeFractionForSingleParticle(index);
+  }
 
   // 将空隙率场和流体体积分数场从欧拉场转换到拉格朗日场
+  int fmWidth = std::max(maxCellsNumPerFineParticle_, maxCellsNumPerMiddleParticle_);
   for (int index = 0; index < particleCloud_.numberOfParticles(); index++) {
 
-    double ratio = dimensionRatios[index];
+    // set voidfractions
+    for (int subcell = 0; subcell < fmWidth; ++subcell) {
+      // 直接将 voidfractions 置为 -1.0
+      voidfractions[index][subcell] = -1.0;
+    }
 
-    if (particleCloud_.checkFAndMParticle(ratio)) {
-      // 遍历颗粒覆盖的所有网格
-      for (int subcell = 0; subcell < cellsPerParticle_[index][0]; subcell++) {
+    // set volumefractions
+    for (int subcell = 0; subcell < maxCellsNumPerCoarseParticle_; subcell++) {
+      if (subcell < cellsPerParticle_[index][0]) {
         // 获取网格编号
         label cellID = particleCloud_.cellIDs()[index][subcell];
-
-        if (cellID >= 0) {
-          voidfractions[index][subcell] = voidfractionNext_[cellID];
-        } else {
-          voidfractions[index][subcell] = -1.0;
-        }
-      }  // End of subcell
-    } else {
-      // 遍历颗粒覆盖的所有网格
-      for (int subcell = 0; subcell < cellsPerParticle_[index][0]; subcell++) {
-        // 获取网格编号
-        label cellID = particleCloud_.cellIDs()[index][subcell];
-
         if (cellID >= 0) {
           volumefractions[index][subcell] = volumefractionNext_[cellID];
         } else {
           volumefractions[index][subcell] = -1.0;
         }
-      }  // End of subcell
-    }
-  } // End of loop all particles
+      } else {
+        volumefractions[index][subcell] = -1.0;
+      }
+    }  // End of subcell
+  }
+
+  // double err = 1.e-15;
+  // forAll (voidfractionNext_, cellI) {
+  //   if (fabs(voidfractionNext_[cellI] - 1) > err) {
+  //     Info << "cellI: " << cellI << " voidfractionNext_: " << voidfractionNext_[cellI] << endl;
+  //   }
+  // }
+  // forAll (volumefractionNext_, cellI) {
+  //   if (fabs(volumefractionNext_[cellI] - 1) > err) {
+  //     Info << "cellI: " << cellI << " volumefractionNext_: " << volumefractionNext_[cellI] << endl;
+  //   }
+  // }
+
+//   for (int index = 0; index < particleCloud_.numberOfParticles(); index++) {
+//     // skip this particle if not correct type
+//     if (!checkParticleType(index)) { continue; }
+
+//     double ratio = dimensionRatios[index];
+
+//     // 如果颗粒是 coasre or 使用动态加密网格
+//     if (particleCloud_.checkCoarseParticle(ratio) || particleCloud_.useDynamicRefineMesh()) {
+//       setVolumeFractionForSingleParticle(index);
+//     } else {
+//       // 如果颗粒是 fine or middle
+//       // 设置索引为 index 的颗粒的空隙率
+//       setvoidFractionForSingleParticle(index,
+//                                        particleWeights,
+//                                        particleVolumes,
+//                                        particleV);
+//     }
+//   }  // End of loop all particles
+
+//   voidfractionNext_.correctBoundaryConditions();
+// #if 0
+//   // 如果使用 dynamicRefineMesh, 则在此处不能修正边界条件
+//   volumefractionNext_.correctBoundaryConditions();
+// #endif
+
+//   if (verbose_) { Pout << "Total particle volume neglected: " << tooMuch_<< endl; }
+//   int fmWidth = std::max(maxCellsNumPerFineParticle_, maxCellsNumPerMiddleParticle_);
+
+//   // 将空隙率场和流体体积分数场从欧拉场转换到拉格朗日场
+//   for (int index = 0; index < particleCloud_.numberOfParticles(); index++) {
+
+//     double ratio = dimensionRatios[index];
+
+//     if (particleCloud_.checkCoarseParticle(ratio) || particleCloud_.useDynamicRefineMesh()) {
+//       Info << "cellsPerParticle_[" << index << "][0]: " << cellsPerParticle_[index][0] << endl;
+
+//       // 直接将 voidfractions 置为 -1.0
+//       for (int subcell = 0; subcell < fmWidth; ++subcell) {
+//         voidfractions[index][subcell] = -1.0;
+//       }
+
+//       // 遍历颗粒覆盖的所有网格
+//       for (int subcell = 0; subcell < maxCellsNumPerCoarseParticle_; subcell++) {
+//         if (subcell < cellsPerParticle_[index][0]) {
+//           // 获取网格编号
+//           label cellID = particleCloud_.cellIDs()[index][subcell];
+
+//           if (cellID >= 0) {
+//             volumefractions[index][subcell] = volumefractionNext_[cellID];
+//           } else {
+//             volumefractions[index][subcell] = -1.0;
+//           }
+//         } else {
+//           volumefractions[index][subcell] = -1.0;
+//         }
+//       }  // End of subcell
+//     } else {
+//       // 遍历颗粒覆盖的所有网格
+//       for (int subcell = 0; subcell < fmWidth; subcell++) {
+//         if (subcell < cellsPerParticle_[index][0]) {
+//           // 获取网格编号
+//           label cellID = particleCloud_.cellIDs()[index][subcell];
+//           if (cellID >= 0) {
+//             voidfractions[index][subcell] = voidfractionNext_[cellID];
+//           } else {
+//             voidfractions[index][subcell] = -1.0;
+//           }
+//         } else {
+//           voidfractions[index][subcell] = -1.0;
+//         }
+//         // 直接将 volumefractions 置为 -1.0
+//         volumefractions[index][subcell] = -1.0;
+//       }  // End of subcell
+//     }
+//   } // End of loop all particles
 
   // Note: change hasInit_ to false
   hasInit_ = false;
@@ -635,13 +694,16 @@ void mixVoidFraction::setvoidFractionForSingleParticle(const int index,
   }  // End of cellID >= 0
 }
 
-// @brief 设置单个颗粒的体积分数场
+/*! \brief 设置索引为 index 的单个颗粒的体积分数场 */
 void mixVoidFraction::setVolumeFractionForSingleParticle(const int index) const {
 
   if (index < 0 || index >= particleCloud_.numberOfParticles()) {
     FatalError << "mixVoidFraction.C::setVolumeFractionForSingleParticle(): " << "index " << index
       << "out of boundary [0, " << particleCloud_.numberOfParticles() - 1 << "]" << abort(FatalError);
   }
+
+  // 设置需要计算的空隙率场
+  volScalarField& fraction = particleCloud_.usedForSolverIB() ? voidfractionNext_ : volumefractionNext_;
 
   // 获取颗粒 index 中心坐标, 颗粒中心所在网格编号, 以及颗粒半径
   vector positionCenter = particleCloud_.position(index);
@@ -672,12 +734,7 @@ void mixVoidFraction::setVolumeFractionForSingleParticle(const int index) const 
 
     if (pointInParticle(index, positionCenter, coronaPoint) < 0.0) {
       // 如果 coronaPoint 在颗粒中, 则认为整个网格在颗粒中
-      if (particleCloud_.usedForSolverIB()) {
-        // 当求解器为 cfdemSolverIB 时, 在其他模型中使用的是 voidfractionNext_, 所以直接赋值给 voidfractionNext_
-        voidfractionNext_[particleCenterCellID] = 0.0;
-      } else {
-        volumefractionNext_[particleCenterCellID] = 0.0;
-      }
+      fraction[particleCenterCellID] = 0.0;
     } else {
       // 如果 coronaPoint 不在颗粒中, 则需要遍历网格的所有角点, 判断角点与网格中心是否在颗粒中
       const labelList& vertexPoints = particleCloud_.mesh().cellPoints()[particleCenterCellID];
@@ -691,11 +748,7 @@ void mixVoidFraction::setVolumeFractionForSingleParticle(const int index) const 
 
         if (fc < 0.0 && fv < 0.0) {
           // 网格中心在颗粒中, 角点也在颗粒中
-          if (particleCloud_.usedForSolverIB()) {
-            voidfractionNext_[particleCenterCellID] -= ratio;
-          } else {
-            volumefractionNext_[particleCenterCellID] -= ratio;
-          }
+          fraction[particleCenterCellID] -= ratio;
         } else if (fc < 0.0 && fv > 0.0) {
           // 网格中心在颗粒中, 角点不在颗粒中
           // 计算角点 vertexPosition 对体积分数的影响系数 lambda
@@ -703,11 +756,7 @@ void mixVoidFraction::setVolumeFractionForSingleParticle(const int index) const 
                                                       positionCenter,
                                                       cellCentrePosition,
                                                       vertexPosition);
-          if (particleCloud_.usedForSolverIB()) {
-            voidfractionNext_[particleCenterCellID] -= ratio * lambda;
-          } else {
-            volumefractionNext_[particleCenterCellID] -= ratio * lambda;
-          }
+          fraction[particleCenterCellID] -= ratio * lambda;
         } else if (fc > 0.0 && fv < 0.0) {
           // 网格中心不在颗粒中, 角点在颗粒中
           // 计算角点 vertexPosition 对体积分数的影响系数 lambda
@@ -715,22 +764,15 @@ void mixVoidFraction::setVolumeFractionForSingleParticle(const int index) const 
                                                       positionCenter,
                                                       vertexPosition,
                                                       cellCentrePosition);
-          if (particleCloud_.usedForSolverIB()) {
-            voidfractionNext_[particleCenterCellID] -= ratio * lambda;
-          } else {
-            volumefractionNext_[particleCenterCellID] -= ratio * lambda;
-          }
+          fraction[particleCenterCellID] -= ratio * lambda;
         }
       }  // End of loop of vertexPoints
     }
     // 颗粒中心所在网格的体积分数已经计算完成, 下面开始递归构建相邻网格
     labelHashSet hashSett;
     // 构建哈希集合
-    buildLabelHashSetForVolumeFractions(index,
-                                        positionCenter,
-                                        particleCenterCellID,
-                                        hashSett,
-                                        true);
+    buildLabelHashSetForVolumeFractions(index, positionCenter, particleCenterCellID,
+                                        true, hashSett, fraction);
 
     scalar hashSetLength = hashSett.size();
     if (hashSetLength > maxCellsNumPerCoarseParticle_) {  // 如果集合中元素个数大于颗粒覆盖网格数限制
@@ -743,7 +785,6 @@ void mixVoidFraction::setVolumeFractionForSingleParticle(const int index) const 
 
       // 去除已经存入 cellIDs()[index][0] 处的 particleCenterCellID
       hashSett.erase(particleCenterCellID);
-
       // 保存颗粒覆盖的所有网格编号
       for (label i = 0; i < hashSetLength - 1; ++i) {
         particleCloud_.cellIDs()[index][i + 1] = hashSett.toc()[i];
@@ -752,20 +793,22 @@ void mixVoidFraction::setVolumeFractionForSingleParticle(const int index) const 
   }  // End of particleCenterCellID >= 0
 }
 
-/*
- * @brief 构建颗粒覆盖的所有网格的哈希集合
- * @note 设置为递归函数,  通过哈希器将网格编号转换为哈希值,  并存入 set 中以便于搜索
- * @param index          // <[in] 颗粒索引
- * @param position       // <[in] 颗粒中心位置
- * @param cellID         // <[in] 递归循环中要检索网格编号
- * @param hashSett       // <[in, out] 需要构建的哈希集
- * @param initialInsert
+/*!
+ * \brief 构建颗粒覆盖的所有网格的哈希集合
+ * \note 设置为递归函数,  通过哈希器将网格编号转换为哈希值,  并存入 set 中以便于搜索
+ * \param index          <[in] 颗粒索引
+ * \param position       <[in] 颗粒中心位置
+ * \param cellID         <[in] 递归循环中要检索网格编号
+ * \param initialInsert  <[in] 是否将 cellID 插入 hashSett
+ * \param hashSett       <[in, out] 需要构建的哈希集
+ * \param fraction       <[in, out] 需要设置的空隙率场
  */
-void mixVoidFraction::buildLabelHashSetForVolumeFractions(int index,
-                                                          const vector position,
-                                                          const label cellID,
+void mixVoidFraction::buildLabelHashSetForVolumeFractions(const int& index,
+                                                          const vector& position,
+                                                          const label& cellID,
+                                                          const bool& initialInsert,
                                                           labelHashSet& hashSett,
-                                                          bool initialInsert) const {
+                                                          volScalarField& fraction) const {
   if (initialInsert) {
     hashSett.insert(cellID);
   }
@@ -794,14 +837,11 @@ void mixVoidFraction::buildLabelHashSetForVolumeFractions(int index,
         // 如果在哈希集合中没有插入 neighbour 网格, 则需要计算 neighbour 网格的体积分数
         if (pointInParticle(index, position, coronaPoint) < 0.0) {
           // 如果相邻网格的 coronaPoint 在颗粒中, 则说明该网格完全被颗粒覆盖
-          voidfractionNext_[neighbour] = 0;
+          fraction[neighbour] = 0.0;
 
           // 以相邻网格为中心继续递归构建哈希集合
-          buildLabelHashSetForVolumeFractions(index,
-                                              position,
-                                              neighbour,
-                                              hashSett,
-                                              true);
+          buildLabelHashSetForVolumeFractions(index, position, neighbour,
+                                              true, hashSett, fraction);
         } else {
           // 如果相邻网格的 coronaPoint 不在颗粒中, 则需要遍历该网格的所有角点
           // 定义单个角点对空隙率的影响率
@@ -845,22 +885,19 @@ void mixVoidFraction::buildLabelHashSetForVolumeFractions(int index,
           // 保证体积分数 >= 0
           scale = scale >= 0.0 ? scale : 0.0;
 
-          if (fabs(voidfractionNext_[neighbour] - 1.0) < 1e-15) {
+          if (fabs(fraction[neighbour] - 1.0) < 1e-15) {
             // 如果 neighbour 网格的体积分数为 1.0, 则说明第一次遍历到该网格, 可以直接赋值
-            voidfractionNext_[neighbour] = scale;
+            fraction[neighbour] = scale;
           } else {
             // 如果 neighbour 网格的体积分数不为 1.0, 则说明在计算其他颗粒时候, 已经遍历到该网格
-            voidfractionNext_[neighbour] -= (1.0 - scale);
+            fraction[neighbour] -= (1.0 - scale);
             // 保证体积分数 >= 0
-            voidfractionNext_[neighbour] = voidfractionNext_[neighbour] >= 0.0 ? voidfractionNext_[neighbour] : 0.0;
+            fraction[neighbour] = fraction[neighbour] >= 0.0 ? fraction[neighbour] : 0.0;
           }
           if (!(fabs(scale - 1.0) < 1e-15)) {
             // 如果体积分数不为 1.0, 则说明该 neighbour 需要递归循环构建哈希集合
-            buildLabelHashSetForVolumeFractions(index,
-                                                position,
-                                                neighbour,
-                                                hashSett,
-                                                true);
+            buildLabelHashSetForVolumeFractions(index, position, neighbour,
+                                                true, hashSett, fraction);
           }
         }  // End of corona point not in particle
       }  // End of hashSett.found(neighbour)

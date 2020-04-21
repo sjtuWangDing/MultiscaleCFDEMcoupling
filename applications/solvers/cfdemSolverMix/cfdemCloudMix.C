@@ -101,8 +101,10 @@ cfdemCloudMix::~cfdemCloudMix() {
     dataExchangeM().destroy(angularVelocities_, 3);
     dataExchangeM().destroy(dragPrev_, 3);
     dataExchangeM().destroy(DEMTorques_, 3);
-    dataExchangeM().destroyDiscreteMemory(cellIDs_, numberOfParticles_);
-    dataExchangeM().destroyDiscreteMemory(volumefractions_, numberOfParticles_);
+    dataExchangeM().destroy(cellIDs_, 1);
+    dataExchangeM().destroy(volumefractions_, 1);
+    // dataExchangeM().destroyDiscreteMemory(cellIDs_, numberOfParticles_);
+    // dataExchangeM().destroyDiscreteMemory(volumefractions_, numberOfParticles_);
   }
 }
 
@@ -130,10 +132,10 @@ void cfdemCloudMix::doCoupleDebug() {
     int cfdStep = timeIndex - timeIndexOffset;             // 发生耦合的流体时间步数
     scalar couplingTime = dataExchangeM().couplingTime();  // 耦合时间步长
     int couplingStep = dataExchangeM().couplingStep();     // 耦合时间步数
-    Info << "\tcurrent cfdStep: " << cfdStep << endl;
-    Info << "\tcurrent couplingStep: " << couplingStep << endl;
-    Info << "\tcfdStep * CFDts: " << cfdStep * CFDts - SMALL << endl;
-    Info << "\tcouplingStep * couplingTime: " << couplingStep * couplingTime << endl;
+    Info << "current cfdStep: " << cfdStep << endl;
+    Info << "current couplingStep: " << couplingStep << endl;
+    Info << "cfdStep * CFDts: " << cfdStep * CFDts - SMALL << endl;
+    Info << "couplingStep * couplingTime: " << couplingStep * couplingTime << endl;
   }
 }
 
@@ -157,29 +159,34 @@ void cfdemCloudMix::mixForceReAllocArrays() {
     dataExchangeM().allocateArray(particleWeights_, 0., fmWidth);
     dataExchangeM().allocateArray(particleVolumes_, 0., fmWidth);
 
-    // 分配 cellIDs_ 和 volumefractions_ 内存(double**)
-    // 首先将宽度设置为 1, 获取 double* 指针的内存, 同时释放 double 内存
-    dataExchangeM().allocateArray(cellIDs_, 0., 1, numberOfParticles_);
-    dataExchangeM().allocateArray(volumefractions_, 0., 1, numberOfParticles_);
-    for (int i = 0; i < numberOfParticles_; ++i) {
-      dataExchangeM().destroy(cellIDs_[i]);
-      dataExchangeM().destroy(volumefractions_[i]);
-    }
-    for (int i = 0; i < numberOfParticles_; ++i) {
-      // 获取当前颗粒的尺度
-      double globalRatio = globalDimensionRatios_[i];
-      double** temp_cellIDs = NULL;
-      double** temp_volumefractions = NULL;
-      if (checkFAndMParticle(globalRatio)) {
-        dataExchangeM().allocateArray(temp_cellIDs, 0, fmWidth, 1);
-        dataExchangeM().allocateArray(temp_volumefractions, 0, 1, 1);
-      } else {
-        dataExchangeM().allocateArray(temp_cellIDs, 0, cWidth, 1);
-        dataExchangeM().allocateArray(temp_volumefractions, 0, cWidth, 1);
-      }
-      cellIDs_[i] = temp_cellIDs[0];
-      volumefractions_[i] = temp_volumefractions[0];
-    }
+    dataExchangeM().allocateArray(cellIDs_, -1., cWidth, numberOfParticles_);
+    dataExchangeM().allocateArray(volumefractions_, 1., cWidth, numberOfParticles_);
+  //   // 分配 cellIDs_ 和 volumefractions_ 内存(double**)
+  //   // 首先将宽度设置为 1, 获取 double* 指针的内存, 同时释放 double 内存
+  //   dataExchangeM().allocateArray(cellIDs_, 0., 1, numberOfParticles_);
+  //   dataExchangeM().allocateArray(volumefractions_, 0., 1, numberOfParticles_);
+  //   dataExchangeM().destroy(cellIDs_[0]);
+  //   dataExchangeM().destroy(volumefractions_[0]);
+
+  //   for (int i = 0; i < numberOfParticles_; ++i) {
+  //     // 获取当前颗粒的尺度
+  //     double globalRatio = globalDimensionRatios_[i];
+  //     double** temp_cellIDs = NULL;
+  //     double** temp_volumefractions = NULL;
+  //     // 如果是 coarse 颗粒或者强制使用 refine mesh
+  //     if (checkCoarseParticle(globalRatio) || useDynamicRefineMesh()) {
+  //       dataExchangeM().allocateArray(temp_cellIDs, 0, cWidth, 1);
+  //       dataExchangeM().allocateArray(temp_volumefractions, 0, cWidth, 1);
+  //     } else {
+  //       dataExchangeM().allocateArray(temp_cellIDs, 0, fmWidth, 1);
+  //       dataExchangeM().allocateArray(temp_volumefractions, 0, fmWidth, 1);
+  //     }
+  //     // 保留 double 内存，释放 double* 内存
+  //     cellIDs_[i] = temp_cellIDs[0];
+  //     volumefractions_[i] = temp_volumefractions[0];
+  //     dataExchangeM().destroy(temp_cellIDs);
+  //     dataExchangeM().destroy(temp_volumefractions);
+  //   }
   }
   arraysReallocated_ = true;
 }
@@ -333,6 +340,12 @@ void cfdemCloudMix::mixCouplingKernel() {
                                                                      sumCellsNumbers_,
                                                                      sumCellsVolumes_,
                                                                      cellIDs_vec);
+
+  for (int i = 0; i < numberOfParticles_; ++i) {
+    Pout << "index " << i << " dimensionRatios: " << dimensionRatios_[i] << endl;
+  }
+  MPI_Barrier(MPI_COMM_WORLD);
+
   if (verbose_) { Info << "voidFractionModel::getDimensionRatios() - done\n" << endl; }
 
   // 根据颗粒尺度分配内存
@@ -416,7 +429,7 @@ bool cfdemCloudMix::evolve(volScalarField& alphaVoidfraction,
     doCoupleDebug();
     // 因为耦合时间步长 = 流体时间步长的整数倍，所以判断当前流体时间步是否同时也是耦合时间步
     if (dataExchangeM().doCoupleNow()) {
-      Info << "do coupling now...\n" << endl;
+      Info << "\ndo coupling now...\n" << endl;
 
       // 当 dataExchangeModel 为 twoWayMPI or mixTwoWayMPI 时, couple 函数从 DEM 求解器读取颗粒数量, 同时调用 reAllocArray 函数分配内存
       // 注意: 在 reAllocArrays 函数中针对所有尺度的颗粒分配内存
@@ -709,7 +722,7 @@ void cfdemCloudMix::calcVelocityCorrection(volScalarField& p,
   if(phiIB.needReference()) {
     phiIBEqn.setReference(pRefCell_, pRefValue_);
   }
-  
+
   phiIBEqn.solve();
 
   U = U - fvc::grad(phiIB);
@@ -763,8 +776,10 @@ void cfdemCloudMix::setParticleVelocity(volVectorField& U) {
           // 设置网格速度
           if (usedForSolverIB()) {
             U[cellI] = (1 - voidfractions_[index][subCell]) * particleVel + voidfractions_[index][subCell] * U[cellI];
-          } else {
-            // ??????????????????????????????????????????
+            continue;
+          }
+          if (!usedForSolverPiso()) {
+            U[cellI] = (1 - volumefractions_[index][subCell]) * particleVel + volumefractions_[index][subCell] * U[cellI];
           }
         }  // End of cellI >= 0
       }  // End of loop subCells
@@ -784,10 +799,12 @@ void cfdemCloudMix::setInterFace(volScalarField& interFace) {
 
     bool particleNeedSet = false;
 
-    if (usedForSolverIB()) {
+    if (usedForSolverIB() || useDynamicRefineMesh()) {
       particleNeedSet = true;
-    } else if (dimensionRatios_.empty() != false) {
-      particleNeedSet = checkCoarseParticle(dimensionRatios_[index]);
+    } else {
+      if (dimensionRatios_.empty() != false) {
+        particleNeedSet = checkCoarseParticle(dimensionRatios_[index]);
+      }
     }
 
     if (particleNeedSet) {

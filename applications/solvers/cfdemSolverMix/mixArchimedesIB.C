@@ -145,7 +145,7 @@ void mixArchimedesIB::setMixForce(const std::vector<double>& dimensionRatios) co
   vector force = vector::zero;
 
   for (int index = 0; index <  particleCloud_.numberOfParticles(); ++index) {
-    if (particleCloud_.checkCoarseParticle(dimensionRatios[index])) {
+    // if (particleCloud_.checkCoarseParticle(dimensionRatios[index])) {
       force = vector::zero;
       calForceKernel(index, force);
 
@@ -162,7 +162,7 @@ void mixArchimedesIB::setMixForce(const std::vector<double>& dimensionRatios) co
       }
       // write particle based data to global array
       forceSubM(0).partToArray(index, force, vector::zero);
-    }  // End of check coarse particles
+    // }  // End of check coarse particles
   }  // End of loop all particles
 
   Info << "Setting mixArchimedesIB - done" << endl;

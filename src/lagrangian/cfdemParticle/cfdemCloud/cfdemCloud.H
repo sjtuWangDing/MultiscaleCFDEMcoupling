@@ -113,6 +113,9 @@ protected:
   // @brief 是否用于求解器 cfdemSolverPiso
   bool usedForSolverPiso_;
 
+  // @brief 是否使用 dynamic refine mesh
+  bool useDynamicRefineMesh_;
+
   int numberOfCoarseParticles_;
 
 public:
@@ -120,6 +123,8 @@ public:
   inline bool usedForSolverIB() const { return usedForSolverIB_; }
 
   inline bool usedForSolverPiso() const { return usedForSolverPiso_; }
+
+  inline bool useDynamicRefineMesh() const { return useDynamicRefineMesh_; }
 
   inline void setCoarseParticleNumber(const int& numberOfCoarseParticles) {
     numberOfCoarseParticles_ = std::max(0, numberOfCoarseParticles);

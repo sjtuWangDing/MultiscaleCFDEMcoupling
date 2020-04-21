@@ -42,6 +42,7 @@ volVectorField Us
   dimensionedVector("zero", dimensionSet(0, 1, -1, 0, 0), vector(0, 0, 0))
 );
 
+
 Info << "\nReading momentum exchange field Ksl\n" << endl;
 volScalarField Ksl
 (
@@ -101,29 +102,12 @@ volScalarField rho
   mesh
 );
 
-#ifndef createPhi_H
-#define createPhi_H
-Info << "Reading/calculating face flux field phi\n" << endl;
+Info << "Generating interstitial face flux field phi\n" << endl;
 surfaceScalarField phi
 (
   IOobject
   (
     "phi",
-    runTime.timeName(),
-    mesh,
-    IOobject::READ_IF_PRESENT,
-    IOobject::AUTO_WRITE
-  ),
-  linearInterpolate(U * voidfraction) & mesh.Sf()
-);
-#endif
-
-Info << "Generating interstitial face flux field phiByVoidfraction\n" << endl;
-surfaceScalarField phiByVoidfraction
-(
-  IOobject
-  (
-    "phiByVoidfraction",
     runTime.timeName(),
     mesh,
     IOobject::NO_READ,

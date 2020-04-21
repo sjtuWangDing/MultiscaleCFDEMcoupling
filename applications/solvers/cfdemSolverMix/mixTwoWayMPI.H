@@ -109,6 +109,7 @@ public:
   // @brief Allocate and destroy for 2-D array
   // @note DType = double
   virtual void destroy(double*& array) const;
+  virtual void destroy(double**& array) const;
   virtual void destroy(double**& array, int) const;
   virtual void allocateArray(double**& array, double initVal, int width, int length) const;
   virtual void allocateArray(double**& array, double initVal, int width, const char* length = "nparticles") const;
@@ -116,6 +117,7 @@ public:
   // @brief Allocate and destroy for 2-D array
   // @note DType = int
   virtual void destroy(int*& array) const;
+  virtual void destroy(int**& array) const;
   virtual void destroy(int**& array, int) const;
   virtual void allocateArray(int**& array, int initVal, int width, int length) const;
   virtual void allocateArray(int**& array, int initVal, int width, const char* length = "nparticles") const;

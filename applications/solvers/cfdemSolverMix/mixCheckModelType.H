@@ -37,9 +37,7 @@
     if (!checkUseForceModel("viscForce")) {
       FatalError << "mixCheckModelType.H: viscForce not found with model type " << modelType << abort(FatalError);
     }
-
   } else if (modelType == "B") {
-
     // 必须使用 Archimedes force, 且只能指定 Archimedes or mixArchimedes 中任意一个
     if (checkUseForceModel("Archimedes") && checkUseForceModel("mixArchimedes")) {
       FatalError << "mixCheckModelType.H: Archimedes or mixArchimedes model both found! You must use only one of them\n" << abort(FatalError);
@@ -56,13 +54,9 @@
     if (checkUseForceModel("viscForce")) {
       FatalError << "mixCheckModelType.H: can not use viscForce with model type B!\n" << abort(FatalError);
     }
-
   } else if (modelType == "none") {
-
     Info << "\nsolving volume averaged Navier Stokes equations of type none\n"<< endl;
-
   } else {
-
     FatalError << "\nno suitable model type specified:" << modelType << endl << abort(FatalError);
   }
 }

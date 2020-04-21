@@ -246,6 +246,7 @@ Foam::cfdemCloud::cfdemCloud(const fvMesh& mesh):
   coarseParticleRatio_ = couplingProperties_.lookupOrDefault<double>("coarseParticleRatio", 0.33);
   usedForSolverIB_ = couplingProperties_.lookupOrDefault<Switch>("usedForSolverIB", false);
   usedForSolverPiso_ = couplingProperties_.lookupOrDefault<Switch>("usedForSolverPiso", false);
+  useDynamicRefineMesh_ = couplingProperties_.lookupOrDefault<Switch>("useDynamicRefineMesh", false);
 #endif  // __MIXCLOUD__
 
   #include "versionInfo.H"
