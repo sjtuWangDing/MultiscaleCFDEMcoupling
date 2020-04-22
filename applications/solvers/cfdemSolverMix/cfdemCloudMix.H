@@ -164,7 +164,6 @@ public:
               volVectorField& U,
               volScalarField& interFace);
 
-
   // @brief 更新函数
   // @param alpha      <[in, out] 大颗粒体积分数场
   // @param interFace  <[in, out]

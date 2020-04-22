@@ -492,7 +492,8 @@ bool cfdemCloudMix::evolve(volScalarField& alphaVoidfraction,
       //reset all USER-defined particle fields
       zeroizeParticleDatFieldsUserCFDEMToExt();
       for (int i = 0; i < cfdemCloud::nrForceModels(); i++) {
-        cfdemCloud::forceM(i).setMixForce(dimensionRatios_);
+        // cfdemCloud::forceM(i).setMixForce(dimensionRatios_);
+        cfdemCloud::forceM(i).setForce();
       }
       if (verbose_) { Info << "cfdemCloudMix::setForce() - done\n" << endl; }
 
@@ -512,6 +513,10 @@ bool cfdemCloudMix::evolve(volScalarField& alphaVoidfraction,
       // write DEM data
       if (verbose_) { Info << "cfdemCloudMix::giveDEMdata()..." << endl; }
       giveDEMdata();
+
+      for (int i = 0; i < numberOfParticles_; ++i) {
+        Info << "DEMForces_" << i << ": " << DEMForces_[i][0] << ", " << DEMForces_[i][1] << ", " << DEMForces_[i][2] << endl;
+      }
       if (verbose_) { Info << "cfdemCloudMix::giveDEMdata() - done\n" << endl; }
 
       dataExchangeM().couple(1);
@@ -752,9 +757,10 @@ void cfdemCloudMix::setParticleVelocity(volVectorField& U) {
     bool particleNeedSet = false;
     if (usedForSolverIB()) {
       particleNeedSet = true;
-    } else if (dimensionRatios_.empty() != false) {
+    } else if (!dimensionRatios_.empty() &&  usedForSolverPiso() == false) {
       particleNeedSet = checkCoarseParticle(dimensionRatios_[index]);
     }
+    Pout << "particleNeedSet: " << particleNeedSet << endl;
 
     if (particleNeedSet) {
       for (int subCell = 0; subCell < cellsPerParticle()[index][0]; ++subCell) {
@@ -776,10 +782,12 @@ void cfdemCloudMix::setParticleVelocity(volVectorField& U) {
           // 设置网格速度
           if (usedForSolverIB()) {
             U[cellI] = (1 - voidfractions_[index][subCell]) * particleVel + voidfractions_[index][subCell] * U[cellI];
+            Info << "voidfractions[" << index << "][" << subCell << "]: " << voidfractions_[index][subCell] << endl;
             continue;
           }
           if (!usedForSolverPiso()) {
             U[cellI] = (1 - volumefractions_[index][subCell]) * particleVel + volumefractions_[index][subCell] * U[cellI];
+            Info << "volumefractions[" << index << "][" << subCell << "]: " << volumefractions_[index][subCell] << endl;
           }
         }  // End of cellI >= 0
       }  // End of loop subCells
@@ -915,6 +923,10 @@ bool cfdemCloudMix::evolve(volScalarField& alpha,
       }
       // write DEM data
       giveDEMdata();
+
+      for (int i = 0; i < numberOfParticles_; ++i) {
+        Info << "DEMForces_" << i << ": " << DEMForces_[i][0] << ", " << DEMForces_[i][1] << ", " << DEMForces_[i][2] << endl;
+      }
 
       dataExchangeM().couple(1);
       haveEvolvedOnce_ = true;

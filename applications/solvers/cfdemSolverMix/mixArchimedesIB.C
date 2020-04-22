@@ -130,6 +130,9 @@ void mixArchimedesIB::setForce() const {
     if (twoDimensional_) {
       Warning << "mixArchimedesIB model doesn't work for 2D right now!!\n" << endl;
     }
+
+    Info << "mixArchimedesIB_" << index << ": " << force[0] << ", " << force[1] << ", " << force[2] << endl;
+
     // write particle based data to global array
     forceSubM(0).partToArray(index, force, vector::zero);
   }  // End of loop all particles

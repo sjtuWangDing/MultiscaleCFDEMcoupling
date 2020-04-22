@@ -67,3 +67,6 @@ test_mix/*/DEM/post/*
 # add ignore for origin file
 aaorig_*
 aaorig.*
+
+# add ignore for .vscode/
+.vscode/

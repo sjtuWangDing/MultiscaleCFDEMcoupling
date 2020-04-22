@@ -126,6 +126,9 @@ void mixShirgaonkarIB::setForce() const {
     }
     // write particle based data to global array
     forceSubM(0).partToArray(index, drag, vector::zero);
+
+    Info << "mixShirgaonkarIB" << index << ": " << drag[0] << ", " << drag[1] << ", " << drag[2] << endl;
+
     if (useTorque_) {
       for (int j = 0; j < 3; j++) {
         particleCloud_.DEMTorques()[index][j] = torque[j];
