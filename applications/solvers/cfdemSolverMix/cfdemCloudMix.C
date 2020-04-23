@@ -101,10 +101,8 @@ cfdemCloudMix::~cfdemCloudMix() {
     dataExchangeM().destroy(angularVelocities_, 3);
     dataExchangeM().destroy(dragPrev_, 3);
     dataExchangeM().destroy(DEMTorques_, 3);
-    dataExchangeM().destroy(cellIDs_, 1);
-    dataExchangeM().destroy(volumefractions_, 1);
-    // dataExchangeM().destroyDiscreteMemory(cellIDs_, numberOfParticles_);
-    // dataExchangeM().destroyDiscreteMemory(volumefractions_, numberOfParticles_);
+    dataExchangeM().destroyDiscreteMemory(cellIDs_, numberOfParticles_);
+    dataExchangeM().destroyDiscreteMemory(volumefractions_, numberOfParticles_);
   }
 }
 
@@ -159,34 +157,30 @@ void cfdemCloudMix::mixForceReAllocArrays() {
     dataExchangeM().allocateArray(particleWeights_, 0., fmWidth);
     dataExchangeM().allocateArray(particleVolumes_, 0., fmWidth);
 
-    dataExchangeM().allocateArray(cellIDs_, -1., cWidth, numberOfParticles_);
-    dataExchangeM().allocateArray(volumefractions_, 1., cWidth, numberOfParticles_);
-  //   // 分配 cellIDs_ 和 volumefractions_ 内存(double**)
-  //   // 首先将宽度设置为 1, 获取 double* 指针的内存, 同时释放 double 内存
-  //   dataExchangeM().allocateArray(cellIDs_, 0., 1, numberOfParticles_);
-  //   dataExchangeM().allocateArray(volumefractions_, 0., 1, numberOfParticles_);
-  //   dataExchangeM().destroy(cellIDs_[0]);
-  //   dataExchangeM().destroy(volumefractions_[0]);
+    // 分配 cellIDs_ 和 volumefractions_ 内存(double**)
+    // 首先将宽度设置为 1, 获取 double* 指针的内存, 同时释放 double 内存
+    dataExchangeM().allocateArray(cellIDs_, 0., 1, numberOfParticles_);
+    dataExchangeM().allocateArray(volumefractions_, 0., 1, numberOfParticles_);
+    dataExchangeM().destroy(cellIDs_[0]);
+    dataExchangeM().destroy(volumefractions_[0]);
 
-  //   for (int i = 0; i < numberOfParticles_; ++i) {
-  //     // 获取当前颗粒的尺度
-  //     double globalRatio = globalDimensionRatios_[i];
-  //     double** temp_cellIDs = NULL;
-  //     double** temp_volumefractions = NULL;
-  //     // 如果是 coarse 颗粒或者强制使用 refine mesh
-  //     if (checkCoarseParticle(globalRatio) || useDynamicRefineMesh()) {
-  //       dataExchangeM().allocateArray(temp_cellIDs, 0, cWidth, 1);
-  //       dataExchangeM().allocateArray(temp_volumefractions, 0, cWidth, 1);
-  //     } else {
-  //       dataExchangeM().allocateArray(temp_cellIDs, 0, fmWidth, 1);
-  //       dataExchangeM().allocateArray(temp_volumefractions, 0, fmWidth, 1);
-  //     }
-  //     // 保留 double 内存，释放 double* 内存
-  //     cellIDs_[i] = temp_cellIDs[0];
-  //     volumefractions_[i] = temp_volumefractions[0];
-  //     dataExchangeM().destroy(temp_cellIDs);
-  //     dataExchangeM().destroy(temp_volumefractions);
-  //   }
+    for (int i = 0; i < numberOfParticles_; ++i) {
+      double** temp_cellIDs = NULL;
+      double** temp_volumefractions = NULL;
+      // 如果是 coarse 颗粒或者强制使用 refine mesh
+      if (needSetFieldForCoarseParticle(i, false, globalDimensionRatios_)) {
+        dataExchangeM().allocateArray(temp_cellIDs, 0, cWidth, 1);
+        dataExchangeM().allocateArray(temp_volumefractions, 0, cWidth, 1);
+      } else {
+        dataExchangeM().allocateArray(temp_cellIDs, 0, fmWidth, 1);
+        dataExchangeM().allocateArray(temp_volumefractions, 0, fmWidth, 1);
+      }
+      // 保留 double 内存，释放 double* 内存
+      cellIDs_[i] = temp_cellIDs[0];
+      volumefractions_[i] = temp_volumefractions[0];
+      dataExchangeM().destroy(temp_cellIDs);
+      dataExchangeM().destroy(temp_volumefractions);
+    }
   }
   arraysReallocated_ = true;
 }
@@ -213,7 +207,7 @@ bool cfdemCloudMix::reAllocArrays() const {
       dataExchangeM().allocateArray(particleWeights_, 0., width);
       dataExchangeM().allocateArray(particleVolumes_, 0., width);
       arraysReallocated_ = true;
-    } else if (!usedForSolverPiso() && usedForSolverIB()) {
+    } else if (usedForSolverIB()) {
       dataExchangeM().allocateArray(cellIDs_, -1., voidFractionM().maxCellsPerParticle());
       dataExchangeM().allocateArray(voidfractions_, 1., voidFractionM().maxCellsPerParticle());
       dataExchangeM().allocateArray(particleWeights_, 0., voidFractionM().maxCellsPerParticle());
@@ -261,7 +255,7 @@ bool cfdemCloudMix::reAllocArrays(int nP, bool forceRealloc) const {
       dataExchangeM().allocateArray(particleWeights_, 0., width, nP);
       dataExchangeM().allocateArray(particleVolumes_, 0., width, nP);
       arraysReallocated_ = true;
-    } else if (!usedForSolverPiso() && usedForSolverIB()) {
+    } else if (usedForSolverIB()) {
       dataExchangeM().allocateArray(cellIDs_, -1., voidFractionM().maxCellsPerParticle(), nP);
       dataExchangeM().allocateArray(voidfractions_, 1., voidFractionM().maxCellsPerParticle(), nP);
       dataExchangeM().allocateArray(particleWeights_, 0., voidFractionM().maxCellsPerParticle(), nP);
@@ -340,12 +334,10 @@ void cfdemCloudMix::mixCouplingKernel() {
                                                                      sumCellsNumbers_,
                                                                      sumCellsVolumes_,
                                                                      cellIDs_vec);
-
-  for (int i = 0; i < numberOfParticles_; ++i) {
-    Pout << "index " << i << " dimensionRatios: " << dimensionRatios_[i] << endl;
-  }
-  MPI_Barrier(MPI_COMM_WORLD);
-
+  // for (int i = 0; i < numberOfParticles_; ++i) {
+  //   Pout << "index " << i << " dimensionRatios: " << dimensionRatios_[i] << endl;
+  // }
+  // MPI_Barrier(MPI_COMM_WORLD);
   if (verbose_) { Info << "voidFractionModel::getDimensionRatios() - done\n" << endl; }
 
   // 根据颗粒尺度分配内存
@@ -492,8 +484,7 @@ bool cfdemCloudMix::evolve(volScalarField& alphaVoidfraction,
       //reset all USER-defined particle fields
       zeroizeParticleDatFieldsUserCFDEMToExt();
       for (int i = 0; i < cfdemCloud::nrForceModels(); i++) {
-        // cfdemCloud::forceM(i).setMixForce(dimensionRatios_);
-        cfdemCloud::forceM(i).setForce();
+        cfdemCloud::forceM(i).setMixForce(dimensionRatios_);
       }
       if (verbose_) { Info << "cfdemCloudMix::setForce() - done\n" << endl; }
 
@@ -514,9 +505,9 @@ bool cfdemCloudMix::evolve(volScalarField& alphaVoidfraction,
       if (verbose_) { Info << "cfdemCloudMix::giveDEMdata()..." << endl; }
       giveDEMdata();
 
-      for (int i = 0; i < numberOfParticles_; ++i) {
-        Info << "DEMForces_" << i << ": " << DEMForces_[i][0] << ", " << DEMForces_[i][1] << ", " << DEMForces_[i][2] << endl;
-      }
+      // for (int i = 0; i < numberOfParticles_; ++i) {
+      //   Info << "DEMForces_" << i << ": " << DEMForces_[i][0] << ", " << DEMForces_[i][1] << ", " << DEMForces_[i][2] << endl;
+      // }
       if (verbose_) { Info << "cfdemCloudMix::giveDEMdata() - done\n" << endl; }
 
       dataExchangeM().couple(1);
@@ -753,19 +744,9 @@ void cfdemCloudMix::setParticleVelocity(volVectorField& U) {
   vector angularVel(0, 0, 0);
 
   for (int index = 0; index < numberOfParticles(); index++) {
-
-    bool particleNeedSet = false;
-    if (usedForSolverIB()) {
-      particleNeedSet = true;
-    } else if (!dimensionRatios_.empty() &&  usedForSolverPiso() == false) {
-      particleNeedSet = checkCoarseParticle(dimensionRatios_[index]);
-    }
-    Pout << "particleNeedSet: " << particleNeedSet << endl;
-
-    if (particleNeedSet) {
+    if (needSetFieldForCoarseParticle(index, usedForSolverIB(), dimensionRatios_)) {
       for (int subCell = 0; subCell < cellsPerParticle()[index][0]; ++subCell) {
         cellI = cellIDs()[index][subCell];
-
         if (cellI >= 0) {
           for (int i = 0;i < 3; i++) {
             relativeVec[i] = U.mesh().C()[cellI][i] - position(index)[i];
@@ -782,12 +763,10 @@ void cfdemCloudMix::setParticleVelocity(volVectorField& U) {
           // 设置网格速度
           if (usedForSolverIB()) {
             U[cellI] = (1 - voidfractions_[index][subCell]) * particleVel + voidfractions_[index][subCell] * U[cellI];
-            Info << "voidfractions[" << index << "][" << subCell << "]: " << voidfractions_[index][subCell] << endl;
             continue;
           }
           if (!usedForSolverPiso()) {
             U[cellI] = (1 - volumefractions_[index][subCell]) * particleVel + volumefractions_[index][subCell] * U[cellI];
-            Info << "volumefractions[" << index << "][" << subCell << "]: " << volumefractions_[index][subCell] << endl;
           }
         }  // End of cellI >= 0
       }  // End of loop subCells
@@ -804,25 +783,13 @@ void cfdemCloudMix::setInterFace(volScalarField& interFace) {
   const boundBox& globalBb = mesh().bounds();
 
   for (int index = 0; index < numberOfParticles(); index++) {
-
-    bool particleNeedSet = false;
-
-    if (usedForSolverIB() || useDynamicRefineMesh()) {
-      particleNeedSet = true;
-    } else {
-      if (dimensionRatios_.empty() != false) {
-        particleNeedSet = checkCoarseParticle(dimensionRatios_[index]);
-      }
-    }
-
-    if (particleNeedSet) {
+    if (needSetFieldForCoarseParticle(index, usedForSolverIB(), dimensionRatios_)) {
       vector particlePos = position(index);
       double skin = 2.0;
       // 遍历当前处理器上的所有网格
       forAll (mesh_.C(), cellI) {
         vector cellPos = mesh_.C()[cellI];
         if (checkPeriodicCells_) {
-
           // Some cells may be located on the other side of a periodic boundary.
           // In this case, the particle center has to be mirrored in order to correctly
           // evaluate the interpolation points.

@@ -152,7 +152,7 @@ void mixShirgaonkarIB::setMixForce(const std::vector<double>& dimensionRatios) c
   #include "setupProbeModel.H"
 
   for (int index = 0; index < particleCloud_.numberOfParticles(); index++) {
-    // if (particleCloud_.checkCoarseParticle(dimensionRatios[index])) {
+    if (particleCloud_.needSetFieldForCoarseParticle(index, false, dimensionRatios)) {
       drag = vector::zero;
       torque = vector::zero;
       calForceKernel(index, IBDrag, drag, torque);
@@ -174,7 +174,7 @@ void mixShirgaonkarIB::setMixForce(const std::vector<double>& dimensionRatios) c
       if (forceSubM(0).verbose()) {
         Info << "impForces = (" << impForces()[index][0] << ", " << impForces()[index][1] << ", " <<impForces()[index][2] << ")" << endl;
       }
-    // }  // End of coarse particle
+    }  // End of coarse particle
   }  // End of index
 
   Info << "Setting mixShirgaonkarIB force - done" << endl;

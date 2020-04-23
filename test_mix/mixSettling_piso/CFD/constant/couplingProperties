@@ -30,6 +30,8 @@ usedForSolverPiso false;
 
 usedForSolverIB false;
 
+useDynamicRefineMesh false;
+
 modelType B; // A or B
 
 couplingInterval 100;

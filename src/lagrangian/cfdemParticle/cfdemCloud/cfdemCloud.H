@@ -89,20 +89,38 @@ public:
   static double fineParticleRatio_;
   static double coarseParticleRatio_;
 
-  inline bool checkCoarseParticle(const double& ratio) {
+  inline bool checkCoarseParticle(const double& ratio) const {
     return ratio > 0 && ratio < coarseParticleRatio_;
   }
 
-  inline bool checkMiddleParticle(const double& ratio) {
+  inline bool checkMiddleParticle(const double& ratio) const {
     return ratio > 0 && (coarseParticleRatio_ <= ratio && ratio < fineParticleRatio_);
   }
 
-  inline bool checkFineParticle(const double& ratio) {
+  inline bool checkFineParticle(const double& ratio) const {
     return ratio > 0 && ratio >= fineParticleRatio_;
   }
 
-  inline bool checkFAndMParticle(const double& ratio) {
+  inline bool checkFAndMParticle(const double& ratio) const {
     return checkFineParticle(ratio) || checkMiddleParticle(ratio);
+  }
+
+  /*!
+   * \brief 是否需设置 field for coarse particle
+   * \param index            <[in] 颗粒索引
+   * \param usedForSolverIB  <[in] 求解器是否是 cfdemSolverIB
+   * \param dimensionRatios  <[in] 颗粒尺度比值
+   */
+  inline bool needSetFieldForCoarseParticle(const int& index,
+                                            const bool& usedForSolverIB,
+                                            const std::vector<double> dimensionRatios) const {
+    if (usedForSolverIB || useDynamicRefineMesh_) {
+      return true;
+    } else if (!dimensionRatios.empty() && !usedForSolverPiso_) {
+      return index < static_cast<int>(dimensionRatios.size()) ? checkCoarseParticle(dimensionRatios[index]) : false;
+    } else {
+      return false;
+    }
   }
 
 protected:
@@ -130,7 +148,7 @@ public:
     numberOfCoarseParticles_ = std::max(0, numberOfCoarseParticles);
   }
 
-  inline const int& numberOfCoarseParticles() { return numberOfCoarseParticles_; }
+  inline const int& numberOfCoarseParticles() const { return numberOfCoarseParticles_; }
 
 #endif  // __MIXCLOUD__
 

@@ -20,7 +20,7 @@ internalField   uniform 10;
 
 boundaryField
 {
-    ".*"   
+    ".*"
     {
         type            zeroGradient;
         value           $internalField;

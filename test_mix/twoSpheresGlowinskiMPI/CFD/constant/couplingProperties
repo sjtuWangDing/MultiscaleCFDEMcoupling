@@ -48,7 +48,7 @@ IOModel basicIO;
 
 probeModel off;
 
-averagingModel dilute;            // dense // dilute
+averagingModel mixDense;            // dense // dilute
 
 clockModel off;
 
@@ -56,11 +56,10 @@ smoothingModel off;
 
 forceModels
 (
-    
     // ArchimedesIB
-	// ShirgaonkarIB
+    // ShirgaonkarIB
     mixArchimedesIB
-	mixShirgaonkarIB
+    mixShirgaonkarIB
 );
 
 momCoupleModels

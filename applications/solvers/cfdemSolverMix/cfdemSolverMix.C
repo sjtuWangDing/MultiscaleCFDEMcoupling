@@ -31,7 +31,7 @@ Description
     cfdemSolverMix
 \*---------------------------------------------------------------------------*/
 #ifndef __NONETYPE__
-#define __NONETYPE__ 1
+#define __NONETYPE__ 0
 #endif
 
 #include "fvCFD.H"

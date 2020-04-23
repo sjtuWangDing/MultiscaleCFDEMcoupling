@@ -119,13 +119,11 @@ private:
 
 public:
 
-  // @brief Constructors
+  /*! \brief Constructors */
   cfdemCloudMix(const fvMesh& mesh);
 
-  // @brief Destructor
+  /*! \brief Destructor */
   ~cfdemCloudMix();
-
-  // Member Functions
 
   virtual void giveDEMdata();
 
@@ -133,55 +131,50 @@ public:
 
   virtual bool reAllocArrays() const;
 
-  // @brief force number of particles during reallocation
+  /*! \brief force number of particles during reallocation */
   virtual bool reAllocArrays(int nP, bool forceRealloc) const;
 
-  // @brief 强制重新分配内存
+  /*! \brief 强制重新分配内存 */
   void mixForceReAllocArrays();
 
   void mixResetFieldKernel();
 
   void mixCouplingKernel();
 
-  // @brief 更新函数
-  // @param alphaVoidfraction  <[in, out] 小颗粒空隙率场
-  // @param Us                 <[in, out] 局部平均小颗粒速度场
-  // @param U                  <[in] 流体速度场
-  // @note used for cfdemSolverPiso
+  /*!
+   * \brief 更新函数
+   * \note used for cfdemSolverPiso
+   * \param alphaVoidfraction  <[in, out] 小颗粒空隙率场
+   * \param Us                 <[in, out] 局部平均小颗粒速度场
+   * \param U                  <[in] 流体速度场
+   */
   virtual bool evolve(volScalarField& alphaVoidfraction,
                       volVectorField& Us,
                       volVectorField& U);
 
-  // @brief 更新函数
-  // @param alphaVoidfraction    <[in, out] 小颗粒空隙率场
-  // @param alphaVolumefraction  <[in, out] 大颗粒体积分数场
-  // @param Us                   <[in, out] 局部平均小颗粒速度场
-  // @param U                    <[in] 流体速度场
-  // @note used for cfdemSolverMix
+  /*!
+   * \brief 更新函数
+   * \note used for cfdemSolverIB
+   * \param alpha      <[in, out] 大颗粒体积分数场
+   * \param interFace  <[in, out] 界面场
+   */
+  bool evolve(volScalarField& alpha,
+              volScalarField& interFace);
+
+  /*!
+   * \brief 更新函数
+   * \note used for cfdemSolverMix
+   * \param alphaVoidfraction    <[in, out] 小颗粒空隙率场
+   * \param alphaVolumefraction  <[in, out] 大颗粒体积分数场
+   * \param Us                   <[in, out] 局部平均小颗粒速度场
+   * \param U                    <[in] 流体速度场
+   * \param interFace            <[in, out] 界面场
+   */
   bool evolve(volScalarField& alphaVoidfraction,
               volScalarField& alphaVolumefraction,
               volVectorField& Us,
               volVectorField& U,
               volScalarField& interFace);
-
-  // @brief 更新函数
-  // @param alpha      <[in, out] 大颗粒体积分数场
-  // @param interFace  <[in, out]
-  // @note used for cfdemSolverIB
-  bool evolve(volScalarField& alpha,
-              volScalarField& interFace);
-
-  // // @brief 更新函数
-  // // @param alphaVoidfraction    <[in, out] 小颗粒空隙率场
-  // // @param alphaVolumefraction  <[in, out] 大颗粒体积分数场
-  // // @param Us                   <[in, out] 局部平均小颗粒速度场
-  // // @param U                    <[in] 流体速度场
-  // // @param interFace            <[in, out] 界面场
-  // virtual bool evolve(volScalarField& alphaVoidfraction,
-  //                     volScalarField& alphaVolumefraction,
-  //                     volVectorField& Us,
-  //                     volVectorField& U,
-  //                     volScalarField& interFace);
 
   void calcVelocityCorrection(volScalarField& p,
                               volVectorField& U,
