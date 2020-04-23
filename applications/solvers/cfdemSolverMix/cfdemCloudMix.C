@@ -130,10 +130,10 @@ void cfdemCloudMix::doCoupleDebug() {
     int cfdStep = timeIndex - timeIndexOffset;             // 发生耦合的流体时间步数
     scalar couplingTime = dataExchangeM().couplingTime();  // 耦合时间步长
     int couplingStep = dataExchangeM().couplingStep();     // 耦合时间步数
-    Info << "\tcurrent cfdStep: " << cfdStep << endl;
-    Info << "\tcurrent couplingStep: " << couplingStep << endl;
-    Info << "\tcfdStep * CFDts: " << cfdStep * CFDts - SMALL << endl;
-    Info << "\tcouplingStep * couplingTime: " << couplingStep * couplingTime << endl;
+    Info << "current cfdStep: " << cfdStep << endl;
+    Info << "current couplingStep: " << couplingStep << endl;
+    Info << "cfdStep * CFDts: " << cfdStep * CFDts - SMALL << endl;
+    Info << "couplingStep * couplingTime: " << couplingStep * couplingTime << endl;
   }
 }
 
@@ -170,15 +170,22 @@ void cfdemCloudMix::mixForceReAllocArrays() {
       double globalRatio = globalDimensionRatios_[i];
       double** temp_cellIDs = NULL;
       double** temp_volumefractions = NULL;
-      if (checkFAndMParticle(globalRatio)) {
-        dataExchangeM().allocateArray(temp_cellIDs, 0, fmWidth, 1);
-        dataExchangeM().allocateArray(temp_volumefractions, 0, 1, 1);
-      } else {
+      // 如果是 coarse 颗粒或者强制使用 refine mesh
+      if (useDynamicRefineMesh()) {
         dataExchangeM().allocateArray(temp_cellIDs, 0, cWidth, 1);
         dataExchangeM().allocateArray(temp_volumefractions, 0, cWidth, 1);
+      } else if (checkCoarseParticle(globalRatio)) {
+        dataExchangeM().allocateArray(temp_cellIDs, 0, cWidth, 1);
+        dataExchangeM().allocateArray(temp_volumefractions, 0, cWidth, 1);
+      } else {
+        dataExchangeM().allocateArray(temp_cellIDs, 0, fmWidth, 1);
+        dataExchangeM().allocateArray(temp_volumefractions, 0, fmWidth, 1);
       }
+      // 保留 double 内存，释放 double* 内存
       cellIDs_[i] = temp_cellIDs[0];
       volumefractions_[i] = temp_volumefractions[0];
+      dataExchangeM().destroy(temp_cellIDs);
+      dataExchangeM().destroy(temp_volumefractions);
     }
   }
   arraysReallocated_ = true;
@@ -333,6 +340,11 @@ void cfdemCloudMix::mixCouplingKernel() {
                                                                      sumCellsNumbers_,
                                                                      sumCellsVolumes_,
                                                                      cellIDs_vec);
+  for (int index = 0; index < numberOfParticles_; ++index) {
+    Pout << "index " << index << " dimensionRatios: " << dimensionRatios_[index] << endl;
+  }
+  MPI_Barrier(MPI_COMM_WORLD);
+
   if (verbose_) { Info << "voidFractionModel::getDimensionRatios() - done\n" << endl; }
 
   // 根据颗粒尺度分配内存
@@ -416,7 +428,7 @@ bool cfdemCloudMix::evolve(volScalarField& alphaVoidfraction,
     doCoupleDebug();
     // 因为耦合时间步长 = 流体时间步长的整数倍，所以判断当前流体时间步是否同时也是耦合时间步
     if (dataExchangeM().doCoupleNow()) {
-      Info << "do coupling now...\n" << endl;
+      Info << "\ndo coupling now...\n" << endl;
 
       // 当 dataExchangeModel 为 twoWayMPI or mixTwoWayMPI 时, couple 函数从 DEM 求解器读取颗粒数量, 同时调用 reAllocArray 函数分配内存
       // 注意: 在 reAllocArrays 函数中针对所有尺度的颗粒分配内存
@@ -739,7 +751,7 @@ void cfdemCloudMix::setParticleVelocity(volVectorField& U) {
     bool particleNeedSet = false;
     if (usedForSolverIB()) {
       particleNeedSet = true;
-    } else if (dimensionRatios_.empty() != false) {
+    } else if (!dimensionRatios_.empty() && !usedForSolverPiso()) {
       particleNeedSet = checkCoarseParticle(dimensionRatios_[index]);
     }
 
@@ -763,8 +775,10 @@ void cfdemCloudMix::setParticleVelocity(volVectorField& U) {
           // 设置网格速度
           if (usedForSolverIB()) {
             U[cellI] = (1 - voidfractions_[index][subCell]) * particleVel + voidfractions_[index][subCell] * U[cellI];
-          } else {
-            // ??????????????????????????????????????????
+            continue;
+          }
+          if (!usedForSolverPiso()) {
+            U[cellI] = (1 - volumefractions_[index][subCell]) * particleVel + volumefractions_[index][subCell] * U[cellI];
           }
         }  // End of cellI >= 0
       }  // End of loop subCells
@@ -784,10 +798,12 @@ void cfdemCloudMix::setInterFace(volScalarField& interFace) {
 
     bool particleNeedSet = false;
 
-    if (usedForSolverIB()) {
+    if (usedForSolverIB() || useDynamicRefineMesh()) {
       particleNeedSet = true;
-    } else if (dimensionRatios_.empty() != false) {
-      particleNeedSet = checkCoarseParticle(dimensionRatios_[index]);
+    } else {
+      if (dimensionRatios_.empty() != false) {
+        particleNeedSet = checkCoarseParticle(dimensionRatios_[index]);
+      }
     }
 
     if (particleNeedSet) {

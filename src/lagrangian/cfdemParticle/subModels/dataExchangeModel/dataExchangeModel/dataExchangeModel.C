@@ -54,6 +54,12 @@ dataExchangeModel::~dataExchangeModel() {}
 
 // @brief Allocate and destroy for 2-D array
 // @note DType = double
+void dataExchangeModel::destroy(double**& array) const {
+  if (array == NULL) { return; }
+  delete [] array;
+  array = NULL;
+}
+
 void dataExchangeModel::destroy(double**& array, int) const {
   if (array == NULL) { return; }
   delete [] array[0];
@@ -89,6 +95,13 @@ void dataExchangeModel::allocateArray(double**& array, double initVal,
 
 // @brief Allocate and destroy for 2-D array
 // @note DType = int
+
+void dataExchangeModel::destroy(int**& array) const {
+  if (array == NULL) { return; }
+  delete [] array;
+  array = NULL;
+}
+
 void dataExchangeModel::destroy(int**& array, int) const {
   if (array == NULL) { return; }
   delete [] array[0];

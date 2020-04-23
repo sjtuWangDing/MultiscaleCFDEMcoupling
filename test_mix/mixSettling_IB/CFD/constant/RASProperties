@@ -2,29 +2,24 @@
 | =========                 |                                                 |
 | \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox           |
 |  \\    /   O peration     | Version:  1.6                                   |
-|   \\  /    A nd           | Web:      http://www.OpenFOAM.org               |
+|   \\  /    A nd           | Web:      www.OpenFOAM.org                      |
 |    \\/     M anipulation  |                                                 |
 \*---------------------------------------------------------------------------*/
 FoamFile
 {
     version     2.0;
     format      ascii;
-    class       volScalarField;
-    object      rho;
+    class       dictionary;
+    location    "constant";
+    object      RASProperties;
 }
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
 
-dimensions      [1 -3 0 0 0 0 0];
+RASModel        laminar;//kEpsilon;
 
-internalField   uniform 10;
+turbulence      on;
 
-boundaryField
-{
-    ".*"   
-    {
-        type            zeroGradient;
-        value           $internalField;
-    }
-}
+printCoeffs     on;
+
 
 // ************************************************************************* //
