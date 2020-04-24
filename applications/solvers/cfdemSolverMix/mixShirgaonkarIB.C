@@ -107,6 +107,7 @@ void mixShirgaonkarIB::calForceKernel(const int& index,
 void mixShirgaonkarIB::setForce() const {
   Info << "Setting mixShirgaonkarIB force..." << endl;
 
+  // IBDrag dimensionSet = (1, -2, -2, 0, 0)
   volVectorField IBDrag = forceSubM(0).IBDragPerV(U_, p_);
   vector drag;
   vector torque;
@@ -124,10 +125,9 @@ void mixShirgaonkarIB::setForce() const {
       vValues.setSize(vValues.size() + 1, drag);
       particleCloud_.probeM().writeProbe(index, sValues, vValues);
     }
+    Info << "mixShirgaonkarIB" << index << ": " << drag[0] << ", " << drag[1] << ", " << drag[2] << endl;
     // write particle based data to global array
     forceSubM(0).partToArray(index, drag, vector::zero);
-
-    Info << "mixShirgaonkarIB" << index << ": " << drag[0] << ", " << drag[1] << ", " << drag[2] << endl;
 
     if (useTorque_) {
       for (int j = 0; j < 3; j++) {
@@ -164,6 +164,7 @@ void mixShirgaonkarIB::setMixForce(const std::vector<double>& dimensionRatios) c
         vValues.setSize(vValues.size() + 1, drag);
         particleCloud_.probeM().writeProbe(index, sValues, vValues);
       }
+      Info << "mixShirgaonkarIB" << index << ": " << drag[0] << ", " << drag[1] << ", " << drag[2] << endl;
       // write particle based data to global array
       forceSubM(0).partToArray(index, drag, vector::zero);
       if (useTorque_) {

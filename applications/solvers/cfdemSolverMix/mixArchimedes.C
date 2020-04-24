@@ -113,6 +113,8 @@ void mixArchimedes::calForceKernel(const int& index,
     // 计算 Archimedes force
     force = -g_.value() * forceSubM(0).rhoField()[cellI] * Vs;
     forceSubM(0).scaleForce(force, dReal);
+    Pout << "-g_.value(): " << -g_.value() << endl;
+    Pout << "forceSubM(0).rhoField()[" << cellI << "]: " << forceSubM(0).rhoField()[cellI] << endl;
   }
 }
 

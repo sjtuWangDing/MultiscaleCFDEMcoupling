@@ -18,7 +18,7 @@ FoamFile
 
 transportModel  Newtonian;
 
-nu              nu [ 0 2 -1 0 0 0 0 ] 0.01;//0.111426;//1.875e-03;//7.5e-03;//0.265883;
+nu              nu [ 0 2 -1 0 0 0 0 ] 1.01e-6;  // 运动粘度 m^2/s
 
 CrossPowerLawCoeffs
 {
