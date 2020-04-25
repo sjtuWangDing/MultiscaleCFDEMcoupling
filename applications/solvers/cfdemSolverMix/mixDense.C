@@ -141,7 +141,7 @@ void mixDense::setMixVectorAverage(double **& value,
     //skip this particle if not correct type
     if (!checkParticleType(index)) { continue; }
 
-    if (particleCloud_.checkFAndMParticle(dimensionRatios[index])) {
+    if (!particleCloud_.useDynamicRefineMesh() && particleCloud_.checkFAndMParticle(dimensionRatios[index])) {
 
       for (int subcell = 0; subcell < particleCloud_.cellsPerParticle()[index][0]; ++subcell) {
         // 获取颗粒覆盖的第 subcell 个网格的 cellI
@@ -161,7 +161,7 @@ void mixDense::setMixVectorAverage(double **& value,
             weightField[cellI] += weightP;
           }
         }  // Cell found in domain
-      } // End of subcell
+      }  // End of subcell
     }  // End of fine and middle particles
   }  // End of index
 

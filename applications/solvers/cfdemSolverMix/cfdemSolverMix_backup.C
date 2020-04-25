@@ -31,7 +31,7 @@ Description
     cfdemSolverMix
 \*---------------------------------------------------------------------------*/
 #ifndef __NONETYPE__
-#define __NONETYPE__ 1
+#define __NONETYPE__ 0
 #endif
 
 #include "fvCFD.H"
@@ -73,6 +73,7 @@ Description
 int main(int argc, char *argv[]) {
   #include "setRootCase.H"
   #include "createTime.H"
+
   // #include "createMesh.H"
   #include "createDynamicFvMesh.H"
 
@@ -83,10 +84,11 @@ int main(int argc, char *argv[]) {
 
   // 创建所有场变量
   #include "createFields.H"
+
   #include "createFvOptions.H"
   #include "initContinuityErrs.H"
-  #include "readGravitationalAcceleration.H"
 
+  #include "readGravitationalAcceleration.H"
   // 在 cfdemSolverMix 求解器中必须使用 impCoupleModel
   // 在 cfdemSolverMix 求解器中必须使用 mix force model
   #include "./mixCheckGlobal.H"
@@ -143,7 +145,7 @@ int main(int argc, char *argv[]) {
       // 计算隐式力的值: forAll(fImp, cellI) { fImp[cellI] *= particleCloud.mesh().V()[cellI]; }
       particleCloud.scaleWithVcell(fImp);
       dimensionedVector fImpTotal = gSum(fImp);
-      Info << "TotalForceImp: " << fImpTotal.value() << endl;
+      Info << "TotalForceImp:  " << fImpTotal.value() << endl;
       Info << "Warning, these values are based on latest Ksl and Us but prev. iteration U!" << endl;
       Info << "cfdemSolverMix: forceCheckIm - done\n" << endl;
     }
@@ -151,11 +153,26 @@ int main(int argc, char *argv[]) {
 
     // 如果 modelType 为 none, 则说明当前计算忽略所有的 fine particles
     #include "./mixCheckModelNone.H"
+
+#if __NONETYPE__
+    surfaceScalarField voidfractionf = fvc::interpolate(voidfraction);
+#else
     surfaceScalarField voidfractionf = fvc::interpolate(voidfraction);
     phi = voidfractionf * phiByVoidfraction;
+#endif
 
     if (particleCloud.solveFlow()) {
 
+#if __NONETYPE__
+      fvVectorMatrix UEqn
+      (
+          fvm::ddt(U)
+        + fvm::div(phi, U)
+        + turbulence->divDevReff(U)
+        ==
+          fvOptions(U)
+      );
+#else
       // 动量预测
       // 注意: 在动量方程中, modelType 为 "B" or "Bfull" 的时候, 应力项中不需要乘以空隙率, 而当 modelType 为 "A" 时, 应力项中需要乘以空隙率
       fvVectorMatrix UEqn
@@ -172,6 +189,7 @@ int main(int argc, char *argv[]) {
         - fvm::Sp(Ksl / rho, U)
         + fvOptions(U)
       );
+#endif  // __NONETYPE__
 
       UEqn.relax();
       fvOptions.constrain(UEqn);
@@ -189,8 +207,11 @@ int main(int argc, char *argv[]) {
           // 在动量方程中, modelType 为 "A" 时, 压力项中需要乘以空隙率
           solve(UEqn == - voidfraction * fvc::grad(p) + Ksl / rho * Us);
         } else {  // modelType == "none"
-          // FatalError << "cfdemSolverMix.C: " << __LINE__ << ": Not implement for modelType = None" << abort(FatalError);
-          solve(UEqn == -fvc::grad(p) + Ksl / rho * Us);
+#if __NONETYPE__
+          solve(UEqn == -fvc::grad(p));
+#else
+          FatalError << "cfdemSolverMix.C: " << __LINE__ << ": Not implement for modelType = None" << abort(FatalError);
+#endif  // __NONETYPE__
         }
         fvOptions.correct(U);
       }  // End of momentumPredictor

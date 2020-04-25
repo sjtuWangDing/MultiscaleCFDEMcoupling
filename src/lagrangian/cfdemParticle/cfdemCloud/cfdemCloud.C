@@ -850,7 +850,7 @@ tmp<volScalarField> cfdemCloud::voidfractionNuEff(volScalarField& voidfraction) 
 #ifdef compre
 
   // 可压缩流
-  if (modelType_ == "B" || modelType_ == "Bfull") {
+  if (modelType_ == "B" || modelType_ == "Bfull" || modelType_ == "none") {
     return tmp<volScalarField>(
       new volScalarField("viscousTerm", (turbulence_.mut() + turbulence_.mu() + turbulenceMultiphase_)));
   } else if (modelType_ == "A") {  // 如果是 model A, 则需要乘以空隙率
@@ -858,13 +858,13 @@ tmp<volScalarField> cfdemCloud::voidfractionNuEff(volScalarField& voidfraction) 
       new volScalarField("viscousTerm",
                          voidfraction * (turbulence_.mut() + turbulence_.mu() + turbulenceMultiphase_)));
   } else {
-    FatalError << "cfdemCloud::voidfractionNuEff: Not implement for modelType = off" << abort(FatalError);
+    FatalError << "cfdemCloud::voidfractionNuEff(): no suitable model type specified:" << modelType_ << endl << abort(FatalError);
   }
 
 #else
 
   // 不可压缩流
-  if (modelType_ == "B" || modelType_ == "Bfull") {
+  if (modelType_ == "B" || modelType_ == "Bfull" || modelType_ == "none") {
     return tmp<volScalarField>(
       new volScalarField("viscousTerm", (turbulence_.nut() + turbulence_.nu() + turbulenceMultiphase_)));
   } else if (modelType_ == "A") {  // 如果是 model A, 则需要乘以空隙率
@@ -872,7 +872,7 @@ tmp<volScalarField> cfdemCloud::voidfractionNuEff(volScalarField& voidfraction) 
       new volScalarField("viscousTerm",
                          voidfraction * (turbulence_.nut() + turbulence_.nu() + turbulenceMultiphase_)));
   } else {
-    FatalError << "cfdemCloud::voidfractionNuEff: Not implement for modelType = off" << abort(FatalError);
+    FatalError << "cfdemCloud::voidfractionNuEff(): no suitable model type specified:" << modelType_ << endl << abort(FatalError);
   }
 
 #endif

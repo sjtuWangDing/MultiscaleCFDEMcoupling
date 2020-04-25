@@ -39,9 +39,11 @@ int main(int argc, char *argv[]) {
   #include "setRootCase.H"
   #include "createTime.H"
   #include "createDynamicFvMesh.H"
-  #include "createTimeControls.H"
-  #include "readGravitationalAcceleration.H"
+
+#if defined(version30)
   pisoControl piso(mesh);
+  #include "createTimeControls.H"
+#endif
 
   #include "./createFields.H"
   #include "initContinuityErrs.H"
@@ -49,6 +51,7 @@ int main(int argc, char *argv[]) {
   #include "createFvOptions.H"
 #endif
 
+  #include "readGravitationalAcceleration.H"
   // create cfdemCloud
 #if defined(anisotropicRotation)
   cfdemCloudRotation particleCloud(mesh);
@@ -71,9 +74,14 @@ int main(int argc, char *argv[]) {
     interFace = mag(mesh.lookupObject<volScalarField>("volumefractionNext"));
     particleCloud.setMeshHasUpdatedFlag(mesh.update());
 
+#if defined(version30)
     #include "readTimeControls.H"
     #include "CourantNo.H"
     #include "setDeltaT.H"
+#else
+    #include "readPISOControls.H"
+    #include "CourantNo.H"
+#endif
 
     bool hasEvolved = particleCloud.evolve(voidfraction, volumefraction, Us, U, interFace);
 
@@ -94,41 +102,73 @@ int main(int argc, char *argv[]) {
       fvOptions.constrain(UEqn);
 #endif
 
-      if (piso.momentumPredictor()) {
+#if defined(version30)
+      if (piso.momentumPredictor())
+#else
+      if (momentumPredictor)
+#endif
+      {
         solve(UEqn == -fvc::grad(p));
       }
 
-      // PISO loop
-      while (piso.correct()) {
-        // 定义 HbyA，计算并修正 HbyA 的通量 phiHbyA
-        volScalarField rAU(1.0 / UEqn.A());
-        volVectorField HbyA(constrainHbyA(rAU * UEqn.H(), U, p));
-        surfaceScalarField phiHbyA(
-          "phiHbyA",
-          fvc::flux(HbyA) + fvc::interpolate(rAU) * fvc::ddtCorr(U, phi)
-        );
+  // --- PISO loop
+#if defined(version30)
+      while (piso.correct())
+#else
+      for (int corr = 0; corr < nCorr; corr++)
+#endif
+      {
+        volScalarField rUA = 1.0 / UEqn.A();
+        surfaceScalarField rUAf(fvc::interpolate(rUA));
+        U = rUA * UEqn.H();
+#ifdef version23
+        phi = (fvc::interpolate(U) & mesh.Sf()) + rUAf*fvc::ddtCorr(U, phi);
+#else
+        phi = (fvc::interpolate(U) & mesh.Sf()) + fvc::ddtPhiCorr(rUA, U, phi);
+#endif
+        adjustPhi(phi, U, p);
 
-        // 在 adjustPhi 函数中，第二个参数必须使用 U，而不能使用 HbyA，因为在 adjustPhi 函数中，需要通过 U 获取 boundaryField
-        adjustPhi(phiHbyA, U, p);
-
-        // Update the pressure BCs to ensure flux consistency
-        constrainPressure(p, U, phiHbyA, rAU);
+#if defined(version22)
+        fvOptions.relativeFlux(phi);
+#endif
 
         // Non-orthogonal pressure corrector loop
-        while (piso.correctNonOrthogonal()) {
+#if defined(version30)
+        while (piso.correctNonOrthogonal())
+#else
+        for (int nonOrth = 0; nonOrth <= nNonOrthCorr; nonOrth++)
+#endif
+        {
           // Pressure corrector
-          fvScalarMatrix pEqn (
-            fvm::laplacian(rAU, p) == fvc::div(phiHbyA) + particleCloud.ddtVoidfraction()
+          fvScalarMatrix pEqn
+          (
+            fvm::laplacian(rUA, p) == fvc::div(phi) + particleCloud.ddtVoidfraction()
           );
           pEqn.setReference(pRefCell, pRefValue);
-          pEqn.solve(mesh.solver(p.select(piso.finalInnerIter())));
 
+#if defined(version30)
+          pEqn.solve(mesh.solver(p.select(piso.finalInnerIter())));
           if (piso.finalNonOrthogonalIter()) {
-            phi = phiHbyA - pEqn.flux();
+            phi -= pEqn.flux();
           }
+#else
+          if (corr == nCorr-1 && nonOrth == nNonOrthCorr ) {
+  #if defined(versionExt32)
+            pEqn.solve(mesh.solutionDict().solver("pFinal"));
+  #else
+            pEqn.solve(mesh.solver("pFinal"));
+  #endif
+          } else {
+            pEqn.solve();
+          }
+
+          if (nonOrth == nNonOrthCorr) {
+            phi -= pEqn.flux();
+          }
+#endif
         }
         #include "continuityErrs.H"
-        U = HbyA - rAU * fvc::grad(p);
+        U -= rUA * fvc::grad(p);
         U.correctBoundaryConditions();
       }  // End of piso loop
     }  // End of particleCloud.solveFlow
