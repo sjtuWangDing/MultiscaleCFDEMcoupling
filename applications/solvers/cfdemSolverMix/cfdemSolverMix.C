@@ -30,20 +30,12 @@ Application
 Description
     cfdemSolverMix
 \*---------------------------------------------------------------------------*/
-#ifndef __NONETYPE__
-#define __NONETYPE__ 1
-#endif
 
 #include "fvCFD.H"
 #include "singlePhaseTransportModel.H"
-
 #include "OFversion.H"
-#if defined(version30)
-  #include "turbulentTransportModel.H"
-  #include "pisoControl.H"
-#else
-  #include "turbulenceModel.H"
-#endif
+#include "turbulentTransportModel.H"
+#include "pisoControl.H"
 
 #if defined(versionv1606plus) || defined(version40)
   #include "fvOptions.H"
@@ -75,11 +67,8 @@ int main(int argc, char *argv[]) {
   #include "createTime.H"
   // #include "createMesh.H"
   #include "createDynamicFvMesh.H"
-
-#if defined(version30)
-  pisoControl piso(mesh);
   #include "createTimeControls.H"
-#endif
+  pisoControl piso(mesh);
 
   // 创建所有场变量
   #include "createFields.H"
@@ -109,19 +98,13 @@ int main(int argc, char *argv[]) {
   while(runTime.loop()) {
   
     Info << "Time = " << runTime.timeName() << nl << endl;
-
     // 设置动态加密网格
     interFace = mag(mesh.lookupObject<volScalarField>("volumefractionNext"));
     particleCloud.setMeshHasUpdatedFlag(mesh.update());
 
-#if defined(version30)
     #include "readTimeControls.H"
     #include "CourantNo.H"
     #include "setDeltaT.H"
-#else
-    #include "readPISOControls.H"
-    #include "CourantNo.H"
-#endif
 
     bool hasEvolved = particleCloud.evolve(voidfraction, volumefraction, Us, U, interFace);
 
@@ -149,13 +132,13 @@ int main(int argc, char *argv[]) {
     }
     #include "solverDebugInfo.H"
 
+    surfaceScalarField voidfractionf = fvc::interpolate(voidfraction);
+    phiByVoidfraction = linearInterpolate(U) & mesh.Sf();
+    phi = voidfractionf * phiByVoidfraction;
     // 如果 modelType 为 none, 则说明当前计算忽略所有的 fine particles
     #include "./mixCheckModelNone.H"
-    surfaceScalarField voidfractionf = fvc::interpolate(voidfraction);
-    phi = voidfractionf * phiByVoidfraction;
 
     if (particleCloud.solveFlow()) {
-
       // 动量预测
       // 注意: 在动量方程中, modelType 为 "B" or "Bfull" 的时候, 应力项中不需要乘以空隙率, 而当 modelType 为 "A" 时, 应力项中需要乘以空隙率
       fvVectorMatrix UEqn
@@ -172,190 +155,102 @@ int main(int argc, char *argv[]) {
         - fvm::Sp(Ksl / rho, U)
         + fvOptions(U)
       );
-
       UEqn.relax();
       fvOptions.constrain(UEqn);
 
-#if defined(version30)
-      if (piso.momentumPredictor())
-#else
-      if (momentumPredictor)
-#endif
-      {
+      if (piso.momentumPredictor()) {
         if (modelType == "B" || modelType == "Bfull") {
           // 在动量方程中, modelType 为 "B" or "Bfull" 的时候, 压力项中不需要乘以空隙率
           solve(UEqn == - fvc::grad(p) + Ksl / rho * Us);
         } else if (modelType == "A") {
           // 在动量方程中, modelType 为 "A" 时, 压力项中需要乘以空隙率
           solve(UEqn == - voidfraction * fvc::grad(p) + Ksl / rho * Us);
-        } else {  // modelType == "none"
-          // FatalError << "cfdemSolverMix.C: " << __LINE__ << ": Not implement for modelType = None" << abort(FatalError);
+        } else if (modelType == "none") {
           solve(UEqn == -fvc::grad(p) + Ksl / rho * Us);
+        } else {
+          FatalError << "cfdemSolverMix.C: " << __LINE__ << ": Not implement for modelType = " << modelType << abort(FatalError);
         }
         fvOptions.correct(U);
       }  // End of momentumPredictor
 
       // PISO loop
-#if defined(version30)
-      while (piso.correct())
-#else
-      for (int corr = 0; corr < nCorr; corr++)
-#endif
-      {
-        volScalarField rUA = 1.0 / UEqn.A();
-        volVectorField HbyA = rUA * UEqn.H();
+      while (piso.correct()) {
+        // - 定义 HbyA
+        volScalarField rAU = 1.0 / UEqn.A();
+        volVectorField HbyA(constrainHbyA(rAU * UEqn.H(), U, p));
 
-        if (modelType != "none") {  // "A" or "B" or  "Bfull"
+        // - 计算 HbyA 的通量场(不包含 Ksl / rho * Us 的通量)
+        surfaceScalarField phiHbyA(
+          "phiHbyA",
+          (fvc::interpolate(HbyA) & mesh.Sf()) + fvc::interpolate(rAU * voidfraction) * fvc::ddtCorr(U, phi)
+          // (fvc::interpolate(HbyA) & mesh.Sf()) + fvc::interpolate(rAU) * fvc::ddtCorr(HbyA, phiByVoidfraction)
+          // ??????
+        );
 
-          // - 定义 HbyA 的通量场(不包含 Ksl / rho * Us 的通量)
-          surfaceScalarField phiHbyA(
-            "phiHbyA",
-#ifdef version23
-            (fvc::interpolate(HbyA) & mesh.Sf()) + fvc::interpolate(rUA) * fvc::ddtCorr(HbyA, phiByVoidfraction)
-#else
-            (fvc::interpolate(HbyA) & mesh.Sf()) + fvc::ddtPhiCorr(rUA, HbyA, phiByVoidfraction);
-#endif
-          );
+        // - 定义 Ksl / rho * Us 的通量
+        surfaceScalarField phiUs(fvc::interpolate(Us) & mesh.Sf());
 
-          // - 定义 Ksl / rho * Us 的通量
-          surfaceScalarField phiUs(fvc::interpolate(Us) & mesh.Sf());
+        // - 将Us通量与HbyA通量相加，得到压力修正方程中的总通量
+        phiHbyA += fvc::interpolate(rAU) * fvc::interpolate(Ksl / rho) * phiUs;
 
-          // - 将Us通量与HbyA通量相加，得到压力修正方程中的总通量
-          phiHbyA += fvc::interpolate(rUA) * fvc::interpolate(Ksl / rho) * phiUs;
+        // - 修正 phiHbyA，在求解泊松方程的时候, 如果全部给定 Neumann 边界条件(即第二类边界条件), phiHbyA 还需要满足相容性条件,
+        // 在 adjustPhi 函数中，第二个参数必须使用 U，而不能使用 HbyA，因为在 adjustPhi 函数中，需要通过 U 获取 boundaryField
+        adjustPhi(phiHbyA, U, p);
 
-          // - 修正通量 phiHbyA 以满足泊松方程相容性条件(当压力边界全部为 Neumann 条件)
-          // mixAdjustPhi(phiHbyA, U, p); ???????????????
+        // - Update the pressure BCs to ensure flux consistency
+        constrainPressure(p, U, phiHbyA, rAU);
 
-          // - 通过迭代求解压力泊松方程, 并对方程中的拉普拉斯项进行非正交修正
-          // 注意: 由于压力泊松方程中存在压力的拉普拉斯项, 当网格非正交的时候会出现显式源项, 显式源项会在正交修正迭代后进行更新
-          // 修正次数可由 controlDict 中的 nNonOrthogonalCorrectors 来指定
-#if defined(version30)
-          while (piso.correctNonOrthogonal())
-#else 
-          for (int nonOrth = 0; nonOrth <= nNonOrthCorr; ++nonOrth)
-#endif
-          {
-            volScalarField rUAvoidfraction("(voidfraction / A(U))", rUA * voidfraction);
-            if (modelType == "A") {
-              rUAvoidfraction = volScalarField("voidfraction^2 / A(U)", rUA * voidfraction * voidfraction);
-            }
-
-            fvScalarMatrix pEqn
-            (
-                fvm::laplacian(rUAvoidfraction, p)
-              ==
-                fvc::div(voidfractionf * phiHbyA) + particleCloud.ddtVoidfraction()
-            );
-            pEqn.setReference(pRefCell, pRefValue);
-
-#if defined(version30)
-
-            pEqn.solve(mesh.solver(p.select(piso.finalInnerIter())));
-            if (piso.finalNonOrthogonalIter()) {
-              phiByVoidfraction = phiHbyA - pEqn.flux() / voidfractionf;
-            }
-
-#else
-
-            if (corr == nCorr-1 && nonOrth == nNonOrthCorr) {
-  #if defined(versionExt32)
-              pEqn.solve(mesh.solutionDict().solver("pFinal"));
-  #else
-              pEqn.solve(mesh.solver("pFinal"));
-  #endif
-            } else {
-              pEqn.solve();
-            }
-            if(nonOrth == nNonOrthCorr) {
-              phiByVoidfraction = phiHbyA - pEqn.flux() / voidfractionf;
-            }
-
-#endif
-          }  // End of non-orthogonal corrector loop
-
-          phi = voidfractionf * phiByVoidfraction;
-          #include "continuityErrorPhiPU.H"
-
-          // 更新速度场
+        // - Non-orthogonal pressure corrector loop
+        // 通过迭代求解压力泊松方程, 并对方程中的拉普拉斯项进行非正交修正
+        // 注意: 由于压力泊松方程中存在压力的拉普拉斯项, 当网格非正交的时候会出现显式源项, 显式源项会在正交修正迭代后进行更新
+        // 修正次数可由 controlDict 中的 nNonOrthogonalCorrectors 来指定
+        while (piso.correctNonOrthogonal()) {
+          volScalarField rUAvoidfraction("(voidfraction / A(U))", rAU * voidfraction);
           if (modelType == "A") {
-            U = HbyA - rUA * (voidfraction * fvc::grad(p) - Ksl / rho * Us);
-          } else if (modelType == "B" || modelType == "Bfull") {
-            U = HbyA - rUA * (fvc::grad(p) - Ksl / rho * Us);
+            rUAvoidfraction = volScalarField("voidfraction^2 / A(U)", rAU * voidfraction * voidfraction);
           }
-          U.correctBoundaryConditions();
-          fvOptions.correct(U);
 
-        } else {  // "none"
-#if __NONETYPE__
-          surfaceScalarField phiHbyA(
-            "phiHbyA",
-#ifdef version23
-            (fvc::interpolate(HbyA) & mesh.Sf()) + fvc::interpolate(rUA) * fvc::ddtCorr(HbyA, phi)
-#else
-            (fvc::interpolate(HbyA) & mesh.Sf()) + fvc::ddtPhiCorr(rUA, HbyA, phi);
-#endif
+          // Pressure corrector
+          fvScalarMatrix pEqn (
+            fvm::laplacian(rUAvoidfraction, p) == fvc::div(voidfractionf * phiHbyA) + particleCloud.ddtVoidfraction()
           );
-          adjustPhi(phiHbyA, U, p);
+          pEqn.setReference(pRefCell, pRefValue);
+          pEqn.solve(mesh.solver(p.select(piso.finalInnerIter())));
 
-#if defined(version30)
-          while (piso.correctNonOrthogonal())
-#else 
-          for (int nonOrth = 0; nonOrth <= nNonOrthCorr; ++nonOrth)
-#endif
-          {
-            fvScalarMatrix pEqn
-            (
-              fvm::laplacian(rUA, p) == fvc::div(phiHbyA) + particleCloud.ddtVoidfraction()
-            );
-            pEqn.setReference(pRefCell, pRefValue);
-
-#if defined(version30)
-            pEqn.solve(mesh.solver(p.select(piso.finalInnerIter())));
-            if (piso.finalNonOrthogonalIter()) {
-              phi = phiHbyA - pEqn.flux();
-            }
-#else
-            if (corr == nCorr-1 && nonOrth == nNonOrthCorr) {
-  #if defined(versionExt32)
-              pEqn.solve(mesh.solutionDict().solver("pFinal"));
-  #else
-              pEqn.solve(mesh.solver("pFinal"));
-  #endif
-            } else {
-              pEqn.solve();
-            }
-            if (nonOrth == nNonOrthCorr) {
-              phi = phiHbyA - pEqn.flux();
-            }
-#endif
+          if (piso.finalNonOrthogonalIter()) {
+            phi = phiHbyA - pEqn.flux() / voidfractionf;
           }
-          #include "continuityErrs.H"
-          U = HbyA - rUA * fvc::grad(p);
-          U.correctBoundaryConditions();
-#else
-          FatalError << "cfdemSolverMix.C: " << __LINE__ << ": Not implement for modelType = None" << abort(FatalError);
-#endif  // __NONETYPE__
         }
+        #include "continuityErrs.H"
 
+        // - 更新速度场
+        if (modelType == "A") {
+          U = HbyA - rAU * (voidfraction * fvc::grad(p) - Ksl / rho * Us);
+        } else if (modelType == "B" || modelType == "Bfull") {
+          U = HbyA - rAU * (fvc::grad(p) - Ksl / rho * Us);
+        } else if (modelType == "none") {
+          U = HbyA - rAU * (fvc::grad(p) - Ksl / rho * Us);
+        } else {
+          FatalError << "cfdemSolverMix.C: " << __LINE__ << ": Not implement for modelType = " << modelType << abort(FatalError);
+        }
+        U.correctBoundaryConditions();
       }  // End of PISO loop
 
       laminarTransport.correct();
       turbulence->correct();
 
-#if __NONETYPE__
-      volScalarField volumefractionNext = mesh.lookupObject<volScalarField>("volumefractionNext");
-      Info << "cfdemSolverMix: calcVelocityCorrection..." << endl;
-      particleCloud.calcVelocityCorrection(p, U, phiIB, volumefractionNext);
-      Info << "cfdemSolverMix: calcVelocityCorrection - done" << endl;
-  #if defined(version22)
-      fvOptions.correct(U);
-  #endif
-#endif  // __NONETYPE__
-
-    // End of solveFlow()
+      if (modelType == "none") {
+        volScalarField volumefractionNext = mesh.lookupObject<volScalarField>("volumefractionNext");
+        Info << "cfdemSolverMix: calcVelocityCorrection..." << endl;
+        particleCloud.calcVelocityCorrection(p, U, phiIB, volumefractionNext);
+        Info << "cfdemSolverMix: calcVelocityCorrection - done" << endl;
+    #if defined(version22)
+        fvOptions.correct(U);
+    #endif
+      }
     } else {
       Info << "cfdemSolverMix.C: " << __LINE__ << ": Skipping flow solution." << endl;
-    }
+    }  // End of solveFlow()
 
     runTime.write();
     Info << "ExecutionTime = " << runTime.elapsedCpuTime() << " s"

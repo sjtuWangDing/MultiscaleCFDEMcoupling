@@ -31,13 +31,13 @@ Description
     cfdemSolverMix
 \*---------------------------------------------------------------------------*/
 #ifndef __NONETYPE__
-#define __NONETYPE__ 0
+#define __NONETYPE__ 1
 #endif
 
 #include "fvCFD.H"
 #include "singlePhaseTransportModel.H"
-
 #include "OFversion.H"
+
 #if defined(version30)
   #include "turbulentTransportModel.H"
   #include "pisoControl.H"
@@ -73,7 +73,6 @@ Description
 int main(int argc, char *argv[]) {
   #include "setRootCase.H"
   #include "createTime.H"
-
   // #include "createMesh.H"
   #include "createDynamicFvMesh.H"
 
@@ -84,11 +83,10 @@ int main(int argc, char *argv[]) {
 
   // 创建所有场变量
   #include "createFields.H"
-
   #include "createFvOptions.H"
   #include "initContinuityErrs.H"
-
   #include "readGravitationalAcceleration.H"
+
   // 在 cfdemSolverMix 求解器中必须使用 impCoupleModel
   // 在 cfdemSolverMix 求解器中必须使用 mix force model
   #include "./mixCheckGlobal.H"
@@ -145,7 +143,7 @@ int main(int argc, char *argv[]) {
       // 计算隐式力的值: forAll(fImp, cellI) { fImp[cellI] *= particleCloud.mesh().V()[cellI]; }
       particleCloud.scaleWithVcell(fImp);
       dimensionedVector fImpTotal = gSum(fImp);
-      Info << "TotalForceImp:  " << fImpTotal.value() << endl;
+      Info << "TotalForceImp: " << fImpTotal.value() << endl;
       Info << "Warning, these values are based on latest Ksl and Us but prev. iteration U!" << endl;
       Info << "cfdemSolverMix: forceCheckIm - done\n" << endl;
     }
@@ -153,26 +151,10 @@ int main(int argc, char *argv[]) {
 
     // 如果 modelType 为 none, 则说明当前计算忽略所有的 fine particles
     #include "./mixCheckModelNone.H"
-
-#if __NONETYPE__
-    surfaceScalarField voidfractionf = fvc::interpolate(voidfraction);
-#else
     surfaceScalarField voidfractionf = fvc::interpolate(voidfraction);
     phi = voidfractionf * phiByVoidfraction;
-#endif
 
     if (particleCloud.solveFlow()) {
-
-#if __NONETYPE__
-      fvVectorMatrix UEqn
-      (
-          fvm::ddt(U)
-        + fvm::div(phi, U)
-        + turbulence->divDevReff(U)
-        ==
-          fvOptions(U)
-      );
-#else
       // 动量预测
       // 注意: 在动量方程中, modelType 为 "B" or "Bfull" 的时候, 应力项中不需要乘以空隙率, 而当 modelType 为 "A" 时, 应力项中需要乘以空隙率
       fvVectorMatrix UEqn
@@ -189,7 +171,6 @@ int main(int argc, char *argv[]) {
         - fvm::Sp(Ksl / rho, U)
         + fvOptions(U)
       );
-#endif  // __NONETYPE__
 
       UEqn.relax();
       fvOptions.constrain(UEqn);
@@ -206,12 +187,10 @@ int main(int argc, char *argv[]) {
         } else if (modelType == "A") {
           // 在动量方程中, modelType 为 "A" 时, 压力项中需要乘以空隙率
           solve(UEqn == - voidfraction * fvc::grad(p) + Ksl / rho * Us);
-        } else {  // modelType == "none"
-#if __NONETYPE__
-          solve(UEqn == -fvc::grad(p));
-#else
-          FatalError << "cfdemSolverMix.C: " << __LINE__ << ": Not implement for modelType = None" << abort(FatalError);
-#endif  // __NONETYPE__
+        } else if (modelType == "none") {
+          solve(UEqn == -fvc::grad(p) + Ksl / rho * Us);
+        } else {
+          FatalError << "cfdemSolverMix.C: " << __LINE__ << ": Not implement for modelType = " << modelType << abort(FatalError);
         }
         fvOptions.correct(U);
       }  // End of momentumPredictor
@@ -223,8 +202,8 @@ int main(int argc, char *argv[]) {
       for (int corr = 0; corr < nCorr; corr++)
 #endif
       {
-        volScalarField rUA = 1.0 / UEqn.A();
-        volVectorField HbyA = rUA * UEqn.H();
+        volScalarField rAU = 1.0 / UEqn.A();
+        volVectorField HbyA = rAU * UEqn.H();
 
         if (modelType != "none") {  // "A" or "B" or  "Bfull"
 
@@ -232,9 +211,9 @@ int main(int argc, char *argv[]) {
           surfaceScalarField phiHbyA(
             "phiHbyA",
 #ifdef version23
-            (fvc::interpolate(HbyA) & mesh.Sf()) + fvc::interpolate(rUA) * fvc::ddtCorr(HbyA, phiByVoidfraction)
+            (fvc::interpolate(HbyA) & mesh.Sf()) + fvc::interpolate(rAU) * fvc::ddtCorr(HbyA, phiByVoidfraction)
 #else
-            (fvc::interpolate(HbyA) & mesh.Sf()) + fvc::ddtPhiCorr(rUA, HbyA, phiByVoidfraction);
+            (fvc::interpolate(HbyA) & mesh.Sf()) + fvc::ddtPhiCorr(rAU, HbyA, phiByVoidfraction);
 #endif
           );
 
@@ -242,7 +221,7 @@ int main(int argc, char *argv[]) {
           surfaceScalarField phiUs(fvc::interpolate(Us) & mesh.Sf());
 
           // - 将Us通量与HbyA通量相加，得到压力修正方程中的总通量
-          phiHbyA += fvc::interpolate(rUA) * fvc::interpolate(Ksl / rho) * phiUs;
+          phiHbyA += fvc::interpolate(rAU) * fvc::interpolate(Ksl / rho) * phiUs;
 
           // - 修正通量 phiHbyA 以满足泊松方程相容性条件(当压力边界全部为 Neumann 条件)
           // mixAdjustPhi(phiHbyA, U, p); ???????????????
@@ -256,9 +235,9 @@ int main(int argc, char *argv[]) {
           for (int nonOrth = 0; nonOrth <= nNonOrthCorr; ++nonOrth)
 #endif
           {
-            volScalarField rUAvoidfraction("(voidfraction / A(U))", rUA * voidfraction);
+            volScalarField rUAvoidfraction("(voidfraction / A(U))", rAU * voidfraction);
             if (modelType == "A") {
-              rUAvoidfraction = volScalarField("voidfraction^2 / A(U)", rUA * voidfraction * voidfraction);
+              rUAvoidfraction = volScalarField("voidfraction^2 / A(U)", rAU * voidfraction * voidfraction);
             }
 
             fvScalarMatrix pEqn
@@ -299,9 +278,9 @@ int main(int argc, char *argv[]) {
 
           // 更新速度场
           if (modelType == "A") {
-            U = HbyA - rUA * (voidfraction * fvc::grad(p) - Ksl / rho * Us);
+            U = HbyA - rAU * (voidfraction * fvc::grad(p) - Ksl / rho * Us);
           } else if (modelType == "B" || modelType == "Bfull") {
-            U = HbyA - rUA * (fvc::grad(p) - Ksl / rho * Us);
+            U = HbyA - rAU * (fvc::grad(p) - Ksl / rho * Us);
           }
           U.correctBoundaryConditions();
           fvOptions.correct(U);
@@ -311,9 +290,9 @@ int main(int argc, char *argv[]) {
           surfaceScalarField phiHbyA(
             "phiHbyA",
 #ifdef version23
-            (fvc::interpolate(HbyA) & mesh.Sf()) + fvc::interpolate(rUA) * fvc::ddtCorr(HbyA, phi)
+            (fvc::interpolate(HbyA) & mesh.Sf()) + fvc::interpolate(rAU) * fvc::ddtCorr(HbyA, phi)
 #else
-            (fvc::interpolate(HbyA) & mesh.Sf()) + fvc::ddtPhiCorr(rUA, HbyA, phi);
+            (fvc::interpolate(HbyA) & mesh.Sf()) + fvc::ddtPhiCorr(rAU, HbyA, phi);
 #endif
           );
           adjustPhi(phiHbyA, U, p);
@@ -326,7 +305,7 @@ int main(int argc, char *argv[]) {
           {
             fvScalarMatrix pEqn
             (
-              fvm::laplacian(rUA, p) == fvc::div(phiHbyA) + particleCloud.ddtVoidfraction()
+              fvm::laplacian(rAU, p) == fvc::div(phiHbyA) + particleCloud.ddtVoidfraction()
             );
             pEqn.setReference(pRefCell, pRefValue);
 
@@ -351,7 +330,7 @@ int main(int argc, char *argv[]) {
 #endif
           }
           #include "continuityErrs.H"
-          U = HbyA - rUA * fvc::grad(p);
+          U = HbyA - rAU * fvc::grad(p);
           U.correctBoundaryConditions();
 #else
           FatalError << "cfdemSolverMix.C: " << __LINE__ << ": Not implement for modelType = None" << abort(FatalError);
@@ -364,13 +343,15 @@ int main(int argc, char *argv[]) {
       turbulence->correct();
 
 #if __NONETYPE__
-      volScalarField volumefractionNext = mesh.lookupObject<volScalarField>("volumefractionNext");
-      Info << "cfdemSolverMix: calcVelocityCorrection..." << endl;
-      particleCloud.calcVelocityCorrection(p, U, phiIB, volumefractionNext);
-      Info << "cfdemSolverMix: calcVelocityCorrection - done" << endl;
-  #if defined(version22)
-      fvOptions.correct(U);
-  #endif
+      if (modelType == "none") {
+        volScalarField volumefractionNext = mesh.lookupObject<volScalarField>("volumefractionNext");
+        Info << "cfdemSolverMix: calcVelocityCorrection..." << endl;
+        particleCloud.calcVelocityCorrection(p, U, phiIB, volumefractionNext);
+        Info << "cfdemSolverMix: calcVelocityCorrection - done" << endl;
+    #if defined(version22)
+        fvOptions.correct(U);
+    #endif
+      }
 #endif  // __NONETYPE__
 
     // End of solveFlow()
