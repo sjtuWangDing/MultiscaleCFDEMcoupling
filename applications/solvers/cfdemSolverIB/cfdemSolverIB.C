@@ -37,7 +37,7 @@ Contributions
 \*---------------------------------------------------------------------------*/
 
 #ifndef __mix_debug__
-#define __mix_debug__ 1
+#define __mix_debug__ 0
 #endif
 
 #include "fvCFD.H"

@@ -183,8 +183,6 @@ int main(int argc, char *argv[]) {
         surfaceScalarField phiHbyA(
           "phiHbyA",
           (fvc::interpolate(HbyA) & mesh.Sf()) + fvc::interpolate(rAU * voidfraction) * fvc::ddtCorr(U, phi)
-          // (fvc::interpolate(HbyA) & mesh.Sf()) + fvc::interpolate(rAU) * fvc::ddtCorr(HbyA, phiByVoidfraction)
-          // ??????
         );
 
         // - 定义 Ksl / rho * Us 的通量
