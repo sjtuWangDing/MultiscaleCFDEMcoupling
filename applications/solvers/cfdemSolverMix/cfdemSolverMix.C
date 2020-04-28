@@ -96,7 +96,7 @@ int main(int argc, char *argv[]) {
   Info << "\nStarting time loop\n" << endl;
 
   while(runTime.loop()) {
-  
+
     Info << "Time = " << runTime.timeName() << nl << endl;
     // 设置动态加密网格
     interFace = mag(mesh.lookupObject<volScalarField>("volumefractionNext"));
