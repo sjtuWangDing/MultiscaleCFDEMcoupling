@@ -10,9 +10,9 @@ boundary        f f f
 newton          off
 
 units           si
-processors      2 2 3
+processors      2 2 2
 
-region          reg block 0.0 0.01 0.0 0.01 0.0 0.075 units box
+region          reg block 0.0 0.005 0.0 0.005 0.0 0.025 units box
 create_box      1 reg
 
 neighbor        0.003 bin
@@ -39,18 +39,18 @@ fix             gravi all gravity 9.81 vector 0.0 0.0 -1.0
 
 # walls
 fix     xwalls1 all wall/gran model hertz tangential history primitive type 1 xplane 0.0
-fix     xwalls2 all wall/gran model hertz tangential history primitive type 1 xplane 0.01
+fix     xwalls2 all wall/gran model hertz tangential history primitive type 1 xplane 0.005
 fix     ywalls1 all wall/gran model hertz tangential history primitive type 1 yplane 0.0
-fix     ywalls2 all wall/gran model hertz tangential history primitive type 1 yplane 0.01
+fix     ywalls2 all wall/gran model hertz tangential history primitive type 1 yplane 0.005
 fix     zwalls1 all wall/gran model hertz tangential history primitive type 1 zplane 0.0
-fix     zwalls2 all wall/gran model hertz tangential history primitive type 1 zplane 0.075
+fix     zwalls2 all wall/gran model hertz tangential history primitive type 1 zplane 0.025
 
 # cfd coupling
 fix     cfd  all couple/cfd couple_every 5 mpi
 fix     cfd2 all couple/cfd/force
 
 # create single partciles
-create_atoms 1 single 0.005 0.005 0.065 units box
+create_atoms 1 single 0.0025 0.0025 0.0225 units box
 set atom 1 diameter 0.0005 density 2560 vx 0 vy 0 vz 0
 
 variable        vx1 equal vx[1]

@@ -36,19 +36,19 @@ couplingInterval 10;
 
 depth 0;
 
-voidFractionModel mix;             // divided // centre // bigParticle
+voidFractionModel IB;             // divided // centre // bigParticle
 
 locateModel engineIB;              // standard
 
 meshMotionModel noMeshMotion;
 
-dataExchangeModel mixTwoWayMPI;    // M2M // twoWayMPI // mixTwoWayMPI
+dataExchangeModel twoWayMPI;    // M2M // twoWayMPI // mixTwoWayMPI
 
 IOModel basicIO;
 
 probeModel off;
 
-averagingModel mixDense;            // dense // dilute
+averagingModel dense;            // dense // dilute
 
 clockModel off;
 
@@ -56,10 +56,10 @@ smoothingModel off;
 
 forceModels
 (
-    // ArchimedesIB
-    // ShirgaonkarIB
-    mixArchimedesIB
-    mixShirgaonkarIB
+    ArchimedesIB
+    ShirgaonkarIB
+    // mixArchimedesIB
+    // mixShirgaonkarIB
 );
 
 momCoupleModels
@@ -111,7 +111,7 @@ twoWayFilesProps
 
 IBProps
 {
-    maxCellsPerParticle 1000;
+    maxCellsPerParticle 100000;
     alphaMin 0.30;
     scaleUpVol 1.0;
 }
