@@ -246,7 +246,7 @@ void Foam::cfdemCloudIB::setInterFace
     {
         vector ParPos(positions()[par][0],positions()[par][1],positions()[par][2]);
         const boundBox& globalBb = mesh().bounds();
-        double skin = 2.0;
+        double skin = 1.5;
         forAll(mesh_.C(),cellI)
         {
             vector posC = mesh_.C()[cellI];

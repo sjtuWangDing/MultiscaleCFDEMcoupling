@@ -99,7 +99,13 @@ int main(int argc, char *argv[]) {
 
     Info << "Time = " << runTime.timeName() << nl << endl;
     // 设置动态加密网格
-    interFace = mag(mesh.lookupObject<volScalarField>("volumefractionNext"));
+    Info << "cfdemCloudMix::setInterFace()..." << endl;
+    particleCloud.setInterFace(interFace, refineMeshKeepStep);
+    interFace.correctBoundaryConditions();
+    refineMeshKeepStep.correctBoundaryConditions();
+    // particleCloud.setInterFace(interFace);
+    // interFace = mag(mesh.lookupObject<volScalarField>("volumefractionNext"));
+    Info << "cfdemCloudMix::setInterFace() - done\n" << endl;
     particleCloud.setMeshHasUpdatedFlag(mesh.update());
 
     #include "readTimeControls.H"

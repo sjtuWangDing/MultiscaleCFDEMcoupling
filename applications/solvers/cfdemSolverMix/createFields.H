@@ -142,6 +142,21 @@ autoPtr<incompressible::turbulenceModel> turbulence(
   incompressible::turbulenceModel::New(U, phi, laminarTransport)
 );
 
+Info << "Reading field phiIB\n" << endl;
+volScalarField phiIB
+(
+  IOobject
+  (
+    "phiIB",
+    runTime.timeName(),
+    mesh,
+    IOobject::READ_IF_PRESENT,
+    IOobject::AUTO_WRITE
+  ),
+  mesh,
+  dimensionedScalar("zero", dimensionSet(0, 2, -1, 0, 0), 0.0)
+);
+
 Info << "Reading field interFace\n" << endl;
 volScalarField interFace
 (
@@ -157,17 +172,17 @@ volScalarField interFace
   dimensionedScalar("0", dimensionSet(0, 0, 0, 0, 0), 0.0)
 );
 
-Info << "Reading field phiIB\n" << endl;
-volScalarField phiIB
+Info << "Reading field refineMeshKeepStep\n" << endl;
+volScalarField refineMeshKeepStep
 (
   IOobject
   (
-    "phiIB",
+    "refineMeshKeepStep",
     runTime.timeName(),
     mesh,
     IOobject::READ_IF_PRESENT,
     IOobject::AUTO_WRITE
   ),
   mesh,
-  dimensionedScalar("zero", dimensionSet(0, 2, -1, 0, 0), 0.0)
+  dimensionedScalar("0", dimensionSet(0, 0, 0, 0, 0), 0.0)
 );

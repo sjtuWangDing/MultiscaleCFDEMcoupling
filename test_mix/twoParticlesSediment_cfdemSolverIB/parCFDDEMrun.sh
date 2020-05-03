@@ -19,7 +19,7 @@ logpath=$casePath
 headerText="run_parallel_cfdemSolverIB_twoSpheresGlowinskiMPI_CFDDEM"
 logfileName="log_$headerText"
 solverName="cfdemSolverIB"
-nrProcs="8"
+nrProcs="12"
 machineFileName="none"   # yourMachinefileName | none
 debugMode="off"          # on | off| strict
 testHarnessPath="$CFDEM_TEST_HARNESS_PATH"
@@ -35,8 +35,6 @@ if [ $runOctave == "true" ]
     
     cd $casePath/CFD/octave
     octave --no-gui postproc.m
-    evince pos_y_two_part_rec_glow.eps 
-    evince vel_y_two_part_rec_glow.eps 
     #display pos_y_two_part_rec_glow.png &
     #display vel_y_two_part_rec_glow.png &
 fi

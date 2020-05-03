@@ -118,7 +118,9 @@ int main(int argc, char *argv[])
         Info<< "Time = " << runTime.timeName() << nl << endl;
 
         //=== dyM ===================
-        interFace = mag(mesh.lookupObject<volScalarField>("voidfractionNext"));
+        // interFace = mag(mesh.lookupObject<volScalarField>("voidfractionNext"));
+        particleCloud.setInterFace(interFace);
+        interFace.correctBoundaryConditions();
         particleCloud.setMeshHasUpdatedFlag(mesh.update()); //dyM
 
         #if defined(version30)

@@ -109,6 +109,21 @@ protected:
   // @note 用于计算 drag force for middle particle
   std::vector<std::vector<int> > affectedCellIDs;
 
+  // @brief 重构网格的颗粒直径因数
+  // @note 在颗粒 refineMeshSkin_ * diameter 中的网格设置 interFace 用于 refine mesh
+  double refineMeshSkin_;
+
+  // @brief 重构网格保留时间间隔(以流体时间步为单位)
+  // @note 如果设置为 100, 即重构网格会保留 100 个时间步，默认值为 0
+  double refineMeshKeepInterval_;
+
+  // @brief 重构网格保留时间步
+  // @note 如果某个网格 cellI 处，refineMeshKeepStep_[cellI] = 50，则表示 50 个时间步内保留该网格的 interface
+  // volScalarField refineMeshKeepStep_;
+
+  // @brief 是否首次设置 interFace
+  bool firstSetInterFace_;
+
 private:
 
   // Functions for debug
@@ -183,6 +198,11 @@ public:
 
   // @brief 设置 coarse particle 中的流体速度
   void setParticleVelocity(volVectorField& U);
+
+
+  // @brief 确定颗粒周围细化网格的区域(每个方向的尺寸都是颗粒尺寸的两倍)
+  void setInterFace(volScalarField& interFace,
+                    volScalarField& refineMeshKeepStep);
 
   // @brief 确定颗粒周围细化网格的区域(每个方向的尺寸都是颗粒尺寸的两倍)
   void setInterFace(volScalarField& interFace);

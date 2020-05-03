@@ -24,8 +24,8 @@ nrProcs="2"
 machineFileName="none"   # yourMachinefileName | none
 debugMode="off"          # on | off| strict
 testHarnessPath="$CFDEM_TEST_HARNESS_PATH"
-runOctave="true"
-cleanUp="true"
+runOctave="false"
+cleanUp="false"
 postproc="false"
 #--------------------------------------------------------------------------------#
 

@@ -22,7 +22,7 @@ dynamicRefineFvMeshCoeffs
     field             interFace;  // field to be refinement on
     lowerRefineLevel  0.0001;     // refine field inbetween lower and upper
     upperRefineLevel  0.99;
-    unrefineLevel     0;          // if value < unrefineLevel (default = GREAT) unrefine
+    unrefineLevel     2;          // if value < unrefineLevel (default = GREAT) unrefine
     nBufferLayers     10;         // unrefine pointCells that are within nBufferLayers of points marked for refinement
     maxRefinement     3;          // refine cells only up to maxRefinement levels (start with 0)
     maxCells          1000000;    // stop refinement if maxCells reached

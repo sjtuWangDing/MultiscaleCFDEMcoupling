@@ -10,7 +10,7 @@ boundary        f f f
 newton          off
 
 units           si
-processors      2 2 2
+processors      2 2 3
 
 region          reg block 0. 1. 0. 1. 0. 4. units box
 create_box      1 reg
@@ -27,7 +27,9 @@ fix             m3 all property/global coefficientRestitution peratomtypepair 1 
 fix             m4 all property/global coefficientFriction peratomtypepair 1 0.5
 
 # pair style
-pair_style      gran model hertz tangential history #Hertzian without cohesion
+pair_style      gran model hertz tangential history
+
+#Hertzian without cohesion
 pair_coeff      * *
 
 # timestep, gravity

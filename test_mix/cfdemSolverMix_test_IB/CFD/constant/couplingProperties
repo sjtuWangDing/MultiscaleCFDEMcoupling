@@ -32,6 +32,8 @@ usedForSolverIB false;
 
 useDynamicRefineMesh true;
 
+refineMeshKeepInterval 400;
+
 modelType none; // A or B or Bfull or none
 
 couplingInterval 10;

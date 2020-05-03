@@ -37,10 +37,23 @@ cfdemCloudMix::cfdemCloudMix(const fvMesh& mesh):
   pRefCell_(0),
   pRefValue_(0),
   haveEvolvedOnce_(false),
+  firstSetInterFace_(true),
   volumefractions_(NULL) {
 
   Info << "\nEnding of Constructing cfdemCloudMix Class Object......\n" << endl;
   Info << "\nEntry of cfdemCloudMix::cfdemCloudMix......\n" << endl;
+
+  refineMeshSkin_ = this->couplingProperties().lookupOrDefault<double>("refineMeshSkin", 1.5);
+  if (refineMeshSkin_ < 1.0) {
+    FatalError << "cfdemCloudMix::cfdemCloudMix(): refineMeshSkin should be >= 1.0 but get " << refineMeshSkin_
+      << abort(FatalError);
+  }
+
+  refineMeshKeepInterval_ = this->couplingProperties().lookupOrDefault<double>("refineMeshKeepInterval", 0.0);
+  if (refineMeshKeepInterval_ < 0.0) {
+    FatalError << "cfdemCloudMix::cfdemCloudMix(): refineMeshKeepInterval should be >= 0.0 but get " << refineMeshKeepInterval_
+      << abort(FatalError);
+  }
 
   if (usedForSolverPiso() == false) {
     pRefCell_ = readLabel(mesh.solutionDict().subDict("PISO").lookup("pRefCell"));
@@ -442,9 +455,9 @@ bool cfdemCloudMix::evolve(volScalarField& alphaVoidfraction,
       mixCouplingKernel();
       Info << "mixCouplingKernel - done\n" << endl;
 
-      if (verbose_) { Info << "cfdemCloudMix::setInterFace()..." << endl; }
-      setInterFace(interFace);
-      if (verbose_) { Info << "cfdemCloudMix::setInterFace() - done\n" << endl; }
+      // if (verbose_) { Info << "cfdemCloudMix::setInterFace()..." << endl; }
+      // setInterFace(interFace);
+      // if (verbose_) { Info << "cfdemCloudMix::setInterFace() - done\n" << endl; }
 
       Info << "Do coupling - done\n" << endl;
     }  // End of doCoupleNow
@@ -465,6 +478,7 @@ bool cfdemCloudMix::evolve(volScalarField& alphaVoidfraction,
       alphaVoidfraction.oldTime().correctBoundaryConditions();
     }
     alphaVoidfraction.correctBoundaryConditions();
+    alphaVolumefraction.correctBoundaryConditions();
 
     // calc ddt(voidfraction)
     calcDdtVoidfraction(alphaVoidfraction, Us);
@@ -776,16 +790,21 @@ void cfdemCloudMix::setParticleVelocity(volVectorField& U) {
 }
 
 // @brief 确定颗粒周围细化网格的区域(每个方向的尺寸都是颗粒尺寸的两倍)
-void cfdemCloudMix::setInterFace(volScalarField& interFace) {
+void cfdemCloudMix::setInterFace(volScalarField& interFace,
+                                 volScalarField& refineMeshKeepStep) {
 
-  interFace == dimensionedScalar("zero", interFace.dimensions(), 0.);
+  if (firstSetInterFace_) {
+    interFace == dimensionedScalar("zero", interFace.dimensions(), 0.0);
+    refineMeshKeepStep == dimensionedScalar("zero", refineMeshKeepStep.dimensions(), 0.0);
+    firstSetInterFace_ = false;
+  }
+  volScalarField cellFirstEntry = interFace;
+  cellFirstEntry == dimensionedScalar("zero", cellFirstEntry.dimensions(), 0.0);
 
   const boundBox& globalBb = mesh().bounds();
-
   for (int index = 0; index < numberOfParticles(); index++) {
     if (needSetFieldForCoarseParticle(index, usedForSolverIB(), dimensionRatios_)) {
       vector particlePos = position(index);
-      double skin = 2.0;
       // 遍历当前处理器上的所有网格
       forAll (mesh_.C(), cellI) {
         vector cellPos = mesh_.C()[cellI];
@@ -802,7 +821,57 @@ void cfdemCloudMix::setInterFace(volScalarField& interFace) {
                                               wall_periodicityCheckRange());
           particlePos = minPeriodicParticlePos;
         }
-        double value = voidFractionM().pointInParticle(index, particlePos, cellPos, skin);
+        double value = voidFractionM().pointInParticle(index, particlePos, cellPos, refineMeshSkin_);
+        if (value <= 0.0) {  // cellI 位于颗粒中
+          // 设置 interFace
+          interFace[cellI] = value + 1.0;
+          // 设置 refineMeshKeepStep
+          refineMeshKeepStep[cellI] = refineMeshKeepInterval_;
+          // 设置 cellFirstEntry 为 1
+          cellFirstEntry[cellI] = 1.0;
+        } else {
+          if (cellFirstEntry[cellI] > 0.0) {  // 如果 cellFirstEntry > 0.0 则跳过该 cellI
+            continue;
+          }
+          if (refineMeshKeepStep[cellI] > 1.0) {
+            // cellI 不在颗粒中，但是 refineMeshKeepStep[cellI] > 1.0，则保持 interFace 值
+            refineMeshKeepStep[cellI] -= 1.0;
+          } else {
+            // 否则设置 interFace 为 0.0;
+            interFace[cellI] = 0.0;
+          }
+        }
+      }  // End of loop all cells
+    }  // End of particleNeedSet
+  }  // End of loop all particles
+}
+
+// @brief 确定颗粒周围细化网格的区域(每个方向的尺寸都是颗粒尺寸的两倍)
+void cfdemCloudMix::setInterFace(volScalarField& interFace) {
+
+  interFace == dimensionedScalar("zero", interFace.dimensions(), 0.);
+
+  const boundBox& globalBb = mesh().bounds();
+  for (int index = 0; index < numberOfParticles(); index++) {
+    if (needSetFieldForCoarseParticle(index, usedForSolverIB(), dimensionRatios_)) {
+      vector particlePos = position(index);
+      // 遍历当前处理器上的所有网格
+      forAll (mesh_.C(), cellI) {
+        vector cellPos = mesh_.C()[cellI];
+        if (checkPeriodicCells_) {
+          // Some cells may be located on the other side of a periodic boundary.
+          // In this case, the particle center has to be mirrored in order to correctly
+          // evaluate the interpolation points.
+          vector minPeriodicParticlePos = particlePos;
+          voidFractionM().minPeriodicDistance(index,
+                                              cellPos,
+                                              particlePos,
+                                              globalBb,
+                                              minPeriodicParticlePos,
+                                              wall_periodicityCheckRange());
+          particlePos = minPeriodicParticlePos;
+        }
+        double value = voidFractionM().pointInParticle(index, particlePos, cellPos, refineMeshSkin_);
         if (value <= 0.0) {
           interFace[cellI] = value + 1.0;
         }
