@@ -199,6 +199,10 @@ public:
   // @brief 设置 coarse particle 中的流体速度
   void setParticleVelocity(volVectorField& U);
 
+  void calcLmpf(const volVectorField& U,
+                const volScalarField& volumefractionField,
+                const volScalarField& rhoField,
+                volVectorField& lmpf);
 
   // @brief 确定颗粒周围细化网格的区域(每个方向的尺寸都是颗粒尺寸的两倍)
   void setInterFace(volScalarField& interFace,

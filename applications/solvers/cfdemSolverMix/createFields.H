@@ -186,3 +186,33 @@ volScalarField refineMeshKeepStep
   mesh,
   dimensionedScalar("0", dimensionSet(0, 0, 0, 0, 0), 0.0)
 );
+
+Info << "Reading lagrangeMultiplierForce field\n" << endl;
+volVectorField lmpf
+(
+  IOobject
+  (
+    "lmpf",
+    runTime.timeName(),
+    mesh,
+    IOobject::NO_READ,
+    IOobject::AUTO_WRITE
+  ),
+  mesh,
+  dimensionedVector("zero", dimensionSet(0, 1, -2, 0, 0), vector(0, 0, 0))
+);
+
+// Info << "Reading field phiLmpf\n" << endl;
+// volScalarField phiLmpf
+// (
+//   IOobject
+//   (
+//     "phiLmpf",
+//     runTime.timeName(),
+//     mesh,
+//     IOobject::NO_READ,
+//     IOobject::AUTO_WRITE
+//   ),
+//   mesh,
+//   dimensionedScalar("zero", dimensionSet(0, 2, -2, 0, 0), 0.0)
+// );

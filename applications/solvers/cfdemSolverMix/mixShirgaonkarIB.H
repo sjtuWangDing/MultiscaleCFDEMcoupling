@@ -70,6 +70,14 @@ private:
   // @brief 压力场的常引用
   const volScalarField& p_;
 
+  word volumefractionFieldName_;
+
+  const volScalarField& volumefractions_;
+
+  word lmpfFieldName_;
+
+  const volVectorField& lmpf_;
+
   bool useTorque_;
 
 public:

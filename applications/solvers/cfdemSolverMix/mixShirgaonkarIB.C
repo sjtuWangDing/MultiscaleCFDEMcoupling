@@ -50,6 +50,14 @@ mixShirgaonkarIB::mixShirgaonkarIB(const dictionary& dict,
   U_(sm.mesh().lookupObject<volVectorField> (velFieldName_)),
   pressureFieldName_(propsDict_.lookup("pressureFieldName")),
   p_(sm.mesh().lookupObject<volScalarField> (pressureFieldName_)),
+  // 从 dict 读取体积分数场的名称
+  volumefractionFieldName_(propsDict_.lookup("volumefractionFieldName")),
+  // 获取体积分数场的引用
+  volumefractions_(sm.mesh().lookupObject<volScalarField>(volumefractionFieldName_)),
+  // 从 dict 读取 lmpf 的名称
+  lmpfFieldName_(propsDict_.lookup("lmpfFieldName")),
+  // 获取 lmpf 的引用
+  lmpf_(sm.mesh().lookupObject<volVectorField>(lmpfFieldName_)),
   useTorque_(false) {
 
   // Append the field names to be probed
@@ -97,8 +105,14 @@ void mixShirgaonkarIB::calForceKernel(const int& index,
     label cellI = particleCloud_.cellIDs()[index][subCell];
     if (cellI >= 0) {
       vector cellCenter = particleCloud_.mesh().C()[cellI];
-      drag += IBDrag[cellI] * particleCloud_.mesh().V()[cellI];
-      torque += (cellCenter - positionCenter) ^ IBDrag[cellI] * particleCloud_.mesh().V()[cellI];
+      // drag += IBDrag[cellI] * particleCloud_.mesh().V()[cellI];
+      // torque += (cellCenter - positionCenter) ^ IBDrag[cellI] * particleCloud_.mesh().V()[cellI];
+      drag += IBDrag[cellI] * (1 - volumefractions_[cellI]) * particleCloud_.mesh().V()[cellI];
+      drag -= lmpf_[cellI] * forceSubM(0).rhoField()[cellI] * particleCloud_.mesh().V()[cellI];
+      torque += (cellCenter - positionCenter) ^ IBDrag[cellI] * (1 - volumefractions_[cellI]) * particleCloud_.mesh().V()[cellI];
+      torque += (cellCenter - positionCenter) ^ lmpf_[cellI] * forceSubM(0).rhoField()[cellI] * particleCloud_.mesh().V()[cellI];
+      // drag += (IBDrag[cellI] - lmpf_[cellI] * forceSubM(0).rhoField()[cellI]) * particleCloud_.mesh().V()[cellI] * (1 - volumefractions_[cellI]);
+      // torque += (cellCenter - positionCenter) ^ (IBDrag[cellI] - lmpf_[cellI] * forceSubM(0).rhoField()[cellI]) * particleCloud_.mesh().V()[cellI] * (1 - volumefractions_[cellI]);
     }
   }  // End of loop subCell
   if (twoDimensional_) { drag /= depth_; }
@@ -164,16 +178,13 @@ void mixShirgaonkarIB::setMixForce(const std::vector<double>& dimensionRatios) c
         vValues.setSize(vValues.size() + 1, drag);
         particleCloud_.probeM().writeProbe(index, sValues, vValues);
       }
-      Info << "mixShirgaonkarIB" << index << ": " << drag[0] << ", " << drag[1] << ", " << drag[2] << endl;
+      Pout << "mixShirgaonkarIB_" << index << ": " << drag[0] << ", " << drag[1] << ", " << drag[2] << endl;
       // write particle based data to global array
       forceSubM(0).partToArray(index, drag, vector::zero);
       if (useTorque_) {
         for (int j = 0; j < 3; j++) {
           particleCloud_.DEMTorques()[index][j] = torque[j];
         }
-      }
-      if (forceSubM(0).verbose()) {
-        Info << "impForces = (" << impForces()[index][0] << ", " << impForces()[index][1] << ", " <<impForces()[index][2] << ")" << endl;
       }
     }  // End of coarse particle
   }  // End of index

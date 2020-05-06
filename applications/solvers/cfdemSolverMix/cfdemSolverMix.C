@@ -147,6 +147,40 @@ int main(int argc, char *argv[]) {
     if (particleCloud.solveFlow()) {
       // 动量预测
       // 注意: 在动量方程中, modelType 为 "B" or "Bfull" 的时候, 应力项中不需要乘以空隙率, 而当 modelType 为 "A" 时, 应力项中需要乘以空隙率
+      fvVectorMatrix UEqn0
+      (
+          fvm::ddt(voidfraction, U)
+        - fvm::Sp(fvc::ddt(voidfraction), U)
+        + fvm::div(phi, U)
+        - fvm::Sp(fvc::div(phi), U)
+        // + particleCloud.divVoidfractionTau(U, voidfraction)
+        - fvm::laplacian(particleCloud.voidfractionNuEff(voidfraction), U)
+        - fvc::div(particleCloud.voidfractionNuEff(voidfraction) * dev2(fvc::grad(U)().T()))
+        // + turbulence->divDevReff(U)
+        ==
+        - fvm::Sp(Ksl / rho, U)
+        + fvOptions(U)
+      );
+      UEqn0.relax();
+      fvOptions.constrain(UEqn0);
+
+      if (piso.momentumPredictor()) {
+        if (modelType == "B" || modelType == "Bfull") {
+          // 在动量方程中, modelType 为 "B" or "Bfull" 的时候, 压力项中不需要乘以空隙率
+          solve(UEqn0 == - fvc::grad(p) + Ksl / rho * Us);
+        } else if (modelType == "A") {
+          // 在动量方程中, modelType 为 "A" 时, 压力项中需要乘以空隙率
+          solve(UEqn0 == - voidfraction * fvc::grad(p) + Ksl / rho * Us);
+        } else if (modelType == "none") {
+          solve(UEqn0 == -fvc::grad(p) + Ksl / rho * Us);
+        } else {
+          FatalError << "cfdemSolverMix.C: " << __LINE__ << ": Not implement for modelType = " << modelType << abort(FatalError);
+        }
+        fvOptions.correct(U);
+      }  // End of momentumPredictor
+
+      phiByVoidfraction = linearInterpolate(U) & mesh.Sf();
+      phi = voidfractionf * phiByVoidfraction;
       fvVectorMatrix UEqn
       (
           fvm::ddt(voidfraction, U)
@@ -165,6 +199,7 @@ int main(int argc, char *argv[]) {
       fvOptions.constrain(UEqn);
 
       if (piso.momentumPredictor()) {
+        particleCloud.calcLmpf(U, volumefraction, rho, lmpf);
         if (modelType == "B" || modelType == "Bfull") {
           // 在动量方程中, modelType 为 "B" or "Bfull" 的时候, 压力项中不需要乘以空隙率
           solve(UEqn == - fvc::grad(p) + Ksl / rho * Us);
@@ -172,7 +207,7 @@ int main(int argc, char *argv[]) {
           // 在动量方程中, modelType 为 "A" 时, 压力项中需要乘以空隙率
           solve(UEqn == - voidfraction * fvc::grad(p) + Ksl / rho * Us);
         } else if (modelType == "none") {
-          solve(UEqn == -fvc::grad(p) + Ksl / rho * Us);
+          solve(UEqn == -fvc::grad(p) + Ksl / rho * Us + lmpf);
         } else {
           FatalError << "cfdemSolverMix.C: " << __LINE__ << ": Not implement for modelType = " << modelType << abort(FatalError);
         }
@@ -194,8 +229,14 @@ int main(int argc, char *argv[]) {
         // - 定义 Ksl / rho * Us 的通量
         surfaceScalarField phiUs(fvc::interpolate(Us) & mesh.Sf());
 
-        // - 将Us通量与HbyA通量相加，得到压力修正方程中的总通量
+        // - 将 Us 通量与 HbyA 通量相加，计算压力修正方程中的总通量
         phiHbyA += fvc::interpolate(rAU) * fvc::interpolate(Ksl / rho) * phiUs;
+
+        // - 定义 lmpf 的通量
+        surfaceScalarField phiLmpf(fvc::interpolate(lmpf) & mesh.Sf());
+
+        // - 将 lmpf 通量与 HbyA 通量相加，计算压力修正方程中的总通量
+        phiHbyA += fvc::interpolate(rAU) * phiLmpf;
 
         // - 修正 phiHbyA，在求解泊松方程的时候, 如果全部给定 Neumann 边界条件(即第二类边界条件), phiHbyA 还需要满足相容性条件,
         // 在 adjustPhi 函数中，第二个参数必须使用 U，而不能使用 HbyA，因为在 adjustPhi 函数中，需要通过 U 获取 boundaryField
@@ -233,7 +274,7 @@ int main(int argc, char *argv[]) {
         } else if (modelType == "B" || modelType == "Bfull") {
           U = HbyA - rAU * (fvc::grad(p) - Ksl / rho * Us);
         } else if (modelType == "none") {
-          U = HbyA - rAU * (fvc::grad(p) - Ksl / rho * Us);
+          U = HbyA - rAU * (fvc::grad(p) - Ksl / rho * Us - lmpf);
         } else {
           FatalError << "cfdemSolverMix.C: " << __LINE__ << ": Not implement for modelType = " << modelType << abort(FatalError);
         }
@@ -246,7 +287,9 @@ int main(int argc, char *argv[]) {
       if (modelType == "none") {
         volScalarField volumefractionNext = mesh.lookupObject<volScalarField>("volumefractionNext");
         Info << "cfdemSolverMix: calcVelocityCorrection..." << endl;
-        particleCloud.calcVelocityCorrection(p, U, phiIB, volumefractionNext);
+        // volVectorField tempLmpf2(lmpf);
+        particleCloud.calcLmpf(U, volumefraction, rho, lmpf);
+        // particleCloud.calcVelocityCorrection(p, U, phiIB, volumefractionNext);
         Info << "cfdemSolverMix: calcVelocityCorrection - done" << endl;
     #if defined(version22)
         fvOptions.correct(U);

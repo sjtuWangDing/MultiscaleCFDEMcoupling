@@ -789,6 +789,63 @@ void cfdemCloudMix::setParticleVelocity(volVectorField& U) {
   U.correctBoundaryConditions();
 }
 
+void cfdemCloudMix::calcLmpf(const volVectorField& U,
+                             const volScalarField& volumefractionField,
+                             const volScalarField& rhoField,
+                             volVectorField& lmpf) {
+  label cellI = 0;
+  vector particleVel(0, 0, 0);
+  vector relativeVec(0, 0, 0);
+  vector rotationVel(0, 0, 0);
+  vector angularVel(0, 0, 0);
+  vector updateVel(0, 0, 0);
+
+  vector sumLmpf = vector::zero;
+  lmpf == dimensionedVector("zero", lmpf.dimensions(), vector::zero);
+  for (int index = 0; index < numberOfParticles(); index++) {
+    if (needSetFieldForCoarseParticle(index, usedForSolverIB(), dimensionRatios_)) {
+      for (int subCell = 0; subCell < cellsPerParticle()[index][0]; ++subCell) {
+        cellI = cellIDs()[index][subCell];
+        if (cellI >= 0) {
+          for (int i = 0;i < 3; i++) {
+            relativeVec[i] = U.mesh().C()[cellI][i] - position(index)[i];
+          }
+          for (int i = 0; i < 3; i++) {
+            angularVel[i] = angularVelocities()[index][i];
+          }
+          // 计算转动速度
+          rotationVel = angularVel ^ relativeVec;
+          // 计算颗粒速度
+          for (int i = 0; i < 3; ++i) {
+            particleVel[i] = velocities()[index][i] + rotationVel[i];
+          }
+          if (!usedForSolverIB() && !usedForSolverPiso()) {
+            // 计算网格速度
+            vector updateVel = (1 - volumefractions_[index][subCell]) * particleVel + volumefractions_[index][subCell] * U[cellI];
+            // vector updateVel = particleVel;
+            // 计算 lmpf
+            lmpf[cellI] = (updateVel - U[cellI]) / (U.mesh().time().deltaT().value());
+            sumLmpf += lmpf[cellI] * U.mesh().V()[cellI] * rhoField[cellI];
+          }
+        }  // End of cellI >= 0
+      }  // End of loop subCells
+    }  // End of particleNeedSet
+  }  // End of loop all particles
+
+  Pout << "sumLmpf: " << sumLmpf << endl;
+
+  // make lmpf divergence free
+  // fvScalarMatrix phiLmpfEqn(
+  //   fvm::laplacian(phiLmpf) == fvc::div(lmpf)
+  // );
+  // phiLmpfEqn.setReference(pRefCell_, pRefValue_);
+  // phiLmpfEqn.solve();
+  // lmpf -= fvc::grad(phiLmpf);
+  // lmpf.correctBoundaryConditions();
+
+  MPI_Barrier(MPI_COMM_WORLD);
+}
+
 // @brief 确定颗粒周围细化网格的区域(每个方向的尺寸都是颗粒尺寸的两倍)
 void cfdemCloudMix::setInterFace(volScalarField& interFace,
                                  volScalarField& refineMeshKeepStep) {
