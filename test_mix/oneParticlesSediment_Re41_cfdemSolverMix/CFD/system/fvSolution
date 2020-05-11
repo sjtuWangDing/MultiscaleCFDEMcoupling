@@ -21,7 +21,7 @@ solvers
     {
         solver          PCG;
         preconditioner  DIC;
-        tolerance       1e-07;
+        tolerance       1e-08;
         relTol          0;
     }
 
@@ -29,7 +29,7 @@ solvers
     {
         solver          PCG;
         preconditioner  DIC;
-        tolerance       1e-07;
+        tolerance       1e-08;
         relTol          0;
     }
 
@@ -37,7 +37,7 @@ solvers
     {
         solver          PBiCG;
         preconditioner  DILU;
-        tolerance       1e-07;
+        tolerance       1e-08;
         relTol          0;
     }
 
@@ -84,7 +84,7 @@ solvers
 
 PISO
 {
-    nCorrectors     4;
+    nCorrectors     5;
     nNonOrthogonalCorrectors 0;
     pRefCell        0;
     pRefValue       100000;

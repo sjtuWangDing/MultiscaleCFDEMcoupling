@@ -145,6 +145,7 @@ int main(int argc, char *argv[]) {
     #include "./mixCheckModelNone.H"
 
     if (particleCloud.solveFlow()) {
+
       // 动量预测
       // 注意: 在动量方程中, modelType 为 "B" or "Bfull" 的时候, 应力项中不需要乘以空隙率, 而当 modelType 为 "A" 时, 应力项中需要乘以空隙率
       fvVectorMatrix UEqn0
@@ -199,7 +200,7 @@ int main(int argc, char *argv[]) {
       fvOptions.constrain(UEqn);
 
       if (piso.momentumPredictor()) {
-        particleCloud.calcLmpf(U, volumefraction, rho, lmpf);
+        particleCloud.calcLmpf(U, rho, lmpf);
         if (modelType == "B" || modelType == "Bfull") {
           // 在动量方程中, modelType 为 "B" or "Bfull" 的时候, 压力项中不需要乘以空隙率
           solve(UEqn == - fvc::grad(p) + Ksl / rho * Us);
@@ -281,14 +282,11 @@ int main(int argc, char *argv[]) {
         U.correctBoundaryConditions();
       }  // End of PISO loop
 
-      laminarTransport.correct();
-      turbulence->correct();
-
       if (modelType == "none") {
-        volScalarField volumefractionNext = mesh.lookupObject<volScalarField>("volumefractionNext");
         Info << "cfdemSolverMix: calcVelocityCorrection..." << endl;
-        // volVectorField tempLmpf2(lmpf);
-        particleCloud.calcLmpf(U, volumefraction, rho, lmpf);
+        particleCloud.calcLmpf(U, rho, lmpf);
+        // particleCloud.calcPrevLmpf(rho, volumefraction, lmpf, prevLmpf);
+        // volScalarField volumefractionNext = mesh.lookupObject<volScalarField>("volumefractionNext");
         // particleCloud.calcVelocityCorrection(p, U, phiIB, volumefractionNext);
         Info << "cfdemSolverMix: calcVelocityCorrection - done" << endl;
     #if defined(version22)

@@ -202,17 +202,17 @@ volVectorField lmpf
   dimensionedVector("zero", dimensionSet(0, 1, -2, 0, 0), vector(0, 0, 0))
 );
 
-// Info << "Reading field phiLmpf\n" << endl;
-// volScalarField phiLmpf
-// (
-//   IOobject
-//   (
-//     "phiLmpf",
-//     runTime.timeName(),
-//     mesh,
-//     IOobject::NO_READ,
-//     IOobject::AUTO_WRITE
-//   ),
-//   mesh,
-//   dimensionedScalar("zero", dimensionSet(0, 2, -2, 0, 0), 0.0)
-// );
+Info << "Reading prevLagrangeMultiplierForce field\n" << endl;
+volVectorField prevLmpf
+(
+  IOobject
+  (
+    "prevLmpf",
+    runTime.timeName(),
+    mesh,
+    IOobject::NO_READ,
+    IOobject::AUTO_WRITE
+  ),
+  mesh,
+  dimensionedVector("zero", dimensionSet(0, 1, -2, 0, 0), vector(0, 0, 0))
+);

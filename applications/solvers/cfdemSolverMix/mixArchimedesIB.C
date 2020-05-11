@@ -164,7 +164,9 @@ void mixArchimedesIB::setMixForce(const std::vector<double>& dimensionRatios) co
       if (twoDimensional_) {
         Warning << "mixArchimedesIB model doesn't work for 2D right now!!\n" << endl;
       }
-      Pout << "mixArchimedesIB_" << index << ": " << force[0] << ", " << force[1] << ", " << force[2] << endl;
+      if (mag(force) > 0.0) {
+        Pout << "mixArchimedesIB_" << index << ": " << force[0] << ", " << force[1] << ", " << force[2] << endl;
+      }
 
       // write particle based data to global array
       forceSubM(0).partToArray(index, force, vector::zero);

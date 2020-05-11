@@ -200,9 +200,13 @@ public:
   void setParticleVelocity(volVectorField& U);
 
   void calcLmpf(const volVectorField& U,
-                const volScalarField& volumefractionField,
                 const volScalarField& rhoField,
                 volVectorField& lmpf);
+
+  void calcPrevLmpf(const volScalarField& rhoField,
+                    const volScalarField& volumefraction,
+                    const volVectorField& lmpf,
+                    volVectorField& prevLmpf);
 
   // @brief 确定颗粒周围细化网格的区域(每个方向的尺寸都是颗粒尺寸的两倍)
   void setInterFace(volScalarField& interFace,

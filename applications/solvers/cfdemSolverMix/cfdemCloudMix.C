@@ -43,7 +43,7 @@ cfdemCloudMix::cfdemCloudMix(const fvMesh& mesh):
   Info << "\nEnding of Constructing cfdemCloudMix Class Object......\n" << endl;
   Info << "\nEntry of cfdemCloudMix::cfdemCloudMix......\n" << endl;
 
-  refineMeshSkin_ = this->couplingProperties().lookupOrDefault<double>("refineMeshSkin", 1.5);
+  refineMeshSkin_ = this->couplingProperties().lookupOrDefault<double>("refineMeshSkin", 1.8);
   if (refineMeshSkin_ < 1.0) {
     FatalError << "cfdemCloudMix::cfdemCloudMix(): refineMeshSkin should be >= 1.0 but get " << refineMeshSkin_
       << abort(FatalError);
@@ -790,7 +790,6 @@ void cfdemCloudMix::setParticleVelocity(volVectorField& U) {
 }
 
 void cfdemCloudMix::calcLmpf(const volVectorField& U,
-                             const volScalarField& volumefractionField,
                              const volScalarField& rhoField,
                              volVectorField& lmpf) {
   label cellI = 0;
@@ -801,7 +800,9 @@ void cfdemCloudMix::calcLmpf(const volVectorField& U,
   vector updateVel(0, 0, 0);
 
   vector sumLmpf = vector::zero;
+  vector sumVelDiff = vector::zero;
   lmpf == dimensionedVector("zero", lmpf.dimensions(), vector::zero);
+
   for (int index = 0; index < numberOfParticles(); index++) {
     if (needSetFieldForCoarseParticle(index, usedForSolverIB(), dimensionRatios_)) {
       for (int subCell = 0; subCell < cellsPerParticle()[index][0]; ++subCell) {
@@ -825,24 +826,44 @@ void cfdemCloudMix::calcLmpf(const volVectorField& U,
             // vector updateVel = particleVel;
             // 计算 lmpf
             lmpf[cellI] = (updateVel - U[cellI]) / (U.mesh().time().deltaT().value());
-            sumLmpf += lmpf[cellI] * U.mesh().V()[cellI] * rhoField[cellI];
+            sumLmpf += lmpf[cellI] * rhoField[cellI] * U.mesh().V()[cellI];
+            sumVelDiff += updateVel - U[cellI];
           }
         }  // End of cellI >= 0
       }  // End of loop subCells
     }  // End of particleNeedSet
   }  // End of loop all particles
 
-  Pout << "sumLmpf: " << sumLmpf << endl;
+  if (mag(sumVelDiff) > 0.0) {
+    Pout << "sumVelDiff: " << sumVelDiff << endl;
+  }
+  MPI_Barrier(MPI_COMM_WORLD);
 
-  // make lmpf divergence free
-  // fvScalarMatrix phiLmpfEqn(
-  //   fvm::laplacian(phiLmpf) == fvc::div(lmpf)
-  // );
-  // phiLmpfEqn.setReference(pRefCell_, pRefValue_);
-  // phiLmpfEqn.solve();
-  // lmpf -= fvc::grad(phiLmpf);
-  // lmpf.correctBoundaryConditions();
+  if (mag(sumLmpf) > 0.0) {
+    Pout << "sumLmpf: " << sumLmpf << endl;
+  }
+  MPI_Barrier(MPI_COMM_WORLD);
+}
 
+void cfdemCloudMix::calcPrevLmpf(const volScalarField& rhoField,
+                                 const volScalarField& volumefraction,
+                                 const volVectorField& lmpf,
+                                 volVectorField& prevLmpf) {
+  prevLmpf = lmpf * (1 - volumefraction);
+  vector sumPrevLmpf = vector::zero;
+  for (int index = 0; index < numberOfParticles(); index++) {
+    if (needSetFieldForCoarseParticle(index, usedForSolverIB(), dimensionRatios_)) {
+      for (int subCell = 0; subCell < cellsPerParticle()[index][0]; ++subCell) {
+        label cellI = cellIDs()[index][subCell];
+        if (cellI >= 0) {
+          sumPrevLmpf += prevLmpf[cellI] * mesh().V()[cellI] * rhoField[cellI];
+        }  // End of cellI >= 0
+      }  // End of loop subCells
+    }  // End of particleNeedSet
+  }  // End of loop all particles
+  if (mag(sumPrevLmpf) > 0.0) {
+    Pout << "sumPrevLmpf: " << sumPrevLmpf << endl;
+  }
   MPI_Barrier(MPI_COMM_WORLD);
 }
 
