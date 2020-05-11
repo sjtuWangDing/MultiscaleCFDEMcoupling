@@ -70,3 +70,8 @@ aaorig.*
 
 # add ignore for .vscode/
 .vscode/
+
+# add ignore for picture
+*.png
+*.eps
+*.jpg
