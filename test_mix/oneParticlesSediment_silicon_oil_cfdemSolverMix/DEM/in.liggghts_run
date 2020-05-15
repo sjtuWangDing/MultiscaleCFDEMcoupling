@@ -33,7 +33,7 @@ pair_style      gran model hertz tangential history
 pair_coeff      * *
  
 # timestep, gravity
-timestep        0.00001
+timestep        0.00002
 
 fix             gravi all gravity 9.81 vector 0.0 0.0 -1.0
 

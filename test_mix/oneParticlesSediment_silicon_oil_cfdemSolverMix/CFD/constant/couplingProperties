@@ -25,7 +25,7 @@ usedForSolverIB false;
 
 useDynamicRefineMesh true;
 
-refineMeshKeepInterval 300;
+refineMeshKeepInterval 3000;
 
 modelType none;
 
