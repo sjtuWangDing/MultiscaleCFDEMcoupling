@@ -119,7 +119,13 @@ void mixShirgaonkarIB::calForceKernel(const int& index,
     label cellI = particleCloud_.cellIDs()[index][subCell];
     if (cellI >= 0) {
       // 计算雷诺数
-      double Re = mag(Us) * (2.0 * radius) / forceSubM(0).nuField()[cellI];
+      double Re = 0.0;
+      if (particleCloud_.fixedParticle()) {
+        Re = mag(particleCloud_.U0()) * (2.0 * radius) / forceSubM(0).nuField()[cellI];
+      } else {
+        Re = mag(Us) * (2.0 * radius) / forceSubM(0).nuField()[cellI];
+      }
+
       vector cellCenter = particleCloud_.mesh().C()[cellI];
       vfCell = volumefractions_[cellI];
       rhoCell = forceSubM(0).rhoField()[cellI];
@@ -133,15 +139,23 @@ void mixShirgaonkarIB::calForceKernel(const int& index,
       } else {
         sumLmpf_5 += lmpf_[cellI] * rhoCell * vCell;
       }
+
       // 计算阻力与力矩
-      drag += IBDrag[cellI] * vCell * (1 - vfCell);
-      torque += (cellCenter - positionCenter) ^ IBDrag[cellI] * vCell * (1 - vfCell);
-      if (Re < 50) {
+      if (particleCloud_.fixedParticle()) {
+        drag += IBDrag[cellI] * vCell * (1 - vfCell);
+        torque += (cellCenter - positionCenter) ^ IBDrag[cellI] * vCell * (1 - vfCell);
         drag -= lmpf_[cellI] * rhoCell * vCell;
         torque -= (cellCenter - positionCenter) ^ lmpf_[cellI] * rhoCell * vCell;
       } else {
-        drag -= lmpf_[cellI] * rhoCell * vCell * (1 - vfCell);
-        torque -= (cellCenter - positionCenter) ^ lmpf_[cellI] * rhoCell * vCell * (1 - vfCell);
+        drag += IBDrag[cellI] * vCell * (1 - vfCell);
+        torque += (cellCenter - positionCenter) ^ IBDrag[cellI] * vCell * (1 - vfCell);
+        if (Re < 50) {
+          drag -= lmpf_[cellI] * rhoCell * vCell;
+          torque -= (cellCenter - positionCenter) ^ lmpf_[cellI] * rhoCell * vCell;
+        } else {
+          drag -= lmpf_[cellI] * rhoCell * vCell * (1 - vfCell);
+          torque -= (cellCenter - positionCenter) ^ lmpf_[cellI] * rhoCell * vCell * (1 - vfCell);
+        }
       }
       // drag += (IBDrag[cellI] - lmpf_[cellI] * forceSubM(0).rhoField()[cellI]) * particleCloud_.mesh().V()[cellI] * (1 - volumefractions_[cellI]);
       // torque -= (cellCenter - positionCenter) ^ (IBDrag[cellI] - lmpf_[cellI] * forceSubM(0).rhoField()[cellI]) * particleCloud_.mesh().V()[cellI] * (1 - volumefractions_[cellI]);
@@ -217,6 +231,10 @@ void mixShirgaonkarIB::setMixForce(const std::vector<double>& dimensionRatios) c
   if (dimensionRatios.size() == 0) { return setForce(); }
   Info << "Setting mixShirgaonkarIB force..." << endl;
 
+  int numProc, myProc;
+  MPI_Comm_size(MPI_COMM_WORLD, &numProc);
+  MPI_Comm_rank(MPI_COMM_WORLD, &myProc);
+
   volVectorField IBDrag = forceSubM(0).IBDragPerV(U_, p_);
   vector drag;
   vector torque;
@@ -237,6 +255,33 @@ void mixShirgaonkarIB::setMixForce(const std::vector<double>& dimensionRatios) c
       }
       if (mag(drag) > 0.0) {
         Pout << "mixShirgaonkarIB_" << index << ": " << drag[0] << ", " << drag[1] << ", " << drag[2] << endl;
+      }
+      if (particleCloud_.fixedParticle()) {  // 如果颗粒固定，则不需要将流体对颗粒的阻力传递给 DEM 求解器
+        if (myProc == 0) {
+          std::fstream file;
+          std::string fileName("mixShirgaonkarIBDrag_" + std::to_string(index) + ".txt");
+          file.open(fileName, std::ios::app|std::ios::out);
+          std::vector<std::vector<double> > dragForceVec(numProc, std::vector<double>(3));
+          for (int i = 0; i < 3; ++i) {
+            dragForceVec[0][i] = drag[i];
+          }
+          for (int i = 1; i < numProc; ++i) {
+            MPI_Recv(dragForceVec[i].data(), 3, MPI_DOUBLE, i, i, MPI_COMM_WORLD, MPI_STATUS_IGNORE);
+          }
+          Foam::vector dragForce = Foam::vector::zero;
+          for (int i = 0; i < numProc; ++i) {
+            for (int j = 0; j < 3; ++j) {
+              dragForce[j] += dragForceVec[i][j];
+            }
+          }
+          file << U_.mesh().time().value() << " " << 2.0 * particleCloud_.radius(index) << " "
+            << dragForce[0] << " " << dragForce[1] << " " << dragForce[2] << std::endl;
+        } else {
+          std::vector<double> dragForce({drag[0], drag[1], drag[2]});
+          MPI_Send(dragForce.data(), 3, MPI_DOUBLE, 0, myProc, MPI_COMM_WORLD);
+        }
+        MPI_Barrier(MPI_COMM_WORLD);
+        continue;
       }
       // write particle based data to global array
       forceSubM(0).partToArray(index, drag, vector::zero);

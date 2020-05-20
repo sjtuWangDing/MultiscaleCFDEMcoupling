@@ -25,7 +25,17 @@ usedForSolverIB false;
 
 useDynamicRefineMesh true;
 
-refineMeshKeepInterval 300;
+refineMeshSkin 2;
+
+refineMeshKeepInterval 0;
+
+fixedParticle true;
+
+U0x 0.25;
+
+U0y 0.0;
+
+U0z 0.0;
 
 modelType none;
 
@@ -51,11 +61,11 @@ clockModel off;
 
 smoothingModel off;
 
+verbose true;
+
 forceModels
 (
-    // ArchimedesIB
-    // ShirgaonkarIB
-    mixArchimedesIB
+    // mixArchimedesIB
     mixShirgaonkarIB
 );
 

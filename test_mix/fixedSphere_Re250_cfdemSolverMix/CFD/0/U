@@ -23,25 +23,17 @@ boundaryField
     inlet
     {
         type            fixedValue;
-        value           uniform (0 0 0);
+        value           uniform (0.25 0 0);
     }
-
-    wall
-    {
-        type            zeroGradient;
-
-    }
-
     outlet
     {
-        type            fixedValue;  // zeroGradient;
-        value          uniform (0 0 0);
+        type            zeroGradient;
     }
-
-    /*frontAndBack
+    walls
     {
-        type            empty;
-    }*/
+        type            fixedValue;
+        value           uniform (0 0 0);
+    }
 }
 
 // ************************************************************************* //

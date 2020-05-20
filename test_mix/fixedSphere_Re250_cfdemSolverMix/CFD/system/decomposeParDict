@@ -19,14 +19,7 @@ FoamFile
 
 numberOfSubdomains  8;
 
-//- Keep owner and neighbour on same processor for faces in zones:
-// preserveFaceZones (heater solid1 solid3);
-
-//method          scotch;
-// method          hierarchical;
  method          simple;
-// method          metis;
-// method          manual;
 
 simpleCoeffs
 {
@@ -43,7 +36,6 @@ hierarchicalCoeffs
 
 metisCoeffs
 {
- /*
     processorWeights
     (
         1
@@ -51,18 +43,29 @@ metisCoeffs
         1
         1
     );
-  */
 }
 
 scotchCoeffs
 {
-    //processorWeights
-    //(
-    //    1
-    //    1
-    //    1
-    //    1
-    //);
+    processorWeights
+    (
+        1
+        1
+        1
+        1
+        1
+        1
+        1
+        1
+        1
+        1
+        1
+        1
+        1
+        1
+        1
+        1
+    );
     //writeGraph  true;
     //strategy "b";
 }

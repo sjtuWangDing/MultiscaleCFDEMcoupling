@@ -247,6 +247,18 @@ Foam::cfdemCloud::cfdemCloud(const fvMesh& mesh):
   usedForSolverIB_ = couplingProperties_.lookupOrDefault<Switch>("usedForSolverIB", false);
   usedForSolverPiso_ = couplingProperties_.lookupOrDefault<Switch>("usedForSolverPiso", false);
   useDynamicRefineMesh_ = couplingProperties_.lookupOrDefault<Switch>("useDynamicRefineMesh", false);
+  // 读取 fixedParticle_ 与来流速度
+  fixedParticle_ = couplingProperties_.lookupOrDefault<bool>("fixedParticle", false);
+  U0_ = vector(couplingProperties_.lookupOrDefault<double>("U0x", 0.0),
+               couplingProperties_.lookupOrDefault<double>("U0y", 0.0),
+               couplingProperties_.lookupOrDefault<double>("U0z", 0.0));
+
+  if (fixedParticle_) {
+    Info << "Using fixed particle, reading U0_: " << U0_ << endl;
+    if (mag(U0_) < SMALL) {
+      FatalError << "mag(U0_) is zero" << abort(FatalError);
+    }
+  }
 #endif  // __MIXCLOUD__
 
   #include "versionInfo.H"

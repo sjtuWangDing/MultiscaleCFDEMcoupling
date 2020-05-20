@@ -23,17 +23,25 @@ boundaryField
     inlet
     {
         type            zeroGradient;
+        value           uniform 0;
     }
 
     wall
     {
         type            zeroGradient;
+        value           uniform 0;
     }
 
     outlet
     {
-        type            zeroGradient;  // fixedValue;
-        // value           uniform 100000;
+        type            totalPressure;
+        p0              uniform 0;
+        U               U;
+        phi             phi;
+        rho             rho;
+        psi             none;
+        gamma           1;
+        value           uniform 0;
     }
 
     frontAndBack

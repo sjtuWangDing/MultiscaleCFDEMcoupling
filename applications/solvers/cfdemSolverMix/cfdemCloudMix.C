@@ -369,6 +369,7 @@ void cfdemCloudMix::mixCouplingKernel() {
                                         particleVolumes_,
                                         particleV_,
                                         dimensionRatios_);
+  if (verbose_) Info << "cfdemCloudMix::voidFractionModelInit() - done" << endl;
   voidFractionM().setVoidFractionAndVolumeFraction(NULL,
                                                    volumefractions_,
                                                    voidfractions_,
@@ -900,23 +901,50 @@ void cfdemCloudMix::setInterFace(volScalarField& interFace,
           particlePos = minPeriodicParticlePos;
         }
         double value = voidFractionM().pointInParticle(index, particlePos, cellPos, refineMeshSkin_);
-        if (value <= 0.0) {  // cellI 位于颗粒中
-          // 设置 interFace
-          interFace[cellI] = value + 1.0;
-          // 设置 refineMeshKeepStep
-          refineMeshKeepStep[cellI] = refineMeshKeepInterval_;
-          // 设置 cellFirstEntry 为 1
-          cellFirstEntry[cellI] = 1.0;
-        } else {
-          if (cellFirstEntry[cellI] > 0.0) {  // 如果 cellFirstEntry > 0.0 则跳过该 cellI
-            continue;
-          }
-          if (refineMeshKeepStep[cellI] > 1.0) {
-            // cellI 不在颗粒中，但是 refineMeshKeepStep[cellI] > 1.0，则保持 interFace 值
-            refineMeshKeepStep[cellI] -= 1.0;
+        if (fixedParticle()) {
+          interFace[cellI] = 0.0;
+          // 来流速度
+          const vector flowVel = U0();
+          // 来流方向
+          const vector unitFlowDirection = flowVel / mag(flowVel);
+          // 相对位置矢量
+          const vector relativeVec = particlePos - cellPos;
+          if ((relativeVec & unitFlowDirection) >= 0.0) {
+            if (value <= 0.0) {  // cellI 位于颗粒中
+              // 设置 interFace
+              interFace[cellI] = value + 1.0;
+            }
           } else {
-            // 否则设置 interFace 为 0.0;
-            interFace[cellI] = 0.0;
+            // 计算 cellPos 点到直线(过 particlePos 点方向为来流方向)的垂直距离
+            double verticalDistance = mag(unitFlowDirection ^ relativeVec) / mag(unitFlowDirection);
+            // 计算垂直点坐标
+            vector verticalPos = particlePos + sqrt(mag(relativeVec) * mag(relativeVec) - verticalDistance * verticalDistance) * unitFlowDirection;
+            if (mag(verticalPos - particlePos) <= 12.0 * radius(index)) {
+              double value_1 = voidFractionM().pointInParticle(index, verticalPos, cellPos, refineMeshSkin_);
+              if (value_1 <= 0.0) {
+                interFace[cellI] = value_1 + 1.0;
+              }
+            }
+          }
+        } else {
+          if (value <= 0.0) {  // cellI 位于颗粒中
+            // 设置 interFace
+            interFace[cellI] = value + 1.0;
+            // 设置 refineMeshKeepStep
+            refineMeshKeepStep[cellI] = refineMeshKeepInterval_;
+            // 设置 cellFirstEntry 为 1
+            cellFirstEntry[cellI] = 1.0;
+          } else {
+            if (cellFirstEntry[cellI] > 0.0) {  // 如果 cellFirstEntry > 0.0 则跳过该 cellI
+              continue;
+            }
+            if (refineMeshKeepStep[cellI] > 1.0) {
+              // cellI 不在颗粒中，但是 refineMeshKeepStep[cellI] > 1.0，则保持 interFace 值
+              refineMeshKeepStep[cellI] -= 1.0;
+            } else {
+              // 否则设置 interFace 为 0.0;
+              interFace[cellI] = 0.0;
+            }
           }
         }
       }  // End of loop all cells

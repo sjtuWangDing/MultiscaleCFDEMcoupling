@@ -16,7 +16,7 @@ source $CFDEM_SRC_DIR/lagrangian/cfdemParticle/etc/functions.sh
 #- define variables
 casePath="$(dirname "$(readlink -f ${BASH_SOURCE[0]})")"
 logpath=$casePath
-headerText="run_parallel_cfdemSolverIB_twoSpheresGlowinskiMPI_CFDDEM"
+headerText="run_parallel_cfdemSolverMix_fixedSphere_Re250_CFDDEM"
 logfileName="log_$headerText"
 solverName="cfdemSolverMix_1_0"
 nrProcs="8"
@@ -26,6 +26,8 @@ testHarnessPath="$CFDEM_TEST_HARNESS_PATH"
 runOctave="false"
 postproc="false"
 #--------------------------------------------------------------------------------#
+
+rm $casePath/CFD/mixShirgaonkarIBDrag*
 
 #- call function to run a parallel CFD-DEM case
 parCFDDEMrun $logpath $logfileName $casePath $headerText $solverName $nrProcs $machineFileName $debugMode

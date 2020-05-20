@@ -136,6 +136,12 @@ protected:
 
   int numberOfCoarseParticles_;
 
+  /*! @brief true if particle is fixed */
+  bool fixedParticle_;
+
+  /*! @brief 来流速度 */
+  vector U0_;
+
 public:
 
   inline bool usedForSolverIB() const { return usedForSolverIB_; }
@@ -149,6 +155,10 @@ public:
   }
 
   inline const int& numberOfCoarseParticles() const { return numberOfCoarseParticles_; }
+
+  inline bool fixedParticle() const { return fixedParticle_; }
+
+  inline vector U0() const { return U0_; }
 
 #endif  // __MIXCLOUD__
 
