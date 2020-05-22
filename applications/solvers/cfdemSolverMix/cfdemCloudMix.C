@@ -792,6 +792,7 @@ void cfdemCloudMix::setParticleVelocity(volVectorField& U) {
 
 void cfdemCloudMix::calcLmpf(const volVectorField& U,
                              const volScalarField& rhoField,
+                             const volScalarField& volumefraction,
                              volVectorField& lmpf) {
   label cellI = 0;
   vector particleVel(0, 0, 0);
@@ -803,6 +804,33 @@ void cfdemCloudMix::calcLmpf(const volVectorField& U,
   vector sumLmpf = vector::zero;
   vector sumVelDiff = vector::zero;
   lmpf == dimensionedVector("zero", lmpf.dimensions(), vector::zero);
+
+#if 1
+  volVectorField globalUpdateVel = U;
+  for (int index = 0; index < numberOfParticles(); index++) {
+    if (needSetFieldForCoarseParticle(index, usedForSolverIB(), dimensionRatios_)) {
+      for (int i = 0;i < 3; i++) {
+        relativeVec[i] = U.mesh().C()[cellI][i] - position(index)[i];
+      }
+      for (int i = 0; i < 3; i++) {
+        angularVel[i] = angularVelocities()[index][i];
+      }
+      // 计算转动速度
+      rotationVel = angularVel ^ relativeVec;
+      // 计算颗粒速度
+      for (int i = 0; i < 3; ++i) {
+        particleVel[i] = velocities()[index][i] + rotationVel[i];
+      }
+      for (int subCell = 0; subCell < cellsPerParticle()[index][0]; ++subCell) {
+        cellI = cellIDs()[index][subCell];
+        if (cellI >= 0) {
+          globalUpdateVel[cellI] *= volumefractions_[index][subCell];
+          globalUpdateVel[cellI] += (1 - volumefractions_[index][subCell]) * particleVel;
+        }  // End of cellI >= 0
+      }  // End of loop subCells
+    }  // End of particleNeedSet
+  }  // End of loop all particles
+#endif
 
   for (int index = 0; index < numberOfParticles(); index++) {
     if (needSetFieldForCoarseParticle(index, usedForSolverIB(), dimensionRatios_)) {
@@ -822,6 +850,43 @@ void cfdemCloudMix::calcLmpf(const volVectorField& U,
             particleVel[i] = velocities()[index][i] + rotationVel[i];
           }
           if (!usedForSolverIB() && !usedForSolverPiso()) {
+#if 1
+#if 1
+          // 获取相邻网格的所有 neighbour cell
+          vector updateVel = vector::zero;
+          vector neighUpdateVel = vector::zero;
+          const labelList& neighList = U.mesh().cellCells()[cellI];
+          int neighbourNum = 0;
+          forAll (neighList, i) {
+            label neighbourCellI = neighList[i];
+            if (neighbourCellI < 0) { continue; }
+            neighbourNum += 1;
+            neighUpdateVel += globalUpdateVel[neighbourCellI];
+          }  // End of neighbour loop
+
+          if (neighbourNum > 0) {
+            updateVel = 0.5 * globalUpdateVel[cellI] + 1.0 / (2.0 * neighbourNum) * neighUpdateVel;
+          } else {
+            updateVel = globalUpdateVel[cellI];
+          }
+#else
+            // 获取相邻网格的所有 neighbour cell
+            double neighWeight = 0.0;
+            vector neighUpdateVel = vector::zero;
+            const labelList& neighList = U.mesh().cellCells()[cellI];
+            forAll (neighList, i) {
+              label neighbourCellI = neighList[i];
+              if (neighbourCellI < 0) { continue; }
+              neighWeight += 1.0;
+              neighUpdateVel += globalUpdateVel[neighbourCellI];
+            }  // End of neighbour loop
+            vector updateVel = (neighUpdateVel + globalUpdateVel[cellI]) / (1.0 + neighWeight);
+#endif
+            // 计算 lmpf
+            lmpf[cellI] = (updateVel - U[cellI]) / (U.mesh().time().deltaT().value());
+            sumLmpf += lmpf[cellI] * rhoField[cellI] * U.mesh().V()[cellI];
+            sumVelDiff += updateVel - U[cellI];
+#else
             // 计算网格速度
             vector updateVel = (1 - volumefractions_[index][subCell]) * particleVel + volumefractions_[index][subCell] * U[cellI];
             // vector updateVel = particleVel;
@@ -829,6 +894,7 @@ void cfdemCloudMix::calcLmpf(const volVectorField& U,
             lmpf[cellI] = (updateVel - U[cellI]) / (U.mesh().time().deltaT().value());
             sumLmpf += lmpf[cellI] * rhoField[cellI] * U.mesh().V()[cellI];
             sumVelDiff += updateVel - U[cellI];
+#endif
           }
         }  // End of cellI >= 0
       }  // End of loop subCells

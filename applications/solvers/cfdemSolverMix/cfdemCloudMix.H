@@ -201,6 +201,7 @@ public:
 
   void calcLmpf(const volVectorField& U,
                 const volScalarField& rhoField,
+                const volScalarField& volumefraction,
                 volVectorField& lmpf);
 
   void calcPrevLmpf(const volScalarField& rhoField,

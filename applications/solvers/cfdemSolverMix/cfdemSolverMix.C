@@ -200,7 +200,7 @@ int main(int argc, char *argv[]) {
       fvOptions.constrain(UEqn);
 
       if (piso.momentumPredictor()) {
-        particleCloud.calcLmpf(U, rho, lmpf);
+        particleCloud.calcLmpf(U, rho, volumefraction, lmpf);
         if (modelType == "B" || modelType == "Bfull") {
           // 在动量方程中, modelType 为 "B" or "Bfull" 的时候, 压力项中不需要乘以空隙率
           solve(UEqn == - fvc::grad(p) + Ksl / rho * Us);
@@ -284,7 +284,7 @@ int main(int argc, char *argv[]) {
 
       if (modelType == "none") {
         Info << "cfdemSolverMix: calcVelocityCorrection..." << endl;
-        particleCloud.calcLmpf(U, rho, lmpf);
+        particleCloud.calcLmpf(U, rho, volumefraction, lmpf);
         // particleCloud.calcPrevLmpf(rho, volumefraction, lmpf, prevLmpf);
         // volScalarField volumefractionNext = mesh.lookupObject<volScalarField>("volumefractionNext");
         // particleCloud.calcVelocityCorrection(p, U, phiIB, volumefractionNext);
