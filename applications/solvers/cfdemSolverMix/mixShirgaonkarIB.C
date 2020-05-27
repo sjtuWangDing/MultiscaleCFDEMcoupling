@@ -140,58 +140,6 @@ void mixShirgaonkarIB::calForceKernel(const int& index,
         sumLmpf_5 += lmpf_[cellI] * rhoCell * vCell;
       }
 
-#if 0
-      vector dragCell = Foam::vector::zero;
-      if (Re <= 300.0) {
-        // 修正流体对颗粒的作用力
-        int neighbourNum = 0;
-        double neighbourWeight = 0.0;
-        if (vfCell < SMALL) {  // 如果网格中流体体积分数 < SMALL，即完全被颗粒覆盖的网格
-          // 获取相邻网格的所有 neighbour cell
-          const labelList& neighList = particleCloud_.mesh().cellCells()[cellI];
-          forAll (neighList, i) {
-            label nCellI = neighList[i];
-            if (nCellI < 0) {
-              continue;
-            } else {
-              if (volumefractions_[nCellI] > SMALL) {
-                dragCell += IBDrag[nCellI];
-                neighbourNum += 1;
-              }
-            }
-          }  // End of neighbour loop
-          if (neighbourNum < SMALL) {
-            drag += IBDrag[cellI] * (1.0 - vfCell) * vCell;
-          } else {
-            drag += (dragCell + IBDrag[cellI]) * (1.0 - vfCell) * vCell / static_cast<double>(1 + neighbourNum);
-          }
-        } else if (vfCell > 0.5) {
-          // 获取相邻网格的所有 neighbour cell
-          const labelList& neighList = particleCloud_.mesh().cellCells()[cellI];
-          forAll (neighList, i) {
-            label nCellI = neighList[i];
-            if (nCellI < 0) {
-              continue;
-            } else {
-              if (volumefractions_[nCellI] > 0.0 && volumefractions_[nCellI] < 1.0) {
-                dragCell += IBDrag[nCellI] * (1.0 - volumefractions_[nCellI]);
-                neighbourWeight += 1.0 - volumefractions_[nCellI];
-              }
-            }
-          }  // End of neighbour loop
-          if (neighbourWeight < SMALL) {
-            drag += IBDrag[cellI] * vCell * (1.0 - vfCell);
-          } else {
-            dragCell += IBDrag[cellI] * (1.0 - vfCell);
-            drag += dragCell * vCell * (1.0 - vfCell) / (1.0 - vfCell + neighbourWeight);
-          }
-        } else {
-          drag += IBDrag[cellI] * vCell * (1 - vfCell);
-        }
-      } else {
-        drag += IBDrag[cellI] * vCell * (1 - vfCell);
-      }
-#else
       // 计算阻力与力矩
       if (particleCloud_.fixedParticle()) {
         drag += IBDrag[cellI] * vCell * (1 - vfCell);
@@ -209,10 +157,6 @@ void mixShirgaonkarIB::calForceKernel(const int& index,
           torque -= (cellCenter - positionCenter) ^ lmpf_[cellI] * rhoCell * vCell * (1 - vfCell);
         }
       }
-#endif
-
-      // drag += (IBDrag[cellI] - lmpf_[cellI] * forceSubM(0).rhoField()[cellI]) * particleCloud_.mesh().V()[cellI] * (1 - volumefractions_[cellI]);
-      // torque -= (cellCenter - positionCenter) ^ (IBDrag[cellI] - lmpf_[cellI] * forceSubM(0).rhoField()[cellI]) * particleCloud_.mesh().V()[cellI] * (1 - volumefractions_[cellI]);
     }
   }  // End of loop subCell
   if (twoDimensional_) { drag /= depth_; }
