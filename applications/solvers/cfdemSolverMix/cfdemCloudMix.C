@@ -166,6 +166,8 @@ void cfdemCloudMix::mixForceReAllocArrays() {
                               voidFractionM().maxCellsNumPerMiddleParticle());
     size_t cWidth = voidFractionM().maxCellsNumPerCoarseParticle();
 
+    Pout << "reallocate arrays: " << cWidth << endl;
+
     dataExchangeM().allocateArray(voidfractions_, 1., fmWidth);
     dataExchangeM().allocateArray(particleWeights_, 0., fmWidth);
     dataExchangeM().allocateArray(particleVolumes_, 0., fmWidth);

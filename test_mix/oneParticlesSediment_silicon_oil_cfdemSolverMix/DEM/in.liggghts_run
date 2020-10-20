@@ -10,7 +10,7 @@ boundary        f f f
 newton          off
 
 units           si
-processors      2 2 1
+processors      2 2 4
 
 region          reg block 0.0 0.1 0.0 0.1 0.0 0.16 units box
 create_box      1 reg
@@ -33,7 +33,7 @@ pair_style      gran model hertz tangential history
 pair_coeff      * *
  
 # timestep, gravity
-timestep        0.00002
+timestep        0.00001
 
 fix             gravi all gravity 9.81 vector 0.0 0.0 -1.0
 

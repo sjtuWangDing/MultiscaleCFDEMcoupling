@@ -15,7 +15,7 @@ FoamFile
     object      decomposeParDict;
 }
 
-numberOfSubdomains  4;
+numberOfSubdomains  16;
 
 // Keep owner and neighbour on same processor for faces in zones:
 // preserveFaceZones (heater solid1 solid3);
@@ -28,7 +28,7 @@ method          simple;
 
 simpleCoeffs
 {
-    n           (2 2 1);
+    n           (2 2 4);
     delta       0.0001;
 }
 

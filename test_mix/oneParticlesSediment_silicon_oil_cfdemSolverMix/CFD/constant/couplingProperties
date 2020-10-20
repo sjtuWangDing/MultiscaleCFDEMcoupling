@@ -19,13 +19,15 @@ FoamFile
     object          couplingProperties;
 }
 
+verbose true;
+
 usedForSolverPiso false;
 
 usedForSolverIB false;
 
 useDynamicRefineMesh true;
 
-refineMeshKeepInterval 3000;
+refineMeshKeepInterval 10000;
 
 modelType none;
 
@@ -121,9 +123,8 @@ IBProps
 }
 
 mixProps
-{
-    maxCellsPerParticle 100000;
-    maxCellsNumPerCoarseParticle 100000;
+{   maxCellsPerParticle 1000000;
+    maxCellsNumPerCoarseParticle 1000000;
     alphaMin 0.3;
     scaleUpVol 1.0;
 }
