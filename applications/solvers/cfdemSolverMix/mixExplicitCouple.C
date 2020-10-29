@@ -40,7 +40,7 @@ defineTypeNameAndDebug(mixExplicitCouple, 0);
 
 addToRunTimeSelectionTable(momCoupleModel, mixExplicitCouple, dictionary);
 
-// @brief Constructors
+//! @brief Constructors
 mixExplicitCouple::mixExplicitCouple(const dictionary& dict, cfdemCloud& sm):
   momCoupleModel(dict, sm),
   propsDict_(dict.subDict(typeName + "Props")),
@@ -92,7 +92,7 @@ mixExplicitCouple::mixExplicitCouple(const dictionary& dict, cfdemCloud& sm):
   }
 }
 
-// @brief Destructor
+//! @brief Destructor
 mixExplicitCouple::~mixExplicitCouple() {}
 
 
@@ -100,7 +100,7 @@ vector mixExplicitCouple::arrayToField(label cellI) const {
   return particleCloud_.forceM(0).expParticleForces()[cellI] / particleCloud_.mesh().V()[cellI] + sourceField_[cellI];
 }
 
-// @brief 累加当前处理器上的全部源项
+//! @brief 累加当前处理器上的全部源项
 // @note 返回值单位为 N，而不是 N / m^3
 dimensionedVector mixExplicitCouple::returnIntegralSourceField() const {
   dimensionedVector intSource = dimensionedVector("0", dimensionSet(1, 1, -2, 0, 0), vector::zero);

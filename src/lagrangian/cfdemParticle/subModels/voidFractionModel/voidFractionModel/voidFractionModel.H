@@ -10,7 +10,7 @@
 
 namespace Foam {
 
-// @brief 空隙率模型
+//! @brief 空隙率模型
 class voidFractionModel {
 
 protected:
@@ -18,40 +18,40 @@ protected:
 
   cfdemCloud& particleCloud_;
 
-  // @brief 小颗粒空隙率
+  //! @brief 小颗粒空隙率
   mutable volScalarField voidfractionPrev_;
 
   mutable volScalarField voidfractionNext_;
 
 #if __VF_MIX__
-  // @brief 大颗粒体积分数
+  //! @brief 大颗粒体积分数
   mutable volScalarField volumefractionPrev_;
 
   mutable volScalarField volumefractionNext_;
 #endif
 
-  // @brief 颗粒覆盖的网格数量
-  // @usage cellsPerParticle_[index][0]
+  //! @brief 颗粒覆盖的网格数量
+  //! @note cellsPerParticle_[index][0]
   mutable double** cellsPerParticle_;
 
-  // @brief 颗粒覆盖的网格数量的上限
+  //! @brief 颗粒覆盖的网格数量的上限
   int maxCellsPerParticle_;
 
-  // @brief fine颗粒覆盖的网格数量的上限
+  //! @brief fine颗粒覆盖的网格数量的上限
   int maxCellsNumPerFineParticle_;
 
-  // @brief middle 颗粒覆盖的网格数量的上限
+  //! @brief middle 颗粒覆盖的网格数量的上限
   int maxCellsNumPerMiddleParticle_;
 
-  // @brief coarse 颗粒覆盖的网格数量的上限
+  //! @brief coarse 颗粒覆盖的网格数量的上限
   int maxCellsNumPerCoarseParticle_;
 
-  // @brief CFD网格中的颗粒所占体积可以通过 weight_参数进行调整
+  //! @brief CFD网格中的颗粒所占体积可以通过 weight_参数进行调整
   //        Volumn of particle = weight_ * diameter ^ 3 * pi / 6
   // @defalut 1.0
   mutable scalar weight_;
 
-  // @brief 颗粒的影响区域通过 porosity_ 使其增大，但是在计算 voidFraction 的时候保持体积不变
+  //! @brief 颗粒的影响区域通过 porosity_ 使其增大，但是在计算 voidFraction 的时候保持体积不变
   // @defalut 1.0
   mutable scalar porosity_;
 
@@ -59,10 +59,10 @@ protected:
 
 public:
 
-  // @brief Runtime type information
+  //! @brief Runtime type information
   TypeName("voidFractionModel");
 
-  // @brief Declare runtime constructor selection table
+  //! @brief Declare runtime constructor selection table
   declareRunTimeSelectionTable
   (
     autoPtr,
@@ -75,25 +75,25 @@ public:
     (dict, sm)
   );
 
-  // @brief Constructors
+  //! @brief Constructors
   voidFractionModel(const dictionary& dict,
                     cfdemCloud& sm);
 
-  // @brief Destructor
+  //! @brief Destructor
   virtual ~voidFractionModel();
 
-  // @brief Selector
+  //! @brief Selector
   static autoPtr<voidFractionModel> New(const dictionary& dict,
                                         cfdemCloud& sm);
 
-  // @brief 设置空隙率(纯虚函数)
+  //! @brief 设置空隙率(纯虚函数)
   virtual void setvoidFraction(double** const&,
                                double**&,
                                double**&,
                                double**&,
                                double**&) const = 0;
 
-  // @brief 计算被 middle 颗粒影响到的网格编号
+  //! @brief 计算被 middle 颗粒影响到的网格编号
   // @note cellAffectIDs 用于计算 middle particle 受到的流体阻力
   virtual void getAffectedCellIDs(const std::vector<int>& middleParticleIndexs,
                                   std::vector<std::vector<int> >& affectedCellIDs,
@@ -102,7 +102,7 @@ public:
       << abort(FatalError);
   }
 
-  // @brief 计算颗粒尺寸与其周围网格平均尺寸的比值
+  //! @brief 计算颗粒尺寸与其周围网格平均尺寸的比值
   virtual void getDimensionRatios(std::vector<double>& dimensionRatios,
                                   std::vector<double>& globalDimensionRatios,
                                   std::vector<double>& sumCellsNumbers,
@@ -112,13 +112,13 @@ public:
       << abort(FatalError);
   }
 
-  // @brief 设置空隙率以及颗粒体积分数前必须调用该初始化函数
+  //! @brief 设置空隙率以及颗粒体积分数前必须调用该初始化函数
   virtual void voidFractionModelInit(double**& particleWeights,
                                      double**& particleVolumes,
                                      double**& particleV,
                                      const std::vector<double>& dimensionRatios) const {}
 
-  // @brief 设置空隙率以及流体体积分数
+  //! @brief 设置空隙率以及流体体积分数
   // @note for cfdemSolverMix used
   virtual void setVoidFractionAndVolumeFraction(double** const& mask,
                                                 double**& volumefractions,
@@ -132,11 +132,11 @@ public:
 
   tmp<volScalarField> voidFractionInterp() const;
 
-  // @brief 重置空隙率
+  //! @brief 重置空隙率
   void resetVoidFractions() const;
 
 #if __VF_MIX__
-  // @brief 重置体积分数
+  //! @brief 重置体积分数
   void resetVolumeFractions() const;
 #endif
 

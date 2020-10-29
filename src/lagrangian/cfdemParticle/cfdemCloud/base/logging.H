@@ -25,66 +25,61 @@ License
     Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA
 
 Description
-    This code is designed to realize coupled CFD-DEM simulations using LIGGGHTS
-    and OpenFOAM(R). Note: this code is not part of OpenFOAM(R) (see DISCLAIMER).
+    Defines logging of cfdem
 
-    Archimedes buoyancy force for sphere / cylinder (2d)
-    basic "on-off" handling of buoyancy at the interface
-
-Class
-    mixArchimedes
-
-SourceFiles
-    mixArchimedes.C
-
+File
+    logging.H
 \*---------------------------------------------------------------------------*/
 
-#ifndef mixArchimedes_H
-#define mixArchimedes_H
+#ifndef __LOGGING_H__
+#define __LOGGING_H__
 
-#include "forceModel.H"
+#include <iostream>
 
-namespace Foam {
+namespace cfdem {
 
-class mixArchimedes: public forceModel {
+class LogMessage {
+public:
+  LogMessage(const char* file, int line): log_stream_(std::cerr) {
+    log_stream_ << file << ": " << line << ": ";
+  }
+  ~LogMessage() {
+    log_stream_ << std::endl;
+  }
+  inline std::ostream& stream() { return log_stream_; }
+
+protected:
+  std::ostream& log_stream_;
 
 private:
+  LogMessage(const LogMessage&);
+  LogMessage& operator= (const LogMessage&);
+};
 
-  dictionary propsDict_;
-
-  bool twoDimensional_;
-
-  word gravityFieldName_;
-
-#ifdef version21
-  const uniformDimensionedVectorField& g_;
-#elif defined(version16ext) || defined(version15)
-  const dimensionedVector& g_;
-#endif
-
+class LogMessageFatal: public LogMessage {
 public:
+  LogMessageFatal(const char* file, int line): LogMessage(file, line) {}
+  ~LogMessageFatal() {
+    abort();
+  }
 
-  //! @brief Runtime type information
-  TypeName("mixArchimedes");
+private:
+  LogMessageFatal(const LogMessageFatal&);
+  LogMessageFatal& operator= (const LogMessageFatal&);
+};
 
+#define CHECK(x) \
+  if (!(x)) { \
+    cfdem::LogMessageFatal(__FILE__, __LINE__).stream() << "Check failed: " #x; \
+  }
+#define CHECK_LT(x, y) CHECK((x) < (y))
+#define CHECK_GT(x, y) CHECK((x) > (y))
+#define CHECK_LE(x, y) CHECK((x) <= (y))
+#define CHECK_GE(x, y) CHECK((x) >= (y))
+#define CHECK_EQ(x, y) CHECK((x) == (y))
+#define CHECK_NE(x, y) CHECK((x) != (y))
+#define CHECK_NOTNULL(x) \
+  ((x) == NULL ? cfdem::LogMessageFatal(__FILE__, __LINE__).stream() << "Check not null failed: " #x, (x) : (x))
+} // namespace cfdem
 
-  //! @brief Constructors
-  mixArchimedes(const dictionary& dict, cfdemCloud& sm);
-
-  //! @brief Destructor
-  ~mixArchimedes();
-
-  // Member Functions
-  void calForceKernel(const int& index,
-                      const int& cellI,
-                      vector& force) const;
-
-  virtual void setForce() const;
-
-  virtual void setMixForce(const std::vector<double>& dimensionRatios) const;
-
-};  // End of class mixArchimedes
-
-}  // End of namespace Foam
-
-#endif  // mixArchimedes_H
+#endif // __LOGGING_H__

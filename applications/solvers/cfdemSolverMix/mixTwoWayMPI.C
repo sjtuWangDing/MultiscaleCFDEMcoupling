@@ -43,7 +43,7 @@ defineTypeNameAndDebug(mixTwoWayMPI, 0);
 
 addToRunTimeSelectionTable(dataExchangeModel, mixTwoWayMPI, dictionary);
 
-// @brief Constructors
+//! @brief Constructors
 mixTwoWayMPI::mixTwoWayMPI(const dictionary& dict,
                            cfdemCloud& sm):
   dataExchangeModel(dict, sm),
@@ -68,7 +68,7 @@ mixTwoWayMPI::mixTwoWayMPI(const dictionary& dict,
   checkTSsize();
 }
 
-// @brief Destructor
+//! @brief Destructor
 mixTwoWayMPI::~mixTwoWayMPI() {
   delete lmp;
 }
@@ -101,7 +101,7 @@ void mixTwoWayMPI::giveData(word name,
   data_of_to_liggghts(charName, charType, lmp, (void*)field, charDatatype);
 }
 
-// @brief Allocate and destroy for 2-D array
+//! @brief Allocate and destroy for 2-D array
 // @note DType = double
 void mixTwoWayMPI::destroy(double**& array) const {
   if (array == NULL) { return; }
@@ -116,7 +116,7 @@ void mixTwoWayMPI::destroy(double**& array, int) const {
   array = NULL;
 }
 
-// @brief Allocate and destroy for 1-D array
+//! @brief Allocate and destroy for 1-D array
 // @note DType = double
 void mixTwoWayMPI::destroy(double*& array) const {
   if (array == NULL) { return; }
@@ -139,7 +139,7 @@ void mixTwoWayMPI::allocateArray(double**& array,
   allocate_external_double(array, width, charLength, initVal, lmp);
 }
 
-// @brief Allocate and destroy for 2-D array
+//! @brief Allocate and destroy for 2-D array
 // @note DType = int
 void mixTwoWayMPI::destroy(int**& array) const {
   if (array == NULL) { return; }
@@ -154,7 +154,7 @@ void mixTwoWayMPI::destroy(int**& array, int) const {
   array = NULL;
 }
 
-// @brief Allocate and destroy for 1-D array
+//! @brief Allocate and destroy for 1-D array
 // @note DType = int
 void mixTwoWayMPI::destroy(int*& array) const {
   if (array == NULL) { return; }
@@ -162,7 +162,7 @@ void mixTwoWayMPI::destroy(int*& array) const {
   array = NULL;
 }
 
-// @brief 释放离散内存
+//! @brief 释放离散内存
 void mixTwoWayMPI::destroyDiscreteMemory(double** const& array, int len) const {
   if (array == NULL || len == 0) { return; }
   double**& ptr = const_cast<double**&>(array);
@@ -176,7 +176,7 @@ void mixTwoWayMPI::destroyDiscreteMemory(double** const& array, int len) const {
   ptr = NULL;
 }
 
-// @brief 释放离散内存
+//! @brief 释放离散内存
 void mixTwoWayMPI::destroyDiscreteMemory(int** const& array, int len) const {
   if (array == NULL || len == 0) { return; }
   int**& ptr = const_cast<int**&>(array);

@@ -98,37 +98,37 @@ protected:
 
   forceModel& forceModel_;
 
-  // @brief 在基类中被定义的 switch 个数，共有 11 个
+  //! @brief 在基类中被定义的 switch 个数，共有 11 个
   label nrDefaultSwitches_;
 
-  // @brief switch 变量的名称链表，共有 11 个元素
+  //! @brief switch 变量的名称链表，共有 11 个元素
   wordList switchesNameList_;
 
-  // @brief 设置每个 switch 是否将会被搜索，共有 11 个 Switch 类型的元素
-  // @usage 如果 switchesList_[i] 被设置为了 true，则就会在 dict 中搜索名为 switchesNameList_[i] 的 switch，如果在 dict 中，指定为 true，则将 switches_[i] 设置为 true，如果指定为 false，则将 switches_[i] 设置为 false
+  //! @brief 设置每个 switch 是否将会被搜索，共有 11 个 Switch 类型的元素
+  //! @note 如果 switchesList_[i] 被设置为了 true，则就会在 dict 中搜索名为 switchesNameList_[i] 的 switch，如果在 dict 中，指定为 true，则将 switches_[i] 设置为 true，如果指定为 false，则将 switches_[i] 设置为 false
   mutable List<Switch> switchesList_;
 
-  // @brief 记录每个 switch 的设置值，用于计算，共有 11 个 Switch 类型的元素
+  //! @brief 记录每个 switch 的设置值，用于计算，共有 11 个 Switch 类型的元素
   mutable List<Switch> switches_;
 
-  // @brief 用户自定义动力粘度，该粘度仅用于计算颗粒所受阻力
+  //! @brief 用户自定义动力粘度，该粘度仅用于计算颗粒所受阻力
   mutable volScalarField nu_;
 
-  // @brief 计算 div(Tau_)
+  //! @brief 计算 div(Tau_)
   mutable volVectorField divTau_;
 
-  // @brief 单位体积上的 IB 阻力
-  // @usage IBDragPerV_[cellI]，cellI 为流体网格编号
+  //! @brief 单位体积上的 IB 阻力
+  //! @note IBDragPerV_[cellI]，cellI 为流体网格编号
   mutable volVectorField IBDragPerV_;
 
   word densityFieldName_;
 
   const volScalarField& rho_;
 
-  // @brief 调试信息输出到文件的间隔，初值是 1
+  //! @brief 调试信息输出到文件的间隔，初值是 1
   mutable int verboseDiskIntervall_;
 
-  // @brief 调试信息输出到文件的计数，初值为 0
+  //! @brief 调试信息输出到文件的计数，初值为 0
   mutable int verboseDiskCounter_;
 
   scalar scaleDia_;
@@ -139,10 +139,10 @@ protected:
 
 public:
 
-  // @brief Runtime type information
+  //! @brief Runtime type information
   TypeName("forceSubModel");
 
-  // @brief Declare runtime constructor selection table
+  //! @brief Declare runtime constructor selection table
   declareRunTimeSelectionTable(
     autoPtr,
     forceSubModel,
@@ -155,13 +155,13 @@ public:
     (dict, sm, fm)
   );
 
-  // @brief Constructors
+  //! @brief Constructors
   forceSubModel(const dictionary& dict, cfdemCloud& sm, forceModel& fm);
 
-  // @brief Destructor
+  //! @brief Destructor
   virtual ~forceSubModel();
 
-  // @brief Selector
+  //! @brief Selector
   static autoPtr<forceSubModel> New(const dictionary& dict,
                                     cfdemCloud& sm,
                                     forceModel& fm,
@@ -169,7 +169,7 @@ public:
 
   // Member Functions
 
-  // @brief 计算索引为 index 的颗粒的 scale 直径
+  //! @brief 计算索引为 index 的颗粒的 scale 直径
   // @param d     <[in, out] 颗粒直径
   // @param index <[in] 颗粒索引
   virtual void scaleDia(scalar& d, int index = 0) const;
@@ -205,14 +205,14 @@ public:
 
   const volVectorField& IBDragPerV(const volVectorField& U, const volScalarField& p) const;
 
-  // @brief function to set anisotropic drag components for DEM side only.
+  //! @brief function to set anisotropic drag components for DEM side only.
   void partToArrayAnisotropic(const label& index,
                               const vector& CdExtra,
                               const vector& dragEx = vector::zero) const {
     FatalError << "forceSubModel::partToArrayAnisotropic(): not implemented, please refer to forceSubModel.C in https://github.com/CFDEMproject/CFDEMcoupling-PUBLIC" << endl;
   }
 
-  // @brief function to set anisotropic torque components for DEM side only.
+  //! @brief function to set anisotropic torque components for DEM side only.
   void partToArrayAnisotropicTorque(const label& index,
                                     const vector& CdTorque,
                                     const vector& torqueTotal = vector::zero) const {

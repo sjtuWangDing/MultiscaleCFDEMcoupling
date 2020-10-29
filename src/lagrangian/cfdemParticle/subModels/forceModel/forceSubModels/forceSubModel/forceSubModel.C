@@ -40,7 +40,7 @@ defineTypeNameAndDebug(forceSubModel, 0);
 
 defineRunTimeSelectionTable(forceSubModel, dictionary);
 
-// @brief Constructors
+//! @brief Constructors
 forceSubModel::forceSubModel(const dictionary& dict, cfdemCloud& sm, forceModel& fm):
   dict_(dict),
   particleCloud_(sm),
@@ -133,7 +133,7 @@ forceSubModel::forceSubModel(const dictionary& dict, cfdemCloud& sm, forceModel&
   }
 }
 
-// @brief Destructor
+//! @brief Destructor
 forceSubModel::~forceSubModel() {}
 
 // @param index                  <[in] 颗粒索引
@@ -179,7 +179,7 @@ void forceSubModel::partToArray(const label& index,
   }
 }
 
-// @brief 计算索引为 index 的颗粒的 scale 直径
+//! @brief 计算索引为 index 的颗粒的 scale 直径
 // @param d     <[in, out] 颗粒直径
 // @param index <[in] 颗粒索引
 void forceSubModel::scaleDia(scalar& d, int index) const {
@@ -315,7 +315,7 @@ const volScalarField& forceSubModel::rhoField() const {
   return rho_;
 }
 
-// @brief 计算粘性力
+//! @brief 计算粘性力
 // @note 用于计算 viscForceModel
 const volVectorField& forceSubModel::divTauField(const volVectorField& U) const {
 #ifdef compre
@@ -329,7 +329,7 @@ const volVectorField& forceSubModel::divTauField(const volVectorField& U) const 
   return divTau_;
 }
 
-// @brief 计算 IB drag
+//! @brief 计算 IB drag
 // @note 用于计算 ShirgaonkarIBModel
 const volVectorField& forceSubModel::IBDragPerV(const volVectorField& U, const volScalarField& p) const {
 #ifdef compre

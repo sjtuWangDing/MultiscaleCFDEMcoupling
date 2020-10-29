@@ -53,33 +53,33 @@ private:
 
   dictionary propsDict_;
 
-  // @brief 速度场名称
+  //! @brief 速度场名称
   word velFieldName_;
 
-  // @brief 流体速度场的常引用
+  //! @brief 流体速度场的常引用
   const volVectorField& U_;
 
-  // @brief 空隙率场的名称
+  //! @brief 空隙率场的名称
   word voidfractionFieldName_;
 
-  // @brief 空隙率场的常引用
+  //! @brief 空隙率场的常引用
   const volScalarField& voidfraction_;
 
-  // @brief 局部平均颗粒速度场名称
+  //! @brief 局部平均颗粒速度场名称
   word UsFieldName_;
 
-  // @brief 局部平均颗粒速度场的常引用
+  //! @brief 局部平均颗粒速度场的常引用
   const volVectorField& UsField_;
 
 public:
 
-  // @brief Runtime type information
+  //! @brief Runtime type information
   TypeName("mixDiFeliceDrag");
 
-  // @brief Constructors
+  //! @brief Constructors
   mixDiFeliceDrag(const dictionary& dict, cfdemCloud& sm);
 
-  // @brief Destructor
+  //! @brief Destructor
   ~mixDiFeliceDrag();
 
   // Member Functions

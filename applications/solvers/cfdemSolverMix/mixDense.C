@@ -40,10 +40,10 @@ defineTypeNameAndDebug(mixDense, 0);
 
 addToRunTimeSelectionTable(averagingModel, mixDense, dictionary);
 
-// @brief Constructors
+//! @brief Constructors
 mixDense::mixDense(const dictionary& dict, cfdemCloud& sm): averagingModel(dict,sm) {}
 
-// @brief Destructor
+//! @brief Destructor
 mixDense::~mixDense() {}
 
 /*!

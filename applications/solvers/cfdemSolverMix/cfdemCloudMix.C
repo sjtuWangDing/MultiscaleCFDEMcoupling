@@ -159,7 +159,7 @@ void cfdemCloudMix::findCellDebug() {
   }
 }
 
-// @brief 强制重新分配内存
+//! @brief 强制重新分配内存
 void cfdemCloudMix::mixForceReAllocArrays() {
   if (numberOfParticlesChanged_ && !arraysReallocated_) {
     size_t fmWidth = std::max(voidFractionM().maxCellsNumPerFineParticle(),
@@ -542,7 +542,7 @@ bool cfdemCloudMix::evolve(volScalarField& alphaVoidfraction,
   return doCouple;
 }
 
-// @brief 更新函数
+//! @brief 更新函数
 // @param alpha  <[in, out] 小颗粒空隙率场
 // @param Us     <[in, out] 局部平均小颗粒速度场
 // @param U      <[in] 流体速度场
@@ -752,7 +752,7 @@ void cfdemCloudMix::calcVelocityCorrection(volScalarField& p,
   }
 }
 
-// @brief 设置 coarse particle 中的流体速度
+//! @brief 设置 coarse particle 中的流体速度
 void cfdemCloudMix::setParticleVelocity(volVectorField& U) {
   label cellI = 0;
   vector particleVel(0,0,0);
@@ -936,7 +936,7 @@ void cfdemCloudMix::calcPrevLmpf(const volScalarField& rhoField,
   MPI_Barrier(MPI_COMM_WORLD);
 }
 
-// @brief 确定颗粒周围细化网格的区域(每个方向的尺寸都是颗粒尺寸的两倍)
+//! @brief 确定颗粒周围细化网格的区域(每个方向的尺寸都是颗粒尺寸的两倍)
 void cfdemCloudMix::setInterFace(volScalarField& interFace,
                                  volScalarField& refineMeshKeepStep) {
 
@@ -1020,7 +1020,7 @@ void cfdemCloudMix::setInterFace(volScalarField& interFace,
   }  // End of loop all particles
 }
 
-// @brief 确定颗粒周围细化网格的区域(每个方向的尺寸都是颗粒尺寸的两倍)
+//! @brief 确定颗粒周围细化网格的区域(每个方向的尺寸都是颗粒尺寸的两倍)
 void cfdemCloudMix::setInterFace(volScalarField& interFace) {
 
   interFace == dimensionedScalar("zero", interFace.dimensions(), 0.);
@@ -1054,7 +1054,7 @@ void cfdemCloudMix::setInterFace(volScalarField& interFace) {
   }  // End of loop all particles
 }
 
-// @brief 更新函数
+//! @brief 更新函数
 // @param alpha      <[in, out] 大颗粒体积分数场
 // @param interFace  <[in, out]
 bool cfdemCloudMix::evolve(volScalarField& alpha,

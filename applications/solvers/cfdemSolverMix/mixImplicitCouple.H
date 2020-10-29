@@ -49,41 +49,41 @@ private:
 
   dictionary propsDict_;
 
-  // @brief 流体速度场的名称
+  //! @brief 流体速度场的名称
   word velFieldName_;
 
-  // @brief 局部平均颗粒速度场的名称
+  //! @brief 局部平均颗粒速度场的名称
   word granVelFieldName_;
 
-  // @brief 空隙率场的名称
+  //! @brief 空隙率场的名称
   word voidfractionFieldName_;
 
-  // @brief 速度场的常引用
+  //! @brief 速度场的常引用
   const volVectorField& U_;
 
-  // @brief 局部平均颗粒速度场的常引用
+  //! @brief 局部平均颗粒速度场的常引用
   const volVectorField& Us_;
 
-  // @brief 空隙率场的常引用
+  //! @brief 空隙率场的常引用
   const volScalarField& alpha_;
 
-  // @brief 动量交换场的最大值
+  //! @brief 动量交换场的最大值
   scalar KslLimit_;
 
-  // @brief 动量交换场
+  //! @brief 动量交换场
   // @note Ksl = 单位体积上颗粒对流体的作用力 / (Us - U)，单位为 (N/m^3) / (m/s) = kg / (m^3 * s)
   mutable volScalarField KslPrev_;
   mutable volScalarField KslNext_;
 
 public:
 
-  // @brief Runtime type information
+  //! @brief Runtime type information
   TypeName("mixImplicitCouple");
 
-  // @brief Constructors
+  //! @brief Constructors
   mixImplicitCouple(const dictionary& dict, cfdemCloud& sm);
 
-  // @brief Destructor
+  //! @brief Destructor
   ~mixImplicitCouple();
 
   // Member Functions

@@ -39,7 +39,7 @@ defineTypeNameAndDebug(mixArchimedes, 0);
 
 addToRunTimeSelectionTable(forceModel, mixArchimedes, dictionary);
 
-// @brief Constructors
+//! @brief Constructors
 mixArchimedes::mixArchimedes(const dictionary& dict, cfdemCloud& sm):
   forceModel(dict, sm),
   propsDict_(dict.subDict(typeName + "Props")),
@@ -91,7 +91,7 @@ mixArchimedes::mixArchimedes(const dictionary& dict, cfdemCloud& sm):
   forceSubM(0).readSwitches();
 }
 
-// @brief Destructor
+//! @brief Destructor
 mixArchimedes::~mixArchimedes() {}
 
 void mixArchimedes::calForceKernel(const int& index,

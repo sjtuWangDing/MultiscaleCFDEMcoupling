@@ -58,16 +58,16 @@ private:
 
   double depth_;
 
-  // @brief 速度场名称
+  //! @brief 速度场名称
   word velFieldName_;
 
-  // @brief 速度场的常引用
+  //! @brief 速度场的常引用
   const volVectorField& U_;
 
-  // @brief 压力场的名称
+  //! @brief 压力场的名称
   word pressureFieldName_;
 
-  // @brief 压力场的常引用
+  //! @brief 压力场的常引用
   const volScalarField& p_;
 
   word volumefractionFieldName_;
@@ -82,14 +82,14 @@ private:
 
 public:
 
-  // @brief Runtime type information
+  //! @brief Runtime type information
   TypeName("mixShirgaonkarIB");
 
-  // @brief Constructors
+  //! @brief Constructors
   mixShirgaonkarIB(const dictionary& dict,
                    cfdemCloud& sm);
 
-  // @brief Destructor
+  //! @brief Destructor
   ~mixShirgaonkarIB();
 
   void calForceKernel(const int& index,

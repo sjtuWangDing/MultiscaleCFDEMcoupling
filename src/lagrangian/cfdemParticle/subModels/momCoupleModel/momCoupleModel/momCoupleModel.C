@@ -38,13 +38,13 @@ defineTypeNameAndDebug(momCoupleModel, 0);
 
 defineRunTimeSelectionTable(momCoupleModel, dictionary);
 
-// @brief Constructors
+//! @brief Constructors
 momCoupleModel::momCoupleModel(const dictionary& dict, cfdemCloud& sm):
   dict_(dict),
   particleCloud_(sm),
   maxAlpha_(1 - SMALL) {}
 
-// @brief Destructor
+//! @brief Destructor
 momCoupleModel::~momCoupleModel() {}
 
 tmp<volScalarField> momCoupleModel::impMomSource() const {

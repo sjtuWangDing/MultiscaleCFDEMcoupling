@@ -37,7 +37,7 @@ defineTypeNameAndDebug(dataExchangeModel, 0);
 
 defineRunTimeSelectionTable(dataExchangeModel, dictionary);
 
-// @brief Constructor
+//! @brief Constructor
 dataExchangeModel::dataExchangeModel(const dictionary& dict,
                                      cfdemCloud& sm):
   dict_(dict),
@@ -49,10 +49,10 @@ dataExchangeModel::dataExchangeModel(const dictionary& dict,
   // 在初始化 dataExchangeModel 的时候，记录下当前的流体时间步为 timeIndexOffset
   timeIndexOffset_(particleCloud_.mesh().time().timeIndex()) {}
 
-// @brief Destructor
+//! @brief Destructor
 dataExchangeModel::~dataExchangeModel() {}
 
-// @brief Allocate and destroy for 2-D array
+//! @brief Allocate and destroy for 2-D array
 // @note DType = double
 void dataExchangeModel::destroy(double**& array) const {
   if (array == NULL) { return; }
@@ -93,7 +93,7 @@ void dataExchangeModel::allocateArray(double**& array, double initVal,
   allocateArray(array, initVal, width, len);
 }
 
-// @brief Allocate and destroy for 2-D array
+//! @brief Allocate and destroy for 2-D array
 // @note DType = int
 void dataExchangeModel::destroy(int**& array) const {
   if (array == NULL) { return; }
@@ -134,7 +134,7 @@ void dataExchangeModel::allocateArray(int**& array, int initVal,
   allocateArray(array, initVal, width, len);
 }
 
-// @brief Allocate and destroy for 1-D array
+//! @brief Allocate and destroy for 1-D array
 // @note DType = double
 void dataExchangeModel::destroy(double*& array) const {
   delete [] array;
@@ -148,7 +148,7 @@ void dataExchangeModel::allocateArray(double*& array, double initVal, int length
   std::fill_n(array, length, initVal);
 }
 
-// @brief Allocate and destroy for 1-D array
+//! @brief Allocate and destroy for 1-D array
 // @note DType = int
 void dataExchangeModel::destroy(int*& array) const {
   delete [] array;

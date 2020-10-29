@@ -47,13 +47,13 @@ class mixDense: public averagingModel {
 
 public:
 
-  // @brief Runtime type information
+  //! @brief Runtime type information
   TypeName("mixDense");
 
-  // @brief Constructors
+  //! @brief Constructors
   mixDense(const dictionary& dict, cfdemCloud& sm);
 
-  // @brief Destructor
+  //! @brief Destructor
   ~mixDense();
 
   /*!

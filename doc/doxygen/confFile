@@ -135,7 +135,7 @@ SHORT_NAMES            = NO
 # will interpret the first line (until the first dot) of a JavaDoc-style
 # comment as the brief description. If set to NO, the JavaDoc
 # comments will behave just like regular Qt-style comments
-# (thus requiring an explicit @brief command for a brief description.)
+# (thus requiring an explicit! @brief command for a brief description.)
 
 JAVADOC_AUTOBRIEF      = NO
 

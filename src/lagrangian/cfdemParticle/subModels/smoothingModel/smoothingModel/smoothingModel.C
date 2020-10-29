@@ -38,7 +38,7 @@ defineTypeNameAndDebug(smoothingModel, 0);
 
 defineRunTimeSelectionTable(smoothingModel, dictionary);
 
-// @brief Constructors
+//! @brief Constructors
 smoothingModel::smoothingModel(const dictionary& dict, cfdemCloud& sm):
   dict_(dict),
   particleCloud_(sm),
@@ -69,7 +69,7 @@ smoothingModel::smoothingModel(const dictionary& dict, cfdemCloud& sm):
     dimensionedScalar("zero", dimensionSet(0, 0, 0, 0, 0), 0)
   ) {}
 
-// @brief Destructor
+//! @brief Destructor
 smoothingModel::~smoothingModel() {}
 
 void smoothingModel::checkFields(volScalarField& sSmoothField_) const {

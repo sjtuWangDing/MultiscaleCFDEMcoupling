@@ -40,13 +40,13 @@ defineTypeNameAndDebug(mixDilute, 0);
 
 addToRunTimeSelectionTable(averagingModel, mixDilute, dictionary);
 
-// @brief Constructors
+//! @brief Constructors
 mixDilute::mixDilute(const dictionary& dict, cfdemCloud& sm): averagingModel(dict,sm) {}
 
-// @brief Destructor
+//! @brief Destructor
 mixDilute::~mixDilute() {}
 
-// @brief 设置局部平均标量场
+//! @brief 设置局部平均标量场
 // @param field                      <[in, out] 需要被局部平均化场
 // @param value                      <[in] 用于局部平均化的颗粒(lagrange)变量
 // @param weight                     <[in] 用于局部平均化的权重系数(lagrange)
@@ -64,7 +64,7 @@ void mixDilute::setScalarAverage(volScalarField& field,
   FatalError << "mixDilute::setScalarAverage() not implemented" << abort(FatalError);
 }
 
-// @brief 设置局部平均矢量场
+//! @brief 设置局部平均矢量场
 // @param field                      <[in, out] 需要被局部平均化场
 // @param value                      <[in] 用于局部平均化的颗粒(lagrange)变量
 // @param weight                     <[in] 用于局部平均化的权重系数(lagrange)

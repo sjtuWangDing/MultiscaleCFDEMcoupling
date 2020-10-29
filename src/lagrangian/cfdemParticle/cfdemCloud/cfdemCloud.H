@@ -85,7 +85,7 @@ class cfdemCloud {
 #if __MIXCLOUD__
 
 public:
-  // @brief 颗粒尺度系数
+  //! @brief 颗粒尺度系数
   static double fineParticleRatio_;
   static double coarseParticleRatio_;
 
@@ -125,21 +125,21 @@ public:
 
 protected:
 
-  // @brief 是否用于求解器 cfdemSolverIB
+  //! @brief 是否用于求解器 cfdemSolverIB
   bool usedForSolverIB_;
 
-  // @brief 是否用于求解器 cfdemSolverPiso
+  //! @brief 是否用于求解器 cfdemSolverPiso
   bool usedForSolverPiso_;
 
-  // @brief 是否使用 dynamic refine mesh
+  //! @brief 是否使用 dynamic refine mesh
   bool useDynamicRefineMesh_;
 
   int numberOfCoarseParticles_;
 
-  /*! @brief true if particle is fixed */
+  //! @brief true if particle is fixed
   bool fixedParticle_;
 
-  /*! @brief 来流速度 */
+  //! @brief 来流速度
   vector U0_;
 
 public:
@@ -173,12 +173,12 @@ protected:
 
   Switch allowAdjustTimeStep_;
 
-  // @brief 是否需要求解流体
+  //! @brief 是否需要求解流体
   Switch solveFlow_;
 
   Switch solveScalarTransport_;
 
-  // @brief 是否打印多余调试信息
+  //! @brief 是否打印多余调试信息
   Switch verbose_;
 
   Switch expCorrDeltaUError_;
@@ -193,70 +193,72 @@ protected:
 
   const word modelType_;
 
-  // @brief 颗粒位置矢量
-  // @usage positions_[index][0 ~ 2]
+  //! @brief 颗粒总数
+  int numberOfParticles_;
+
+  //! @brief 颗粒位置矢量
+  //! @note positions_[index][0 ~ 2]
   mutable double **positions_;
 
-  // @brief 颗粒速度
-  // @usage velocities_[index][0 ~ 2]
+  //! @brief 颗粒速度
+  //! @note velocities_[index][0 ~ 2]
   mutable double **velocities_;
 
-  // @brief 小颗粒的中心处的流体速度
-  // @note 该速度用于传递给 DEM 求解器, 则 DEM 求解器使用颗粒中心处的流体速度与阻力系数一起计算颗粒受到的阻力
-  // @usage fluidVel_[index][0 ~ 2]
+  //! @brief 小颗粒的中心处的流体速度
+  //         该速度用于传递给 DEM 求解器, 则 DEM 求解器使用颗粒中心处的流体速度与阻力系数一起计算颗粒受到的阻力
+  //! @note fluidVel_[index][0 ~ 2]
   mutable double **fluidVel_;
 
-  // @brief 颗粒阻力系数
-  // @note 该阻力系数用于传递给 DEM 求解器, 则 DEM 求解器使用颗粒中心处的流体速度与阻力系数一起计算颗粒受到的阻力
-  // @usage Cds_[index][0]
+  //! @brief 颗粒阻力系数
+  //         该阻力系数用于传递给 DEM 求解器, 则 DEM 求解器使用颗粒中心处的流体速度与阻力系数一起计算颗粒受到的阻力
+  //! @note Cds_[index][0]
   mutable double **Cds_;
 
-  // @brief 在一个耦合时间间隔中，小颗粒所受的阻力的累计，将在下个耦合步中，传递给流场
-  // @usage fAcc_[index][0 ~ 2] ??????????
+  //! @brief 在一个耦合时间间隔中，小颗粒所受的阻力的累计，将在下个耦合步中，传递给流场
+  //! @note fAcc_[index][0 ~ 2] ??????????
   mutable double **fAcc_;
 
-  // @brief 颗粒对流体的隐式作用力
-  // @usage impForces_[index][0 ~ 2]
+  //! @brief 颗粒对流体的隐式作用力
+  //! @note impForces_[index][0 ~ 2]
   mutable double **impForces_;
 
-  // @brief 颗粒对流体的显式作用力
-  // @usage expForces_[index][0 ~ 2]
+  //! @brief 颗粒对流体的显式作用力
+  //! @note expForces_[index][0 ~ 2]
   mutable double **expForces_;
 
-  // @brief 流体对颗粒的总作用力
-  // @usage DEMForces_[index][0 ~ 2] ??????????
+  //! @brief 流体对颗粒的总作用力
+  //! @note DEMForces_[index][0 ~ 2] ??????????
   mutable double **DEMForces_;
 
-  // @brief 颗粒半径
-  // @usage radii_[index][0]
+  //! @brief 颗粒半径
+  //! @note radii_[index][0]
   mutable double **radii_;
 
-  // @brief 空隙率
-  // @usage voidfractions_[index][subcell]
+  //! @brief 空隙率
+  //! @note voidfractions_[index][subcell]
   mutable double **voidfractions_;
 
-  // @brief 颗粒覆盖的所有网格的编号
-  // @usage cellIDs_[index][subcell]
+  //! @brief 颗粒覆盖的所有网格的编号
+  //! @note cellIDs_[index][subcell]
   mutable double **cellIDs_;
 
-  // @brief 颗粒对所覆盖网格的影响系数
-  // @brief 如果使用 divided 空隙率模型，则对颗粒覆盖的某个网格 subcell，只要有一个颗粒标志点在网格中，particleWeights_[index][subcell] += 1.0 / 29.0
-  // @usage particleWeights_[index][subcell]
+  //! @brief 颗粒对所覆盖网格的影响系数
+  //         如果使用 divided 空隙率模型，则对颗粒覆盖的某个网格 subcell，
+  //         只要有一个颗粒标志点在网格中，particleWeights_[index][subcell] += 1.0 / 29.0
+  //! @note particleWeights_[index][subcell]
   mutable double **particleWeights_;
 
-  // @brief 颗粒对所覆盖网格的覆盖体积
-  // @brief 如果使用 divided 空隙率模型，则对颗粒覆盖的某个网格 subcell，只要有一个颗粒标志点在网格中，particleVolumes_[index][subcell] += (1.0 / 29.0) * 颗粒体积
-  // @usage particleVolumes_[index][subcell]
+  //! @brief 颗粒对所覆盖网格的覆盖体积
+  //         如果使用 divided 空隙率模型，则对颗粒覆盖的某个网格 subcell，
+  //         只要有一个颗粒标志点在网格中，particleVolumes_[index][subcell] += (1.0 / 29.0) * 颗粒体积
+  //! @note particleVolumes_[index][subcell]
   mutable double **particleVolumes_;
 
-  // @brief 颗粒体积
-  // @usage particleV_[index][0]
+  //! @brief 颗粒体积
+  //! @note particleV_[index][0]
   mutable double **particleV_;
 
   mutable double **dragPrev_;
-
-  // @brief 颗粒总数
-  int numberOfParticles_;
 
   scalar d32_;
 
@@ -264,54 +266,58 @@ protected:
 
   mutable bool arraysReallocated_;
 
-  // @brief dict 中指定的所有 force model 的名称
+  //! @brief dict 中指定的所有 force model 的名称
   const wordList forceModels_;
 
-  // @brief dict 中指定的所有 momCouple model 的名称
+  //! @brief dict 中指定的所有 momCouple model 的名称
   const wordList momCoupleModels_;
 
-  // @brief dict 中指定的所有 liggghtsCommand model 的名称
+  //! @brief dict 中指定的所有 liggghtsCommand model 的名称
   const wordList liggghtsCommandModelList_;
 
   const word turbulenceModelType_;
 
   mutable bool isLES_;
 
-  // @brief 指定颗粒的粒度
+  //! @brief 指定颗粒的粒度
   mutable scalar cg_;
 
-  // @brief 指定不同种类颗粒的粒度
+  //! @brief 指定不同种类颗粒的粒度
   mutable std::vector<double> cgTypeSpecific_;
 
   bool cgOK_;
 
-  // @brief 是否隐式计算颗粒所受到的阻力
-  // @default false
-  //        true - 在每个耦合时间步，流体的速度和阻力系数都被传递到 DEM 中，从而在每个 DEM 时间步中，使用上一个耦合时间步中的阻力系数和流体速度，与当前颗粒速度一起计算颗粒受到的阻力
-  //        false - 在每个耦合时间步中，流体对颗粒的阻力被传递到 DEM 中，并且在接下来的 DEM 时间步中，这个力保持不变，直到下个耦合时间步
+  //! @brief 是否隐式计算颗粒所受到的阻力
+  //         true - 在每个耦合时间步，流体的速度和阻力系数都被传递到 DEM 中，从而在每个 DEM 时间步中，
+  //                使用上一个耦合时间步中的阻力系数和流体速度，与当前颗粒速度一起计算颗粒受到的阻力
+  //         false - 在每个耦合时间步中，流体对颗粒的阻力被传递到 DEM 中，并且在接下来的 DEM 时间步中，
+  //                 这个力保持不变，直到下个耦合时间步
+  //! @note default false
   bool impDEMdrag_;
 
-  // @brief 在每个 DEM 时间步中，都将颗粒受到的力累计起来，然后在耦合时间步中传递给 CFD 计算(只有当 impDEMdrag_ = true 时才为真)
-  // @default false
+  //! @brief 在每个 DEM 时间步中，都将颗粒受到的力累计起来，然后在耦合时间步中传递给 CFD 计算(只有当 impDEMdrag_ = true 时才为真)
+  //! @note default false
   bool impDEMdragAcc_;
 
-  // @brief 显式、隐式分裂系数
+  //! @brief 显式、隐式分裂系数
   mutable scalar imExSplitFactor_;
 
-  // @brief Treat the coupling force in cells with no Us data explicitly.
+  //! @brief Treat the coupling force in cells with no Us data explicitly.
   mutable bool treatVoidCellsAsExplicitForce_; 
 
   mutable word useDDTvoidfraction_;
 
   mutable volScalarField ddtVoidfraction_;
 
-  // @brief Variable used to de-activate mirroring across periodic boundary conditions.
+  //! @brief Variable used to de-activate mirroring across periodic boundary conditions.
   mutable Switch checkPeriodicCells_;
 
-  // @brief de-activation and tolerance variables, if set to (for a specific direction), the periodic check will NOT be done.
-  //        Important for probing ambient points. Only read-in in case checkPeriodicCells is active.
-  // @brief default = (1,1,1), i.e., periodic checks will be done
+  //! @brief de-activation and tolerance variables, if set to (for a specific direction), 
+  //         the periodic check will NOT be done. Important for probing ambient points. 
+  //         Only read-in in case checkPeriodicCells is active.
+  //! @note default = (1, 1, 1), i.e., periodic checks will be done
   mutable vector wall_periodicityCheckRange_;
+
   scalar wall_periodicityCheckTolerance_;
 
   bool meshHasUpdated_;
@@ -328,7 +334,7 @@ protected:
     const incompressible::RASModel& turbulence_;
   #endif
   
-  // @brief Multiphase Turbulence (e.g., slip-induced turbulence)
+  //! @brief Multiphase Turbulence (e.g., slip-induced turbulence)
   mutable volScalarField turbulenceMultiphase_;
 
   autoPtr<forceModel>* forceModel_;
@@ -389,13 +395,13 @@ public:
   friend class forceModel;
   friend class forceSubModel;
 
-  // @brief Construct from mesh and a list of particles
+  //! @brief Construct from mesh and a list of particles
   cfdemCloud(const fvMesh& mesh);
 
-  // @brief Destructor
+  //! @brief Destructor
   virtual ~cfdemCloud();
 
-  // @brief Access functions.
+  //! @brief Access functions.
   bool isLES() const { return isLES_; }
 
   bool debugMode() { return debug_; }
@@ -520,14 +526,14 @@ public:
     return -1;
   }
 
-  // @brief Access to the particle's rotation and torque data
+  //! @brief Access to the particle's rotation and torque data
   virtual inline double ** DEMTorques() const { return NULL; }
 
   virtual inline double ** omegaArray() const { return NULL; }
 
   virtual vector omega(int) const { return Foam::vector(0, 0, 0); }
 
-  // @brief Access to the particles' orientation information
+  //! @brief Access to the particles' orientation information
   virtual inline double ** exArray() const {
     FatalError << "cfdemCloud::exArray(): you are attempting to get an access to ex array for spheroids/superquadrics. This is not allowed for spheres. Recompile the code with #define anisotropicRotation in OFversion.H or enable superquadrics in LIGGGHTS (superquadrics_flag)" << abort(FatalError);
     return NULL;
@@ -558,7 +564,7 @@ public:
     return Foam::vector(0, 0, 0);
   }
 
-  // @brief Access to complex shape information
+  //! @brief Access to complex shape information
   virtual inline double ** vectorArray() const { return NULL; }
 
   virtual scalar volume(int) const {
@@ -596,7 +602,7 @@ public:
     return Foam::vector2D(0,0);
   }
 
-  // @brief Optinoal Extra arrays for implicit coupling with anisotropic drag
+  //! @brief Optinoal Extra arrays for implicit coupling with anisotropic drag
   virtual inline double ** CdsExtra() const { return NULL; }     // only TWO extra components of drag coefficient
   virtual inline double ** CdsRotation() const { return NULL; }  // three extra components of rotational drag
   virtual inline double ** omegaFluid() const { return NULL; }   // the fluid rotation rate
@@ -607,10 +613,10 @@ public:
 
   double** dragPrev();
 
-  // @brief Detector if SRF module is enable or not.
+  //! @brief Detector if SRF module is enable or not.
   virtual inline bool SRFOn() { return false; }
 
-  // @brief Allow handshake with refinement field.
+  //! @brief Allow handshake with refinement field.
   virtual void setRefinementField(volScalarField* refine_) {};
 
   inline int numberOfParticles() const;
@@ -669,12 +675,12 @@ public:
 
   inline void scaleWithVcell(volVectorField&);
 
-  // @brief Write cfdemCloud internal data.
+  //! @brief Write cfdemCloud internal data.
   virtual bool evolve(volScalarField&, volVectorField&, volVectorField&);
 
   virtual bool reAllocArrays() const;
 
-  // @brief force number of particles during reallocation
+  //! @brief force number of particles during reallocation
   virtual bool reAllocArrays(int nP, bool forceRealloc) const;
 
   void writeScalarFieldToTerminal(double**&);

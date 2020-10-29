@@ -63,10 +63,10 @@ protected:
 
 public:
 
-  // @brief Runtime type information
+  //! @brief Runtime type information
   TypeName("smoothingModel");
 
-  // @brief Declare runtime constructor selection table
+  //! @brief Declare runtime constructor selection table
   declareRunTimeSelectionTable(
     autoPtr,
     smoothingModel,
@@ -78,26 +78,26 @@ public:
     (dict, sm)
   );
 
-  // @brief Constructors
+  //! @brief Constructors
   smoothingModel(const dictionary& dict, cfdemCloud& sm);
 
-  // @brief Destructor
+  //! @brief Destructor
   virtual ~smoothingModel();
 
-  // @brief Selector
+  //! @brief Selector
   static autoPtr<smoothingModel> New(const dictionary& dict, cfdemCloud& sm);
 
   // Member Functions
 
   virtual bool doSmoothing() const { return false; }
 
-  // @brief Particle diameter for smoothing
+  //! @brief Particle diameter for smoothing
   virtual void dSmoothing() const {}
 
-  // @brief Smoothing absolute fields (NOT per m³)
+  //! @brief Smoothing absolute fields (NOT per m³)
   virtual void smoothenAbsolutField(volScalarField&) const;
 
-  // @brief Smoothing absolute fields (NOT per m³)
+  //! @brief Smoothing absolute fields (NOT per m³)
   virtual void smoothenAbsolutField(volVectorField&) const;
 
   virtual void smoothen(volScalarField&) const = 0;

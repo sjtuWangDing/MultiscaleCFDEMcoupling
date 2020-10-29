@@ -25,66 +25,48 @@ License
     Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA
 
 Description
-    This code is designed to realize coupled CFD-DEM simulations using LIGGGHTS
-    and OpenFOAM(R). Note: this code is not part of OpenFOAM(R) (see DISCLAIMER).
+    Basic functions of string utils.
 
-    Archimedes buoyancy force for sphere / cylinder (2d)
-    basic "on-off" handling of buoyancy at the interface
-
-Class
-    mixArchimedes
-
-SourceFiles
-    mixArchimedes.C
-
+File
+    string_utils.H
 \*---------------------------------------------------------------------------*/
 
-#ifndef mixArchimedes_H
-#define mixArchimedes_H
+#ifndef __STRING_UTILS_H__
+#define __STRING_UTILS_H__
 
-#include "forceModel.H"
+#include <string>
+#include <sstream>
 
-namespace Foam {
+inline void makeStringKernel(std::stringstream& ss) {}
 
-class mixArchimedes: public forceModel {
+template<typename DType>
+inline void makeStringKernel(std::stringstream& ss, const DType& data) {
+  ss << data;
+}
 
-private:
+template<typename DType, typename... ATypes>
+inline void makeStringKernel(std::stringstream& ss,
+                             const DType& data,
+                             const ATypes&... args) {
+  makeStringKernel(ss, data);
+  makeStringKernel(ss, args...);
+}
 
-  dictionary propsDict_;
+template<typename... ATypes>
+std::string makeString(const ATypes&... args) {
+  std::stringstream ss;
+  makeStringKernel(ss, args...);
+  return std::string(ss.str());
+}
 
-  bool twoDimensional_;
+//!! @brief Specializations for std::string type.
+template<>
+inline std::string makeString(const std::string& str) {
+  return str;
+}
 
-  word gravityFieldName_;
+inline std::string makeString(const char* cstr) {
+  return std::string(cstr);
+}
 
-#ifdef version21
-  const uniformDimensionedVectorField& g_;
-#elif defined(version16ext) || defined(version15)
-  const dimensionedVector& g_;
-#endif
-
-public:
-
-  //! @brief Runtime type information
-  TypeName("mixArchimedes");
-
-
-  //! @brief Constructors
-  mixArchimedes(const dictionary& dict, cfdemCloud& sm);
-
-  //! @brief Destructor
-  ~mixArchimedes();
-
-  // Member Functions
-  void calForceKernel(const int& index,
-                      const int& cellI,
-                      vector& force) const;
-
-  virtual void setForce() const;
-
-  virtual void setMixForce(const std::vector<double>& dimensionRatios) const;
-
-};  // End of class mixArchimedes
-
-}  // End of namespace Foam
-
-#endif  // mixArchimedes_H
+#endif // __STRING_UTILS_H__

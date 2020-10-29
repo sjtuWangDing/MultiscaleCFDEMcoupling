@@ -51,15 +51,15 @@ private:
 
   dictionary propsDict_;
 
-  // @brief 标量场的下限值
+  //! @brief 标量场的下限值
   // @note Scalar fields will be bound to this lower value
   scalar lowerLimit_;
 
-  // @brief 标量场的上限值
+  //! @brief 标量场的上限值
   // @note Scalar fields will be bound to this upper value
   scalar upperLimit_;
 
-  // @brief 光滑长度尺度
+  //! @brief 光滑长度尺度
   // @note Length scale over which the exchange fields will be smoothed out
   dimensionedScalar smoothingLength_;
 
@@ -67,18 +67,18 @@ private:
 
   mutable dimensionedScalar DT_;
 
-  // @brief Flag for debugging output
+  //! @brief Flag for debugging output
   bool verbose_;
 
 public:
 
-  // @brief Runtime type information
+  //! @brief Runtime type information
   TypeName("mixConstDiffSmoothing");
 
-  // @brief Constructors
+  //! @brief Constructors
   mixConstDiffSmoothing(const dictionary& dict, cfdemCloud& sm);
 
-  // @brief Destructor
+  //! @brief Destructor
   ~mixConstDiffSmoothing();
 
   // Member Functions

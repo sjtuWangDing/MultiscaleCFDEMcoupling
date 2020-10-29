@@ -845,7 +845,7 @@ bool Foam::cfdemCloud::reAllocArrays(int nP, bool forceRealloc) const {
   return false;
 }
 
-// @brief 计算等效粘性系数
+//! @brief 计算等效粘性系数
 tmp<volScalarField> cfdemCloud::NuEff() const {
   return tmp<volScalarField>(
 #ifdef compre
@@ -857,7 +857,7 @@ tmp<volScalarField> cfdemCloud::NuEff() const {
 #endif
 }
 
-// @brief 计算 空隙率 * 等效粘性系数 = 空隙率 * (nut + nu)
+//! @brief 计算 空隙率 * 等效粘性系数 = 空隙率 * (nut + nu)
 tmp<volScalarField> cfdemCloud::voidfractionNuEff(volScalarField& voidfraction) const {
 #ifdef compre
 
@@ -890,7 +890,7 @@ tmp<volScalarField> cfdemCloud::voidfractionNuEff(volScalarField& voidfraction) 
 #endif
 }
 
-// @brief 计算动量方程中的流体应力项, 包括 粘性应力 + 雷诺应力
+//! @brief 计算动量方程中的流体应力项, 包括 粘性应力 + 雷诺应力
 // @note - fvc::grad(U)().T() 返回 grad(U) 的转置
 // @note - dev2(fvc::grad(U)().T()) 返回 grad(U) 转置的非对称分量 = fvc::grad(U)().T() - 2 / 3 * tr(fvc::grad(U)().T()) * I(单位二阶张量)
 tmp<fvVectorMatrix> cfdemCloud::divVoidfractionTau(volVectorField& U,

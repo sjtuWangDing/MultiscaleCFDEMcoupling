@@ -61,23 +61,23 @@ protected:
 
   int maxNumberOfParticles_;
 
-  // @brief 耦合计数
+  //! @brief 耦合计数
   mutable int couplingStep_;
 
-  // @brief DEM 时间步长
+  //! @brief DEM 时间步长
   scalar DEMts_;
 
-  // @brief 耦合间隔(单位：DEM 时间步)
+  //! @brief 耦合间隔(单位：DEM 时间步)
   int couplingInterval_;
 
   const int timeIndexOffset_;
 
 public:
 
-  // @brief Runtime type information
+  //! @brief Runtime type information
   TypeName("dataExchangeModel");
 
-  // @brief Declare runtime constructor selection table
+  //! @brief Declare runtime constructor selection table
   declareRunTimeSelectionTable(
     autoPtr,
     dataExchangeModel,
@@ -89,15 +89,15 @@ public:
     (dict, sm)
   );
 
-  // @brief Selector
+  //! @brief Selector
   static autoPtr<dataExchangeModel> New(const dictionary& dict,
                                         cfdemCloud& sm);
 
-  // @brief Constructor
+  //! @brief Constructor
   dataExchangeModel(const dictionary& dict,
                     cfdemCloud& sm);
 
-  // @brief Destructor
+  //! @brief Destructor
   virtual ~dataExchangeModel();
 
   void setNumberOfParticles(int numberOfParticles) const {
@@ -124,37 +124,37 @@ public:
   virtual void giveData(word name, word type, double** const& field,
                         const char* datatype = "double") const = 0;
 
-  // @brief Allocate and destroy for 2-D array
+  //! @brief Allocate and destroy for 2-D array
   // @note DType = double
   virtual void destroy(double**& array) const;
   virtual void destroy(double**& array, int) const;
   virtual void allocateArray(double**& array, double initVal, int width, int length) const;
   virtual void allocateArray(double**& array, double initVal, int width, const char* length = "nparticles") const;
 
-  // @brief Allocate and destroy for 2-D array
+  //! @brief Allocate and destroy for 2-D array
   // @note DType = int
   virtual void destroy(int**& array) const;
   virtual void destroy(int**& array, int) const;
   virtual void allocateArray(int**& array, int initVal, int width, int length) const;
   virtual void allocateArray(int**& array, int initVal, int width, const char* length  = "nparticles") const;
 
-  // @brief Allocate and destroy for 1-D array
+  //! @brief Allocate and destroy for 1-D array
   // @note DType = double
   virtual void destroy(double*& array) const;
   virtual void allocateArray(double*& array, double initVal, int length) const;
 
-  // @brief Allocate and destroy for 1-D array
+  //! @brief Allocate and destroy for 1-D array
   // @note DType = int
   virtual void destroy(int*& array) const;
   virtual void allocateArray(int*& array, int initVal, int length) const;
 
-  // @brief 释放离散内存
+  //! @brief 释放离散内存
   virtual void destroyDiscreteMemory(double** const& array, int len) const {
     FatalError << "dataExchangeModel::destroyDiscreteMemory(): using base class function, please use derived class function\n"
       << abort(FatalError);
   }
 
-  // @brief 释放离散内存
+  //! @brief 释放离散内存
   virtual void destroyDiscreteMemory(int** const& array, int len) const {
     FatalError << "dataExchangeModel::destroyDiscreteMemory(): using base class function, please use derived class function\n"
       << abort(FatalError);
@@ -162,7 +162,7 @@ public:
 
   virtual bool couple(int) const;
 
-  // @brief 因为耦合时间步长 = 流体时间步长的整数倍，所以 timeStepFraction() 用于计算每个流体时间步在耦合时间步中的所占比例，
+  //! @brief 因为耦合时间步长 = 流体时间步长的整数倍，所以 timeStepFraction() 用于计算每个流体时间步在耦合时间步中的所占比例，
   // Eg: 如果 couplingTime() == 3 * CFDts，那么每一个耦合时间步由 3 个流体时间步构成，那么这三个流体时间步的 timeStepFraction() 分别返回 0, 0.333333, 0.666666
   scalar timeStepFraction() const {
     auto CFDts = particleCloud_.mesh().time().deltaT().value();
@@ -180,7 +180,7 @@ public:
 
   int timeIndexOffset() const { return timeIndexOffset_; }
 
-  // @brief 计算耦合间隔时长
+  //! @brief 计算耦合间隔时长
   scalar couplingTime() const { return couplingInterval_ * DEMts_; }
 
   scalar TSstart() const {
@@ -226,7 +226,7 @@ public:
     checkTSsize();
   }
 
-  // @brief 因为耦合时间步长 = 流体时间步长的整数倍，所以判断当前流体时间步是否同时也是耦合时间步
+  //! @brief 因为耦合时间步长 = 流体时间步长的整数倍，所以判断当前流体时间步是否同时也是耦合时间步
   bool doCoupleNow() const {
     // couple at first sub TS(耦合发生在耦合时间步中的第一个流体时间步中)
     auto CFDts = particleCloud_.mesh().time().deltaT().value();
