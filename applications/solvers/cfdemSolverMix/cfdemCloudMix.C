@@ -546,7 +546,7 @@ bool cfdemCloudMix::evolve(volScalarField& alphaVoidfraction,
 // @param alpha  <[in, out] 小颗粒空隙率场
 // @param Us     <[in, out] 局部平均小颗粒速度场
 // @param U      <[in] 流体速度场
-// @note used for cfdemSolverPiso
+//! @note used for cfdemSolverPiso
 bool cfdemCloudMix::evolve(volScalarField& alpha,
                            volVectorField& Us,
                            volVectorField& U) {

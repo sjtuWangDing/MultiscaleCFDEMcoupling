@@ -94,7 +94,7 @@ public:
                                double**&) const = 0;
 
   //! @brief 计算被 middle 颗粒影响到的网格编号
-  // @note cellAffectIDs 用于计算 middle particle 受到的流体阻力
+  //! @note cellAffectIDs 用于计算 middle particle 受到的流体阻力
   virtual void getAffectedCellIDs(const std::vector<int>& middleParticleIndexs,
                                   std::vector<std::vector<int> >& affectedCellIDs,
                                   const scalar& searchScale = 4) const {
@@ -119,7 +119,7 @@ public:
                                      const std::vector<double>& dimensionRatios) const {}
 
   //! @brief 设置空隙率以及流体体积分数
-  // @note for cfdemSolverMix used
+  //! @note for cfdemSolverMix used
   virtual void setVoidFractionAndVolumeFraction(double** const& mask,
                                                 double**& volumefractions,
                                                 double**& voidfractions,

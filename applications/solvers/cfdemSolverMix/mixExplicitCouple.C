@@ -101,7 +101,7 @@ vector mixExplicitCouple::arrayToField(label cellI) const {
 }
 
 //! @brief 累加当前处理器上的全部源项
-// @note 返回值单位为 N，而不是 N / m^3
+//! @note 返回值单位为 N，而不是 N / m^3
 dimensionedVector mixExplicitCouple::returnIntegralSourceField() const {
   dimensionedVector intSource = dimensionedVector("0", dimensionSet(1, 1, -2, 0, 0), vector::zero);
   forAll(sourceField_, cellI) {

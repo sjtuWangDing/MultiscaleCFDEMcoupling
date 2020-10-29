@@ -316,7 +316,7 @@ const volScalarField& forceSubModel::rhoField() const {
 }
 
 //! @brief 计算粘性力
-// @note 用于计算 viscForceModel
+//! @note 用于计算 viscForceModel
 const volVectorField& forceSubModel::divTauField(const volVectorField& U) const {
 #ifdef compre
   const volScalarField& mu_ = muField();
@@ -330,7 +330,7 @@ const volVectorField& forceSubModel::divTauField(const volVectorField& U) const 
 }
 
 //! @brief 计算 IB drag
-// @note 用于计算 ShirgaonkarIBModel
+//! @note 用于计算 ShirgaonkarIBModel
 const volVectorField& forceSubModel::IBDragPerV(const volVectorField& U, const volScalarField& p) const {
 #ifdef compre
   IBDragPerV_ = muField() * fvc::laplacian(U) - fvc::grad(p);

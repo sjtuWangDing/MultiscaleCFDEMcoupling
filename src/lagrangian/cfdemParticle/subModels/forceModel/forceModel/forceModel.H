@@ -90,11 +90,11 @@ protected:
   bool implicitRotation_;
 
   //! @brief 保存当前 force model 的所有 forceSubModel 的名称
-  // @note 每一类型的力都可以指定多个种类的 forceSubModel, 但是目前只有一种 forceSubModel 的实现, 即 ImEx
+  //! @note 每一类型的力都可以指定多个种类的 forceSubModel, 但是目前只有一种 forceSubModel 的实现, 即 ImEx
   wordList forceSubModels_;
 
   //! @brief 保存当前 force model 的所有 forceSubModel 的指针
-  // @note 每一类型的力都可以指定多个种类的 forceSubModel, 但是目前只有一种 forceSubModel 的实现, 即 ImEx
+  //! @note 每一类型的力都可以指定多个种类的 forceSubModel, 但是目前只有一种 forceSubModel 的实现, 即 ImEx
   autoPtr<forceSubModel>* forceSubModel_;
 
   mutable autoPtr<interpolation<scalar> > GInterpolator_;
@@ -186,7 +186,7 @@ public:
   //! @brief 设置 force sub model
   //! @brief 比如对于 DiFeliceDrag force model, setForceSubModels 会从 DiFeliceDragProps 中寻找并设置所有的 forceSubModels 字段
   //        如果 DiFeliceDragProps 中没有指定 forceSubModels 字段, 则会默认设置为 ImEx
-  // @note 每一类型的力都可以指定多个种类的 forceSubModel, 但是目前只有一种 forceSubModel 的实现, 即 ImEx
+  //! @note 每一类型的力都可以指定多个种类的 forceSubModel, 但是目前只有一种 forceSubModel 的实现, 即 ImEx
   void setForceSubModels(dictionary& dict);
 
   //! @brief 添加由于多相作用而产生的湍流

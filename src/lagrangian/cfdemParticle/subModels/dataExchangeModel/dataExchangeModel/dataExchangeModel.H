@@ -39,15 +39,15 @@ SourceFiles
 #ifndef dataExchangeModel_H
 #define dataExchangeModel_H
 
-#include "fvCFD.H"
-#include "cfdemCloud.H"
-
-#include "mpi.h"
-#include "math.h"
 #include <lammps.h>
 #include <pair.h>
 #include <force.h>
 #include <atom.h>
+
+#include "fvCFD.H"
+#include "cfdemCloud.H"
+#include "mpi.h"
+#include "math.h"
 
 namespace Foam {
 
@@ -125,26 +125,26 @@ public:
                         const char* datatype = "double") const = 0;
 
   //! @brief Allocate and destroy for 2-D array
-  // @note DType = double
+  //! @note DType = double
   virtual void destroy(double**& array) const;
   virtual void destroy(double**& array, int) const;
   virtual void allocateArray(double**& array, double initVal, int width, int length) const;
   virtual void allocateArray(double**& array, double initVal, int width, const char* length = "nparticles") const;
 
   //! @brief Allocate and destroy for 2-D array
-  // @note DType = int
+  //! @note DType = int
   virtual void destroy(int**& array) const;
   virtual void destroy(int**& array, int) const;
   virtual void allocateArray(int**& array, int initVal, int width, int length) const;
   virtual void allocateArray(int**& array, int initVal, int width, const char* length  = "nparticles") const;
 
   //! @brief Allocate and destroy for 1-D array
-  // @note DType = double
+  //! @note DType = double
   virtual void destroy(double*& array) const;
   virtual void allocateArray(double*& array, double initVal, int length) const;
 
   //! @brief Allocate and destroy for 1-D array
-  // @note DType = int
+  //! @note DType = int
   virtual void destroy(int*& array) const;
   virtual void allocateArray(int*& array, int initVal, int length) const;
 

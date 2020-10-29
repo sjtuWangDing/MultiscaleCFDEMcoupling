@@ -52,15 +52,15 @@ private:
   dictionary propsDict_;
 
   //! @brief 标量场的下限值
-  // @note Scalar fields will be bound to this lower value
+  //! @note Scalar fields will be bound to this lower value
   scalar lowerLimit_;
 
   //! @brief 标量场的上限值
-  // @note Scalar fields will be bound to this upper value
+  //! @note Scalar fields will be bound to this upper value
   scalar upperLimit_;
 
   //! @brief 光滑长度尺度
-  // @note Length scale over which the exchange fields will be smoothed out
+  //! @note Length scale over which the exchange fields will be smoothed out
   dimensionedScalar smoothingLength_;
 
   dimensionedScalar smoothingLengthReferenceField_;

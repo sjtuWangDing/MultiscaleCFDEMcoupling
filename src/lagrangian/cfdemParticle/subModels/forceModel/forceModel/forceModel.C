@@ -141,7 +141,7 @@ void forceModel::treatVoidCells() const {
 //! @brief 设置 force sub model
 //! @brief 比如对于 DiFeliceDrag force model, setForceSubModels 会从 DiFeliceDragProps 中寻找并设置所有的 forceSubModels 字段
 //        如果 DiFeliceDragProps 中没有指定 forceSubModels 字段, 则会默认设置为 ImEx
-// @note 每一类型的力都可以指定多个种类的 forceSubModel, 但是目前只有一种 forceSubModel 的实现, 即 ImEx
+//! @note 每一类型的力都可以指定多个种类的 forceSubModel, 但是目前只有一种 forceSubModel 的实现, 即 ImEx
 void forceModel::setForceSubModels(dictionary& dict) {
   if (dict.found("forceSubModels")) {
     // 读入字典文件中指定的所有 force Sub Models 的名称

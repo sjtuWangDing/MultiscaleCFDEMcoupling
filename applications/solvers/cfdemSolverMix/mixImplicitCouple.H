@@ -71,7 +71,7 @@ private:
   scalar KslLimit_;
 
   //! @brief 动量交换场
-  // @note Ksl = 单位体积上颗粒对流体的作用力 / (Us - U)，单位为 (N/m^3) / (m/s) = kg / (m^3 * s)
+  //! @note Ksl = 单位体积上颗粒对流体的作用力 / (Us - U)，单位为 (N/m^3) / (m/s) = kg / (m^3 * s)
   mutable volScalarField KslPrev_;
   mutable volScalarField KslNext_;
 

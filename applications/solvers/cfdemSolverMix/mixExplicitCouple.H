@@ -93,7 +93,7 @@ public:
   }
 
   //! @brief 累加当前处理器上的全部源项
-  // @note 返回值单位为 N，而不是 N / m^3
+  //! @note 返回值单位为 N，而不是 N / m^3
   dimensionedVector returnIntegralSourceField() const;
 
   tmp<volVectorField> expMomSource() const;

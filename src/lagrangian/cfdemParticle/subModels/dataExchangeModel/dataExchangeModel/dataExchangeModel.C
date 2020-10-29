@@ -53,7 +53,7 @@ dataExchangeModel::dataExchangeModel(const dictionary& dict,
 dataExchangeModel::~dataExchangeModel() {}
 
 //! @brief Allocate and destroy for 2-D array
-// @note DType = double
+//! @note DType = double
 void dataExchangeModel::destroy(double**& array) const {
   if (array == NULL) { return; }
   delete [] array;
@@ -94,7 +94,7 @@ void dataExchangeModel::allocateArray(double**& array, double initVal,
 }
 
 //! @brief Allocate and destroy for 2-D array
-// @note DType = int
+//! @note DType = int
 void dataExchangeModel::destroy(int**& array) const {
   if (array == NULL) { return; }
   delete [] array;
@@ -135,7 +135,7 @@ void dataExchangeModel::allocateArray(int**& array, int initVal,
 }
 
 //! @brief Allocate and destroy for 1-D array
-// @note DType = double
+//! @note DType = double
 void dataExchangeModel::destroy(double*& array) const {
   delete [] array;
   array = NULL;
@@ -149,7 +149,7 @@ void dataExchangeModel::allocateArray(double*& array, double initVal, int length
 }
 
 //! @brief Allocate and destroy for 1-D array
-// @note DType = int
+//! @note DType = int
 void dataExchangeModel::destroy(int*& array) const {
   delete [] array;
   array = NULL;
