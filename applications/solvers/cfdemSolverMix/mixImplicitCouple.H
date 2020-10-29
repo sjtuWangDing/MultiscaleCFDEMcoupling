@@ -102,8 +102,8 @@ public:
 
   tmp<volScalarField> impMomSource() const;
 
-};  // End of class mixImplicitCouple
+};  // class mixImplicitCouple
 
-}  // End of namespace Foam
+}  // namespace Foam
 
 #endif  // mixImplicitCouple_H

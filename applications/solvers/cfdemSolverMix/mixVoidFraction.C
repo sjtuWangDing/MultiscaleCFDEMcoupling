@@ -954,4 +954,4 @@ double mixVoidFraction::segmentParticleIntersection(int index,
   return lambda;
 }
 
-}  // End of namespace Foam
+}  // namespace Foam

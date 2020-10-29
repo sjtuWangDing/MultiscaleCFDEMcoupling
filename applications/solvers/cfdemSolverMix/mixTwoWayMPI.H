@@ -142,8 +142,8 @@ public:
 
   inline void setCG() const { setCGs(lmp); }
 
-};  // End of class mixTwoWayMPI
+};  // class mixTwoWayMPI
 
-}  // End of namespace Foam
+}  // namespace Foam
 
 #endif  // mixTwoWayMPI_H

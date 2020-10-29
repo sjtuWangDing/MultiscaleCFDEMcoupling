@@ -108,8 +108,8 @@ public:
                                    volScalarField& weightField,
                                    double **const& mask) const;
 
-};  // End of class mixDense
+};  // class mixDense
 
-}  // End of namespace Foam
+}  // namespace Foam
 
 #endif  // mixDense_H

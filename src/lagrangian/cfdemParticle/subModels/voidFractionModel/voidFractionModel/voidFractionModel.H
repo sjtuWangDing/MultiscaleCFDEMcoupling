@@ -189,8 +189,8 @@ public:
   inline volScalarField& volumeFractionNext() const { return volumefractionNext_; }
 #endif
 
-};  // End of class voidFractionModel
+};  // class voidFractionModel
 
-}  // End of namespace Foam
+}  // namespace Foam
 
 #endif  // voidFractionModel_H

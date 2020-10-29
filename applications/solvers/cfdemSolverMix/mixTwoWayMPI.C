@@ -359,4 +359,4 @@ double* mixTwoWayMPI::getTypeVol() const {
   return NULL;
 }
 
-}  // End of namespace Foam
+}  // namespace Foam

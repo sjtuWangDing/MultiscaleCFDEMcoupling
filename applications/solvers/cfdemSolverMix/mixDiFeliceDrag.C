@@ -266,4 +266,4 @@ void mixDiFeliceDrag::setMixForce(const std::vector<double>& dimensionRatios) co
   Info << "Setting mixDiFeliceDrag force - done\n" << endl;
 }
 
-}  // End of namespace Foam
+}  // namespace Foam

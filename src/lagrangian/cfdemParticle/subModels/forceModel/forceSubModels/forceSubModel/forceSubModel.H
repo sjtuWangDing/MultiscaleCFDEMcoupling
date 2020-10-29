@@ -325,8 +325,8 @@ public:
 
   const scalar& scaleDrag() const { return scaleDia_; }
 
-};  // End of class forceSubModel
+};  // class forceSubModel
 
-}  // End of namespace Foam
+}  // namespace Foam
 
 #endif  // forceSubModel_H

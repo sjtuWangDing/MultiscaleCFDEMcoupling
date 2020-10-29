@@ -138,6 +138,6 @@ bool mixAdjustPhi(surfaceScalarField& phi,
   }
 }
 
-}  // End of namespace Foam
+}  // namespace Foam
 
 #endif  // mixAdjustPhi_H

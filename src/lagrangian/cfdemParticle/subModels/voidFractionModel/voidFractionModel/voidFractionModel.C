@@ -224,4 +224,4 @@ double voidFractionModel::minPeriodicDistance(
   return f;
 }
 
-}  // End of namespace Foam
+}  // namespace Foam

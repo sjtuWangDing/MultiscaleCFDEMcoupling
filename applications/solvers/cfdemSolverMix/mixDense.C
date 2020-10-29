@@ -169,5 +169,5 @@ void mixDense::setMixVectorAverage(double **& value,
   field.correctBoundaryConditions();
 }
 
-}  // End of namespace Foam
+}  // namespace Foam
 

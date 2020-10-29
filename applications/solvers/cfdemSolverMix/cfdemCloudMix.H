@@ -227,8 +227,8 @@ public:
     return vel;
   }
 
-};  // End of class cfdemCloudMix
+};  // class cfdemCloudMix
 
-}  // End of namespace Foam
+}  // namespace Foam
 
 #endif  // cfdemCloudMix_H

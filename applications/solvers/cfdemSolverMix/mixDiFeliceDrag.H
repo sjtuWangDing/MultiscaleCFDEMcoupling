@@ -95,8 +95,8 @@ public:
 
   virtual void setMixForce(const std::vector<double>& dimensionRatios) const;
 
-};  // End of class mixDiFeliceDrag
+};  // class mixDiFeliceDrag
 
-}  // End of namespace Foam
+}  // namespace Foam
 
 #endif  // mixDiFeliceDrag_H

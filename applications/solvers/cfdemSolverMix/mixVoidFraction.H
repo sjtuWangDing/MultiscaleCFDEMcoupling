@@ -152,8 +152,8 @@ private:
                                      vector pointInside,
                                      vector pointOutside) const;
 
-};  // End of class mixVoidFraction
+};  // class mixVoidFraction
 
-}  // End of namespace Foam
+}  // namespace Foam
 
 #endif  // mixVoidFraction_H

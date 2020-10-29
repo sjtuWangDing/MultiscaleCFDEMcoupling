@@ -340,4 +340,4 @@ const volVectorField& forceSubModel::IBDragPerV(const volVectorField& U, const v
   return IBDragPerV_;
 }
 
-}  // End of namespace Foam
+}  // namespace Foam

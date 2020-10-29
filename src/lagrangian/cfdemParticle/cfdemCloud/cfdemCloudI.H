@@ -332,4 +332,4 @@ inline void cfdemCloud::scaleWithVcell(volVectorField& field) {
   }
 }
 
-}  // End of namespace Foam
+}  // namespace Foam

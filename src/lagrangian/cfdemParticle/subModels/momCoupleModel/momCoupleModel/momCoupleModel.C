@@ -70,4 +70,4 @@ dimensionedVector momCoupleModel::returnIntegralSourceField() const {
   return dimensionedVector("0", dimensionSet(1, 1, -2, 0, 0), vector::zero);
 }
 
-}  // End of namespace Foam
+}  // namespace Foam

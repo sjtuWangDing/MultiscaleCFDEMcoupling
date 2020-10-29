@@ -196,4 +196,4 @@ void mixConstDiffSmoothing::smoothenReferenceField(volVectorField& fieldSrc) con
   }
 }
 
-}  // End of namespace Foam
+}  // namespace Foam

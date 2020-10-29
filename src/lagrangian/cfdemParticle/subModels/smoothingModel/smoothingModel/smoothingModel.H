@@ -106,8 +106,8 @@ public:
 
   virtual void smoothenReferenceField(volVectorField&) const = 0;
 
-};  // End of class smoothingModel
+};  // class smoothingModel
 
-}  // End of namespace Foam
+}  // namespace Foam
 
 #endif  // smoothingModel_H

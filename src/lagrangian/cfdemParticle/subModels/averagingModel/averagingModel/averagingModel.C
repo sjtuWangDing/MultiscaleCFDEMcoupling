@@ -158,4 +158,4 @@ tmp<volVectorField> averagingModel::UsInterp() const {
   return tmp<volVectorField>(new volVectorField("Us_averagingModel", (1 - tsf) * UsPrev_ + tsf * UsNext_));
 }
 
-}  // End of namespace Foam
+}  // namespace Foam

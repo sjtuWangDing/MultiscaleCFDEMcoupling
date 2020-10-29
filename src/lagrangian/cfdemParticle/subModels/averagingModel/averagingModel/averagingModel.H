@@ -223,8 +223,8 @@ public:
 
   volScalarField& UsWeightField() const { return UsWeightField_; }
 
-};  // End of class averagingModel
+};  // class averagingModel
 
-}  // End of namespace Foam
+}  // namespace Foam
 
 #endif  // averagingModel_H

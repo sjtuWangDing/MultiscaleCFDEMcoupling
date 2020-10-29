@@ -254,8 +254,8 @@ public:
 
   inline int nrForceSubModels() const { return forceSubModels_.size(); }
 
-};  // End of class forceModel
+};  // class forceModel
 
-}  // End of namespace Foam
+}  // namespace Foam
 
 #endif  // forceModel_H

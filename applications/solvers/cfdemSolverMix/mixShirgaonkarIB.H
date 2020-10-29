@@ -100,8 +100,8 @@ public:
 
   virtual void setMixForce(const std::vector<double>& dimensionRatios) const;
 
-};  // End of class mixShirgaonkarIB
+};  // class mixShirgaonkarIB
 
-}  // End of namespace Foam
+}  // namespace Foam
 
 #endif  // mixShirgaonkarIB_H

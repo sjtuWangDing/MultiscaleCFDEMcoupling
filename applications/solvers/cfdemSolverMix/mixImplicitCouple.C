@@ -118,4 +118,4 @@ tmp<volScalarField> mixImplicitCouple::impMomSource() const {
   return tmp<volScalarField>(new volScalarField("Ksl_implicitCouple", (1 - tsf) * KslPrev_ + tsf * KslNext_));
 }
 
-} // End of namespace Foam
+} // namespace Foam

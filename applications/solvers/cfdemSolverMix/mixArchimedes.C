@@ -183,4 +183,4 @@ void mixArchimedes::setMixForce(const std::vector<double>& dimensionRatios) cons
   Info << "Setting mixArchimedes force - done" << endl;
 }
 
-}  // End of namespace Foam
+}  // namespace Foam

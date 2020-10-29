@@ -350,4 +350,4 @@ void mixShirgaonkarIB::setMixForce(const std::vector<double>& dimensionRatios) c
   Info << "Setting mixShirgaonkarIB force - done" << endl;
 }
 
-}  // End of namespace Foam
+}  // namespace Foam

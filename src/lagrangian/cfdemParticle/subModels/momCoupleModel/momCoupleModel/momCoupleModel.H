@@ -102,6 +102,6 @@ public:
 
 };  // End of momCoupleModel
 
-}  // End of namespace Foam
+}  // namespace Foam
 
 #endif  // momCoupleModel_H

@@ -120,4 +120,4 @@ void smoothingModel::smoothenAbsolutField(volVectorField& vecField) const {
   particleCloud_.scaleWithVcell(vecField);
 }
 
-}  // End of namespace Foam
+}  // namespace Foam

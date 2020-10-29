@@ -124,4 +124,4 @@ tmp<volVectorField> mixExplicitCouple::expMomSource() const {
   return tmp<volVectorField>(new volVectorField("f_explicitCouple", (1 - tsf) * fPrev_ + tsf * fNext_));
 }
 
-}  // End of namespace Foam
+}  // namespace Foam

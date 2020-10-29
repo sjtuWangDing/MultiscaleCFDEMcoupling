@@ -89,8 +89,8 @@ public:
                                 double** const& weight2,
                                 bool weightWithWeight2 = false) const;
 
-};  // End of class mixDilute
+};  // class mixDilute
 
-}  // End of namespace Foam
+}  // namespace Foam
 
 #endif  // mixDilute_H

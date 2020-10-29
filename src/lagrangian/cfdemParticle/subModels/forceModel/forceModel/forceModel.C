@@ -159,4 +159,4 @@ void forceModel::setForceSubModels(dictionary& dict) {
   }
 }
 
-}  // End of namespace Foam
+}  // namespace Foam

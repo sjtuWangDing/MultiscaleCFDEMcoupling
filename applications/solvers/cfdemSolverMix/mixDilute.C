@@ -82,4 +82,4 @@ void mixDilute::setVectorAverage(volVectorField& field,
   FatalError << "mixDilute::setVectorAverage() not implemented, please use mixDense model." << abort(FatalError);
 }
 
-}  // End of namespace Foam
+}  // namespace Foam

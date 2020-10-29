@@ -91,8 +91,8 @@ public:
 
   void smoothenReferenceField(volVectorField&) const;
 
-};  // End of class mixConstDiffSmoothing
+};  // class mixConstDiffSmoothing
 
-}  // End of namespace Foam
+}  // namespace Foam
 
 #endif  // mixConstDiffSmoothing_H

@@ -1154,4 +1154,4 @@ bool cfdemCloudMix::evolve(volScalarField& alpha,
   return doCouple;
 }
 
-}  // End of namespace Foam
+}  // namespace Foam

@@ -59,6 +59,7 @@ protected:
 
   cfdemCloud& particleCloud_;
 
+  //! @brief 最大颗粒数量
   int maxNumberOfParticles_;
 
   //! @brief 耦合计数
@@ -163,7 +164,7 @@ public:
   virtual bool couple(int) const;
 
   //! @brief 因为耦合时间步长 = 流体时间步长的整数倍，所以 timeStepFraction() 用于计算每个流体时间步在耦合时间步中的所占比例，
-  // Eg: 如果 couplingTime() == 3 * CFDts，那么每一个耦合时间步由 3 个流体时间步构成，那么这三个流体时间步的 timeStepFraction() 分别返回 0, 0.333333, 0.666666
+  //         如果 couplingTime() == 3 * CFDts，那么每一个耦合时间步由 3 个流体时间步构成，那么这三个流体时间步的 timeStepFraction() 分别返回 0, 0.333333, 0.666666
   scalar timeStepFraction() const {
     auto CFDts = particleCloud_.mesh().time().deltaT().value();
     auto timeIndex = particleCloud_.mesh().time().timeIndex();
@@ -296,8 +297,8 @@ public:
     return NULL;
   }
 
-};  // End of class dataExchangeModel
+};  // class dataExchangeModel
 
-}  // End of namespace Foam
+}  // namespace Foam
 
 #endif  // dataExchangeModel_H

@@ -83,8 +83,8 @@ public:
 
   virtual void setMixForce(const std::vector<double>& dimensionRatios) const;
 
-};  // End of class mixArchimedes
+};  // class mixArchimedes
 
-}  // End of namespace Foam
+}  // namespace Foam
 
 #endif  // mixArchimedes_H

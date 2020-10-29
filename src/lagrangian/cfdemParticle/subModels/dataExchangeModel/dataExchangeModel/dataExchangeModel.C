@@ -171,4 +171,4 @@ bool dataExchangeModel::couple(int i) const {
   return coupleNow;
 }
 
-}  // End of namespace Foam
+}  // namespace Foam

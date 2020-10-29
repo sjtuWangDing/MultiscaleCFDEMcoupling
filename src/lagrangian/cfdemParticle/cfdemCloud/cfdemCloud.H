@@ -730,7 +730,7 @@ public:
   void setMeshHasUpdatedFlag(bool hasUpdated) { meshHasUpdated_ = hasUpdated; }
 };
 
-} // End of namespace Foam
+} // namespace Foam
 
 #include "cfdemCloudI.H"
 

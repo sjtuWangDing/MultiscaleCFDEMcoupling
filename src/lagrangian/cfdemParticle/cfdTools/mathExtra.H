@@ -272,6 +272,6 @@ inline bool doubleDotTensor333Tensor33(double tensor333[3][3][3],
     return true;
 }
 
-}; //end of namespace
+}; //namespace
 
 #endif
