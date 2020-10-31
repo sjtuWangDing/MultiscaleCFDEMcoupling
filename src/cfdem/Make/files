@@ -1,0 +1,8 @@
+path = ../cfdem
+cloud = $(path)/cloud
+
+$(cloud)/cfdemCloud.C
+$(cloud)/couplingProperties.C
+$(cloud)/particleCloud.C
+
+LIB = $(CFDEM_LIB_DIR)/lib$(CFDEM_LIB_NAME)-1.0

@@ -1,0 +1,40 @@
+sinclude $(GENERAL_RULES)/mplib$(WM_MPLIB)
+include $(CFDEM_ADD_LIBS_DIR)/$(CFDEM_ADD_LIBS_NAME)
+
+$(shell if [ ! -e "$(CFDEM_LIB_DIR)" ]; then mkdir -p "$(CFDEM_LIB_DIR)"; fi)
+$(shell ln -sf $(CFDEM_LIGGGHTS_LIB_PATH)/lib$(CFDEM_LIGGGHTS_LIB_NAME).so $(CFDEM_LIB_DIR)/)
+
+GIT_VERSION := $(shell git describe --dirty --always --tags)
+PFLAGS+= -DGITVERSION=\"$(GIT_VERSION)\"
+PFLAGS+= -DDEBUGFLAG=\"$(WM_COMPILE_OPTION)\"
+PFLAGS+= -DCFDEMWMPROJECTVERSION="$(CFDEM_WM_PROJECT_VERSION)"
+
+EXE_INC = \
+     $(PFLAGS) \
+     $(PINC) \
+     $(CFDEM_ADD_INCOMPTURBMOD_PATHS) \
+    -I$(LIB_SRC)/transportModels \
+    -I$(LIB_SRC)/transportModels/incompressible/singlePhaseTransportModel \
+    -I$(LIB_SRC)/finiteVolume/lnInclude \
+    -I$(LIB_SRC)/meshTools/lnInclude \
+    -I$(LIB_SRC)/fvOptions/lnInclude \
+    -I$(CFDEM_SRC_DIR)/lagrangian/cfdemParticle/lnInclude \
+    -I$(CFDEM_SRC_DIR)/lagrangian/cfdemParticle/cfdTools \
+    -I$(LIB_SRC)/dynamicFvMesh/lnInclude \
+    -I$(LIB_SRC)/dynamicMesh/lnInclude \
+    -I$(LIB_SRC)/dynamicMesh/dynamicFvMesh/lnInclude \
+    -I$(LIB_SRC)/dynamicMesh/dynamicMesh/lnInclude \
+    -I$(CFDEM_LIGGGHTS_SRC_DIR)
+
+EXE_LIBS = \
+    -L$(CFDEM_LIB_DIR)\
+    $(CFDEM_ADD_INCOMPTURBMOD_LIBS) \
+    -lincompressibleTransportModels \
+    -lfiniteVolume \
+    -lmeshTools \
+    -lfvOptions \
+    -l$(CFDEM_LIB_NAME) \
+    -ldynamicFvMesh \
+    -ldynamicMesh \
+     $(CFDEM_ADD_LIB_PATHS) \
+     $(CFDEM_ADD_LIBS)
