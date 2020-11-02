@@ -77,17 +77,57 @@ public:
   // @brief Runtime type information
   TypeName("dataExchangeModel");
 
-  // @brief Declare runtime constructor selection table
-  declareRunTimeSelectionTable(
-    autoPtr,
-    dataExchangeModel,
-    dictionary,
-    (
-      const dictionary& dict,
-      cfdemCloud& sm
-    ),
-    (dict, sm)
-  );
+  // // @brief Declare runtime constructor selection table
+  // declareRunTimeSelectionTable(
+  //   autoPtr,
+  //   dataExchangeModel,
+  //   dictionary,
+  //   (
+  //     const dictionary& dict,
+  //     cfdemCloud& sm
+  //   ),
+  //   (dict, sm)
+  // );
+
+  // ---------------------------------------------------------------------
+  // argNames: dictionary
+  // argList: (const dictionary& dict, cfdemCloud& sm)
+  // parList: (dict, sm)
+  typedef autoPtr<dataExchangeModel> (*dictionaryConstructorPtr) (const dictionary& dict, cfdemCloud& sm);
+  typedef HashTable<dictionaryConstructorPtr, word, string::hash> dictionaryConstructorTable;
+  static dictionaryConstructorTable* dictionaryConstructorTablePtr_;
+  static void constructdictionaryConstructorTables() {
+    static bool constructed = false;
+    if (!constructed) {
+      constructed = true;
+      dataExchangeModel::dictionaryConstructorTablePtr_ = new dataExchangeModel::dictionaryConstructorTable;
+    }
+  }
+  static void destroydictionaryConstructorTables() {
+    if (dataExchangeModel::dictionaryConstructorTablePtr_)
+    {                                                                      \
+      delete baseType::argNames##ConstructorTablePtr_;                   \
+      baseType::argNames##ConstructorTablePtr_ = nullptr;                \
+    }
+  }
+  template<class dataExchangeModelType>
+  class adddictionaryConstructorToTable {
+  public:
+    static autoPtr<dataExchangeModel> New(const dictionary& dict, cfdemCloud& sm) {
+      return autoPtr<dataExchangeModel>(new dataExchangeModelType(dict, sm))
+    }
+    adddictionaryConstructorToTable(const word& lookup = dataExchangeModelType::typeName) {
+      if (!dictionaryConstructorTablePtr_->insert(lookup, New)) {
+        std::cerr << "Duplicate entry " << lookup
+          << " in runtime selection table " << "dataExchangeModel"
+          << std::endl;
+      }
+    }
+    ~adddictionaryConstructorToTable() {
+      destroydictionaryConstructorTables();
+    }
+  };
+  // ---------------------------------------------------------------------
 
   // @brief Selector
   static autoPtr<dataExchangeModel> New(const dictionary& dict,
