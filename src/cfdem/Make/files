@@ -1,8 +1,12 @@
 path = ../cfdem
 cloud = $(path)/cloud
+subModels = $(path)/subModels
 
 $(cloud)/cfdemCloud.C
 $(cloud)/couplingProperties.C
 $(cloud)/particleCloud.C
+
+$(subModels)/dataExchangeModel/dataExchangeModel.C
+$(subModels)/dataExchangeModel/twoWayMPI.C
 
 LIB = $(CFDEM_LIB_DIR)/lib$(CFDEM_LIB_NAME)-1.0

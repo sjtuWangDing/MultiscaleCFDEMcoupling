@@ -29,59 +29,15 @@ Description
     and OpenFOAM(R). Note: this code is not part of OpenFOAM(R) (see DISCLAIMER).
 
 Class
-    dataExchangeModel
+    twoWayMPI
 \*---------------------------------------------------------------------------*/
 
-#ifndef __DATA_EXCHANGE_MODEL_H__
-#define __DATA_EXCHANGE_MODEL_H__
-
-#include "fvCFD.H"
-#include "cloud/cfdemCloud.H"
-
-#include "tools/runTimeSelectionTables.H"
+#include "twoWayMPI.H"
 
 namespace Foam {
 
-class dataExchangeModel {
+cfdemDefineTypeName(twoWayMPI)
 
-public:
-
-  //! @brief Runtime type information
-  cfdemTypeName("dataExchangeModel");
-
-  //! @brief Declare runtime constructor selection
-  cfdemDeclareRunTimeSelection(autoPtr, dataExchangeModel, (cfdemCloud& cloud), (cloud));
-
-  //! @brief Selector
-  static autoPtr<dataExchangeModel> New(cfdemCloud& cloud);
-
-  //! @brief Constructor
-  dataExchangeModel(cfdemCloud& cloud);
-
-  //! @brief Destructor
-  virtual ~dataExchangeModel();
-
-protected:
-
-  cfdemCloud& cloud_;
-
-  const dictionary& dict_;
-
-  // int maxNumberOfParticles_;
-
-  // //! @brief 耦合计数
-  // int couplingStep_;
-
-  // //! @brief DEM 时间步长
-  // double DEMts_;
-
-  // //! @brief 耦合间隔，单位：DEM 时间步
-  // int couplingInterval_;
-
-  // const int timeIndexOffset_;
-
-};
+cfdemAddToNewFunctionMap(dataExchangeModel, twoWayMPI)
 
 } // namespace Foam
-
-#endif // __DATA_EXCHANGE_MODEL_H__

@@ -29,8 +29,6 @@ Class
 #ifndef __PARTICLE_CLOUD_H__
 #define __PARTICLE_CLOUD_H__
 
-#include "cfdemCloud.H"
-
 namespace Foam {
 
 //! @brief The basic class for particles

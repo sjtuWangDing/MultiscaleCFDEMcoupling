@@ -23,65 +23,29 @@ License
     You should have received a copy of the GNU General Public License
     along with CFDEMcoupling; if not, write to the Free Software Foundation,
     Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA
-
-Description
-    This code is designed to realize coupled CFD-DEM simulations using LIGGGHTS
-    and OpenFOAM(R). Note: this code is not part of OpenFOAM(R) (see DISCLAIMER).
-
-Class
-    dataExchangeModel
 \*---------------------------------------------------------------------------*/
 
-#ifndef __DATA_EXCHANGE_MODEL_H__
-#define __DATA_EXCHANGE_MODEL_H__
+#ifndef __TYPEINFO_H__
+#define __TYPEINFO_H__
 
-#include "fvCFD.H"
-#include "cloud/cfdemCloud.H"
+#include <stdexcept>
+#include <typeinfo>
 
-#include "tools/runTimeSelectionTables.H"
+namespace base {
 
-namespace Foam {
+// //! @brief Reference type cast template function
+// //         wraps dynamic_cast to handle bad_cast exception and generate a FatalError.
+// template<typename ToType, typename FromType>
+// inline ToType& dynamicCast(FromType& from) {
+//   try {
+//     return dynamic_cast<ToType&>(from);
+//   } catch(const std::bad_cast& ex) {
+//     FatalErrorInFunction << "Attempt to cast type " << typeid(FromType).name()
+//       << " to type " << typeid(ToType).name() << abort(FatalError);
+//     return dynamic_cast<ToType&>(from);
+//   }
+// }
 
-class dataExchangeModel {
+} // namespace base
 
-public:
-
-  //! @brief Runtime type information
-  cfdemTypeName("dataExchangeModel");
-
-  //! @brief Declare runtime constructor selection
-  cfdemDeclareRunTimeSelection(autoPtr, dataExchangeModel, (cfdemCloud& cloud), (cloud));
-
-  //! @brief Selector
-  static autoPtr<dataExchangeModel> New(cfdemCloud& cloud);
-
-  //! @brief Constructor
-  dataExchangeModel(cfdemCloud& cloud);
-
-  //! @brief Destructor
-  virtual ~dataExchangeModel();
-
-protected:
-
-  cfdemCloud& cloud_;
-
-  const dictionary& dict_;
-
-  // int maxNumberOfParticles_;
-
-  // //! @brief 耦合计数
-  // int couplingStep_;
-
-  // //! @brief DEM 时间步长
-  // double DEMts_;
-
-  // //! @brief 耦合间隔，单位：DEM 时间步
-  // int couplingInterval_;
-
-  // const int timeIndexOffset_;
-
-};
-
-} // namespace Foam
-
-#endif // __DATA_EXCHANGE_MODEL_H__
+#endif // __TYPEINFO_H__

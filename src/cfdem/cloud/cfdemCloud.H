@@ -49,9 +49,8 @@ Class
   #include "RASModel.H"
 #endif
 
-#ifndef __MIXCLOUD__
-#define __MIXCLOUD__ 1
-#endif
+#include "couplingProperties.H"
+#include "particleCloud.H"
 
 namespace Foam {
 
@@ -69,8 +68,6 @@ class smoothingModel;
 class momCoupleModel;
 class meshMotionModel;
 class liggghtsCommandModel;
-class CouplingProperties;
-class ParticleCloud;
 
 class cfdemCloud {
 
@@ -82,6 +79,10 @@ public:
   //! @brief Destructor
   virtual ~cfdemCloud();
 
+  // interface
+  inline const IOdictionary& couplingPropertiesDict() { return couplingPropertiesDict_; }
+  inline const IOdictionary& liggghtsCommandsDict() { return liggghtsCommandsDict_; }
+
 protected:
   const fvMesh& mesh_;
 
@@ -89,6 +90,10 @@ protected:
   IOdictionary couplingPropertiesDict_;
 
   IOdictionary liggghtsCommandsDict_;
+
+  CouplingProperties cProps_;
+
+  ParticleCloud pCloud_;
 
   autoPtr<forceModel>* forceModel_;
 
@@ -115,10 +120,6 @@ protected:
   autoPtr<meshMotionModel> meshMotionModel_;
 
   autoPtr<liggghtsCommandModel> liggghtsCommand_;
-
-  autoPtr<CouplingProperties> cProps_;
-
-  autoPtr<ParticleCloud> pCloud_;
 
   bool writeTimePassed_;
 

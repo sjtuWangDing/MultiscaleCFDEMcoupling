@@ -29,7 +29,11 @@ Class
 #ifndef __COUPLING_PROPERTIES_H__
 #define __COUPLING_PROPERTIES_H__
 
-#include "cfdemCloud.H"
+#include "fvCFD.H"
+
+#ifndef __MIXCLOUD__
+#define __MIXCLOUD__ 1
+#endif
 
 namespace Foam {
 

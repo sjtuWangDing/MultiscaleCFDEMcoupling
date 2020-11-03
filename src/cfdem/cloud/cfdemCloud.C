@@ -55,7 +55,7 @@ cfdemCloud::cfdemCloud(const fvMesh& mesh):
       IOobject::NO_WRITE
     )
   ),
-  cProps_(autoPtr<CouplingProperties>(new CouplingProperties(mesh, couplingPropertiesDict_, liggghtsCommandsDict_))),
-  pCloud_(autoPtr<ParticleCloud>(new ParticleCloud())) {}
+  cProps_(mesh, couplingPropertiesDict_, liggghtsCommandsDict_),
+  pCloud_(0) {}
 
 } // namespace Foam
