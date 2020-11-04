@@ -23,29 +23,21 @@ License
   You should have received a copy of the GNU General Public License
   along with CFDEMcoupling; if not, write to the Free Software Foundation,
   Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA
+
+Description
+  This code is designed to realize coupled CFD-DEM simulations using LIGGGHTS
+  and OpenFOAM(R). Note: this code is not part of OpenFOAM(R) (see DISCLAIMER).
+
+Class
+  Foam::twoWayMPI
 \*---------------------------------------------------------------------------*/
 
-#ifndef __TYPEINFO_H__
-#define __TYPEINFO_H__
+#include "noDataExchange.H"
 
-#include <stdexcept>
-#include <typeinfo>
+namespace Foam {
 
-namespace base {
+cfdemDefineTypeName(noDataExchange)
 
-// //! @brief Reference type cast template function
-// //         wraps dynamic_cast to handle bad_cast exception and generate a FatalError.
-// template<typename ToType, typename FromType>
-// inline ToType& dynamicCast(FromType& from) {
-//   try {
-//     return dynamic_cast<ToType&>(from);
-//   } catch(const std::bad_cast& ex) {
-//     FatalErrorInFunction << "Attempt to cast type " << typeid(FromType).name()
-//       << " to type " << typeid(ToType).name() << abort(FatalError);
-//     return dynamic_cast<ToType&>(from);
-//   }
-// }
+cfdemAddToNewFunctionMap(dataExchangeModel, noDataExchange)
 
-} // namespace base
-
-#endif // __TYPEINFO_H__
+} // namespace Foam

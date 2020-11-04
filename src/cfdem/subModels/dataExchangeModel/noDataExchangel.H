@@ -23,29 +23,36 @@ License
   You should have received a copy of the GNU General Public License
   along with CFDEMcoupling; if not, write to the Free Software Foundation,
   Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA
+
+Description
+  This code is designed to realize coupled CFD-DEM simulations using LIGGGHTS
+  and OpenFOAM(R). Note: this code is not part of OpenFOAM(R) (see DISCLAIMER).
+
+Class
+  Foam::noDataExchange
 \*---------------------------------------------------------------------------*/
 
-#ifndef __TYPEINFO_H__
-#define __TYPEINFO_H__
+#ifndef __NO_DATA_EXCHANGE_MODEL_H__
+#define __NO_DATA_EXCHANGE_MODEL_H__
 
-#include <stdexcept>
-#include <typeinfo>
+#include "dataExchangeModel.H"
 
-namespace base {
+namespace Foam {
 
-// //! @brief Reference type cast template function
-// //         wraps dynamic_cast to handle bad_cast exception and generate a FatalError.
-// template<typename ToType, typename FromType>
-// inline ToType& dynamicCast(FromType& from) {
-//   try {
-//     return dynamic_cast<ToType&>(from);
-//   } catch(const std::bad_cast& ex) {
-//     FatalErrorInFunction << "Attempt to cast type " << typeid(FromType).name()
-//       << " to type " << typeid(ToType).name() << abort(FatalError);
-//     return dynamic_cast<ToType&>(from);
-//   }
-// }
+class noDataExchange: public dataExchangeModel {
 
-} // namespace base
+public:
 
-#endif // __TYPEINFO_H__
+  //! @brief Runtime type information
+  cfdemTypeName("noDataExchange")
+
+  //! @brief Constructor
+  noDataExchange(cfdemCloud& cloud);
+
+  //! @brief Destructor
+  ~noDataExchange();
+};
+
+} // namespace Foam
+
+#endif // __NO_DATA_EXCHANGE_MODEL_H__
