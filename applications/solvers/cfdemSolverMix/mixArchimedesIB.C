@@ -101,6 +101,8 @@ void mixArchimedesIB::calForceKernel(const int& index,
   for(int subCell = 0; subCell < particleCloud_.cellsPerParticle()[index][0]; subCell++) {
     label cellI = particleCloud_.cellIDs()[index][subCell];
     if (cellI >= 0) {  // cell found
+      // Pout << "-g_.value(): " << -g_.value() << endl;
+      // Pout << "forceSubM(0).rhoField()[" << cellI << "]: " << forceSubM(0).rhoField()[cellI] << endl;
       if (particleCloud_.usedForSolverIB()) {
         force += -g_.value() * forceSubM(0).rhoField()[cellI] * particleCloud_.mesh().V()[cellI] * (1 - voidfractions_[cellI]);
         continue;
@@ -130,6 +132,8 @@ void mixArchimedesIB::setForce() const {
     if (twoDimensional_) {
       Warning << "mixArchimedesIB model doesn't work for 2D right now!!\n" << endl;
     }
+    Info << "mixArchimedesIB_" << index << ": " << force[0] << ", " << force[1] << ", " << force[2] << endl;
+
     // write particle based data to global array
     forceSubM(0).partToArray(index, force, vector::zero);
   }  // End of loop all particles
@@ -145,7 +149,7 @@ void mixArchimedesIB::setMixForce(const std::vector<double>& dimensionRatios) co
   vector force = vector::zero;
 
   for (int index = 0; index <  particleCloud_.numberOfParticles(); ++index) {
-    if (particleCloud_.checkCoarseParticle(dimensionRatios[index])) {
+    if (particleCloud_.needSetFieldForCoarseParticle(index, false, dimensionRatios)) {
       force = vector::zero;
       calForceKernel(index, force);
 
@@ -160,6 +164,10 @@ void mixArchimedesIB::setMixForce(const std::vector<double>& dimensionRatios) co
       if (twoDimensional_) {
         Warning << "mixArchimedesIB model doesn't work for 2D right now!!\n" << endl;
       }
+      if (mag(force) > 0.0) {
+        Pout << "mixArchimedesIB_" << index << ": " << force[0] << ", " << force[1] << ", " << force[2] << endl;
+      }
+
       // write particle based data to global array
       forceSubM(0).partToArray(index, force, vector::zero);
     }  // End of check coarse particles

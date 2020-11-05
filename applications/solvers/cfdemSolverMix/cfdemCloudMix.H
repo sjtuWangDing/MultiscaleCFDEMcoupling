@@ -109,6 +109,21 @@ protected:
   // @note 用于计算 drag force for middle particle
   std::vector<std::vector<int> > affectedCellIDs;
 
+  // @brief 重构网格的颗粒直径因数
+  // @note 在颗粒 refineMeshSkin_ * diameter 中的网格设置 interFace 用于 refine mesh
+  double refineMeshSkin_;
+
+  // @brief 重构网格保留时间间隔(以流体时间步为单位)
+  // @note 如果设置为 100, 即重构网格会保留 100 个时间步，默认值为 0
+  double refineMeshKeepInterval_;
+
+  // @brief 重构网格保留时间步
+  // @note 如果某个网格 cellI 处，refineMeshKeepStep_[cellI] = 50，则表示 50 个时间步内保留该网格的 interface
+  // volScalarField refineMeshKeepStep_;
+
+  // @brief 是否首次设置 interFace
+  bool firstSetInterFace_;
+
 private:
 
   // Functions for debug
@@ -119,13 +134,11 @@ private:
 
 public:
 
-  // @brief Constructors
+  /*! \brief Constructors */
   cfdemCloudMix(const fvMesh& mesh);
 
-  // @brief Destructor
+  /*! \brief Destructor */
   ~cfdemCloudMix();
-
-  // Member Functions
 
   virtual void giveDEMdata();
 
@@ -133,56 +146,50 @@ public:
 
   virtual bool reAllocArrays() const;
 
-  // @brief force number of particles during reallocation
+  /*! \brief force number of particles during reallocation */
   virtual bool reAllocArrays(int nP, bool forceRealloc) const;
 
-  // @brief 强制重新分配内存
+  /*! \brief 强制重新分配内存 */
   void mixForceReAllocArrays();
 
   void mixResetFieldKernel();
 
   void mixCouplingKernel();
 
-  // @brief 更新函数
-  // @param alphaVoidfraction  <[in, out] 小颗粒空隙率场
-  // @param Us                 <[in, out] 局部平均小颗粒速度场
-  // @param U                  <[in] 流体速度场
-  // @note used for cfdemSolverPiso
+  /*!
+   * \brief 更新函数
+   * \note used for cfdemSolverPiso
+   * \param alphaVoidfraction  <[in, out] 小颗粒空隙率场
+   * \param Us                 <[in, out] 局部平均小颗粒速度场
+   * \param U                  <[in] 流体速度场
+   */
   virtual bool evolve(volScalarField& alphaVoidfraction,
                       volVectorField& Us,
                       volVectorField& U);
 
-  // @brief 更新函数
-  // @param alphaVoidfraction    <[in, out] 小颗粒空隙率场
-  // @param alphaVolumefraction  <[in, out] 大颗粒体积分数场
-  // @param Us                   <[in, out] 局部平均小颗粒速度场
-  // @param U                    <[in] 流体速度场
-  // @note used for cfdemSolverMix
+  /*!
+   * \brief 更新函数
+   * \note used for cfdemSolverIB
+   * \param alpha      <[in, out] 大颗粒体积分数场
+   * \param interFace  <[in, out] 界面场
+   */
+  bool evolve(volScalarField& alpha,
+              volScalarField& interFace);
+
+  /*!
+   * \brief 更新函数
+   * \note used for cfdemSolverMix
+   * \param alphaVoidfraction    <[in, out] 小颗粒空隙率场
+   * \param alphaVolumefraction  <[in, out] 大颗粒体积分数场
+   * \param Us                   <[in, out] 局部平均小颗粒速度场
+   * \param U                    <[in] 流体速度场
+   * \param interFace            <[in, out] 界面场
+   */
   bool evolve(volScalarField& alphaVoidfraction,
               volScalarField& alphaVolumefraction,
               volVectorField& Us,
               volVectorField& U,
               volScalarField& interFace);
-
-
-  // @brief 更新函数
-  // @param alpha      <[in, out] 大颗粒体积分数场
-  // @param interFace  <[in, out]
-  // @note used for cfdemSolverIB
-  bool evolve(volScalarField& alpha,
-              volScalarField& interFace);
-
-  // // @brief 更新函数
-  // // @param alphaVoidfraction    <[in, out] 小颗粒空隙率场
-  // // @param alphaVolumefraction  <[in, out] 大颗粒体积分数场
-  // // @param Us                   <[in, out] 局部平均小颗粒速度场
-  // // @param U                    <[in] 流体速度场
-  // // @param interFace            <[in, out] 界面场
-  // virtual bool evolve(volScalarField& alphaVoidfraction,
-  //                     volScalarField& alphaVolumefraction,
-  //                     volVectorField& Us,
-  //                     volVectorField& U,
-  //                     volScalarField& interFace);
 
   void calcVelocityCorrection(volScalarField& p,
                               volVectorField& U,
@@ -191,6 +198,20 @@ public:
 
   // @brief 设置 coarse particle 中的流体速度
   void setParticleVelocity(volVectorField& U);
+
+  void calcLmpf(const volVectorField& U,
+                const volScalarField& rhoField,
+                const volScalarField& volumefraction,
+                volVectorField& lmpf);
+
+  void calcPrevLmpf(const volScalarField& rhoField,
+                    const volScalarField& volumefraction,
+                    const volVectorField& lmpf,
+                    volVectorField& prevLmpf);
+
+  // @brief 确定颗粒周围细化网格的区域(每个方向的尺寸都是颗粒尺寸的两倍)
+  void setInterFace(volScalarField& interFace,
+                    volScalarField& refineMeshKeepStep);
 
   // @brief 确定颗粒周围细化网格的区域(每个方向的尺寸都是颗粒尺寸的两倍)
   void setInterFace(volScalarField& interFace);

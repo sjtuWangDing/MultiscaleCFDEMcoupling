@@ -246,6 +246,19 @@ Foam::cfdemCloud::cfdemCloud(const fvMesh& mesh):
   coarseParticleRatio_ = couplingProperties_.lookupOrDefault<double>("coarseParticleRatio", 0.33);
   usedForSolverIB_ = couplingProperties_.lookupOrDefault<Switch>("usedForSolverIB", false);
   usedForSolverPiso_ = couplingProperties_.lookupOrDefault<Switch>("usedForSolverPiso", false);
+  useDynamicRefineMesh_ = couplingProperties_.lookupOrDefault<Switch>("useDynamicRefineMesh", false);
+  // 读取 fixedParticle_ 与来流速度
+  fixedParticle_ = couplingProperties_.lookupOrDefault<bool>("fixedParticle", false);
+  U0_ = vector(couplingProperties_.lookupOrDefault<double>("U0x", 0.0),
+               couplingProperties_.lookupOrDefault<double>("U0y", 0.0),
+               couplingProperties_.lookupOrDefault<double>("U0z", 0.0));
+
+  if (fixedParticle_) {
+    Info << "Using fixed particle, reading U0_: " << U0_ << endl;
+    if (mag(U0_) < SMALL) {
+      FatalError << "mag(U0_) is zero" << abort(FatalError);
+    }
+  }
 #endif  // __MIXCLOUD__
 
   #include "versionInfo.H"
@@ -849,7 +862,7 @@ tmp<volScalarField> cfdemCloud::voidfractionNuEff(volScalarField& voidfraction) 
 #ifdef compre
 
   // 可压缩流
-  if (modelType_ == "B" || modelType_ == "Bfull") {
+  if (modelType_ == "B" || modelType_ == "Bfull" || modelType_ == "none") {
     return tmp<volScalarField>(
       new volScalarField("viscousTerm", (turbulence_.mut() + turbulence_.mu() + turbulenceMultiphase_)));
   } else if (modelType_ == "A") {  // 如果是 model A, 则需要乘以空隙率
@@ -857,13 +870,13 @@ tmp<volScalarField> cfdemCloud::voidfractionNuEff(volScalarField& voidfraction) 
       new volScalarField("viscousTerm",
                          voidfraction * (turbulence_.mut() + turbulence_.mu() + turbulenceMultiphase_)));
   } else {
-    FatalError << "cfdemCloud::voidfractionNuEff: Not implement for modelType = off" << abort(FatalError);
+    FatalError << "cfdemCloud::voidfractionNuEff(): no suitable model type specified:" << modelType_ << endl << abort(FatalError);
   }
 
 #else
 
   // 不可压缩流
-  if (modelType_ == "B" || modelType_ == "Bfull") {
+  if (modelType_ == "B" || modelType_ == "Bfull" || modelType_ == "none") {
     return tmp<volScalarField>(
       new volScalarField("viscousTerm", (turbulence_.nut() + turbulence_.nu() + turbulenceMultiphase_)));
   } else if (modelType_ == "A") {  // 如果是 model A, 则需要乘以空隙率
@@ -871,7 +884,7 @@ tmp<volScalarField> cfdemCloud::voidfractionNuEff(volScalarField& voidfraction) 
       new volScalarField("viscousTerm",
                          voidfraction * (turbulence_.nut() + turbulence_.nu() + turbulenceMultiphase_)));
   } else {
-    FatalError << "cfdemCloud::voidfractionNuEff: Not implement for modelType = off" << abort(FatalError);
+    FatalError << "cfdemCloud::voidfractionNuEff(): no suitable model type specified:" << modelType_ << endl << abort(FatalError);
   }
 
 #endif

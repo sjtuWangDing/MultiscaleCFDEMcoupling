@@ -103,6 +103,12 @@ void mixTwoWayMPI::giveData(word name,
 
 // @brief Allocate and destroy for 2-D array
 // @note DType = double
+void mixTwoWayMPI::destroy(double**& array) const {
+  if (array == NULL) { return; }
+  free(array);
+  array = NULL;
+}
+
 void mixTwoWayMPI::destroy(double**& array, int) const {
   if (array == NULL) { return; }
   free(array[0]);
@@ -135,6 +141,12 @@ void mixTwoWayMPI::allocateArray(double**& array,
 
 // @brief Allocate and destroy for 2-D array
 // @note DType = int
+void mixTwoWayMPI::destroy(int**& array) const {
+  if (array == NULL) { return; }
+  free(array);
+  array = NULL;
+}
+
 void mixTwoWayMPI::destroy(int**& array, int) const {
   if (array == NULL) { return; }
   free(array[0]);

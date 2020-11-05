@@ -109,7 +109,9 @@ tmp<volScalarField> mixImplicitCouple::impMomSource() const {
       } else {
         KslNext_[cellI] = 0;
       }
-      if (KslNext_[cellI] > KslLimit_) KslNext_[cellI] = KslLimit_;
+      if (KslNext_[cellI] > KslLimit_) {
+        KslNext_[cellI] = KslLimit_;
+      }
     }
   }  // End of first sub CFD time fraction in coupling step
 

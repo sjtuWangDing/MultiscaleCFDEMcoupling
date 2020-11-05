@@ -113,6 +113,10 @@ void mixArchimedes::calForceKernel(const int& index,
     // 计算 Archimedes force
     force = -g_.value() * forceSubM(0).rhoField()[cellI] * Vs;
     forceSubM(0).scaleForce(force, dReal);
+    // Pout << "-g_.value(): " << -g_.value() << endl;
+    // Pout << "dScale: " << dScale << endl;
+    // Pout << "Vs: " << Vs << endl;
+    // Pout << "forceSubM(0).rhoField()[" << cellI << "]: " << forceSubM(0).rhoField()[cellI] << endl;
   }
 }
 
@@ -128,12 +132,14 @@ void mixArchimedes::setForce() const {
     if (cellI >= 0) {
       calForceKernel(index, cellI, force);
 
+      Pout << "mixArchimedes force: " << force[0] << ", " << force[1] << ", " << force[2] << endl;
+
       // Set value fields and write the probe
       if (probeIt_) {
         #include "setupProbeModelfields.H"
         // Note: for other than ext one could use vValues.append(x) instead of setSize
-        vValues.setSize(vValues.size()+1, force);  // first entry must the be the force
-        sValues.setSize(sValues.size()+1, particleCloud_.particleVolume(index)); 
+        vValues.setSize(vValues.size() + 1, force);  // first entry must the be the force
+        sValues.setSize(sValues.size() + 1, particleCloud_.particleVolume(index)); 
         particleCloud_.probeM().writeProbe(index, sValues, vValues);
       }
     }  // End of cellI >= 0
@@ -157,12 +163,15 @@ void mixArchimedes::setMixForce(const std::vector<double>& dimensionRatios) cons
       label cellI = particleCloud_.cellIDs()[index][0];
       if (cellI >= 0) {
         calForceKernel(index, cellI, force);
+
+        Pout << "mixArchimedes force: " << force[0] << ", " << force[1] << ", " << force[2] << endl;
+
         // Set value fields and write the probe
         if (probeIt_) {
           #include "setupProbeModelfields.H"
           // Note: for other than ext one could use vValues.append(x) instead of setSize
-          vValues.setSize(vValues.size()+1, force);  // first entry must the be the force
-          sValues.setSize(sValues.size()+1, particleCloud_.particleVolume(index)); 
+          vValues.setSize(vValues.size() + 1, force);  // first entry must the be the force
+          sValues.setSize(sValues.size() + 1, particleCloud_.particleVolume(index)); 
           particleCloud_.probeM().writeProbe(index, sValues, vValues);
         }
       }  // End of cellI >= 0

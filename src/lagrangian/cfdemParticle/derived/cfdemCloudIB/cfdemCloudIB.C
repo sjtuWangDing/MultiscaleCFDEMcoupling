@@ -246,7 +246,7 @@ void Foam::cfdemCloudIB::setInterFace
     {
         vector ParPos(positions()[par][0],positions()[par][1],positions()[par][2]);
         const boundBox& globalBb = mesh().bounds();
-        double skin = 2.0;
+        double skin = 1.8;
         forAll(mesh_.C(),cellI)
         {
             vector posC = mesh_.C()[cellI];
@@ -279,25 +279,27 @@ void Foam::cfdemCloudIB::calcVelocityCorrection
     volScalarField& voidfraction
 )
 {
+    Info << "setParticleVelocity..." << endl;
     setParticleVelocity(U);
+    Info << "setParticleVelocity - done." << endl;
 
     // make field divergence free - set reference value in case it is needed
     fvScalarMatrix phiIBEqn
     (
         fvm::laplacian(phiIB) == fvc::div(U) + fvc::ddt(voidfraction)
     );
-    if(phiIB.needReference()) 
+    if(phiIB.needReference())
     {
-         phiIBEqn.setReference(pRefCell_, pRefValue_);
+        phiIBEqn.setReference(pRefCell_, pRefValue_);
     }
-    
+
     phiIBEqn.solve();
 
     U=U-fvc::grad(phiIB);
     U.correctBoundaryConditions();
 
     // correct the pressure as well
-    p=p+phiIB/U.mesh().time().deltaT();  // do we have to  account for rho here?
+    p=p+phiIB/U.mesh().time().deltaT();  // do we have to account for rho here?
     p.correctBoundaryConditions();
 
     if (couplingProperties_.found("checkinterface"))

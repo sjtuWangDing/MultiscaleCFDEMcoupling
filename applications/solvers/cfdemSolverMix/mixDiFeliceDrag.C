@@ -188,6 +188,9 @@ void mixDiFeliceDrag::setForce() const {
     cellI = particleCloud_.cellIDs()[index][0];
     if (cellI >= 0) {  // particle Found
       calForceKernel(index, cellI, nufField, rhoField, drag, Ufluid, dragCoefficient, voidfraction, Ur, Rep, Cd);
+
+      Pout << "mixDiFeliceDrag force: " << drag[0] << ", " << drag[1] << ", " << drag[2] << endl;
+
       // Set value fields and write the probe
       if (probeIt_) {
         #include "setupProbeModelfields.H"
@@ -239,6 +242,9 @@ void mixDiFeliceDrag::setMixForce(const std::vector<double>& dimensionRatios) co
       cellI = particleCloud_.cellIDs()[index][0];
       if (cellI >= 0) {  // particle Found
         calForceKernel(index, cellI, nufField, rhoField, drag, Ufluid, dragCoefficient, voidfraction, Ur, Rep, Cd);
+
+        Pout << "mixDiFeliceDrag force: " << drag[0] << ", " << drag[1] << ", " << drag[2] << endl;
+
         // Set value fields and write the probe
         if (probeIt_) {
           #include "setupProbeModelfields.H"

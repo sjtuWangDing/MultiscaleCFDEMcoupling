@@ -37,10 +37,23 @@ cfdemCloudMix::cfdemCloudMix(const fvMesh& mesh):
   pRefCell_(0),
   pRefValue_(0),
   haveEvolvedOnce_(false),
+  firstSetInterFace_(true),
   volumefractions_(NULL) {
 
   Info << "\nEnding of Constructing cfdemCloudMix Class Object......\n" << endl;
   Info << "\nEntry of cfdemCloudMix::cfdemCloudMix......\n" << endl;
+
+  refineMeshSkin_ = this->couplingProperties().lookupOrDefault<double>("refineMeshSkin", 1.8);
+  if (refineMeshSkin_ < 1.0) {
+    FatalError << "cfdemCloudMix::cfdemCloudMix(): refineMeshSkin should be >= 1.0 but get " << refineMeshSkin_
+      << abort(FatalError);
+  }
+
+  refineMeshKeepInterval_ = this->couplingProperties().lookupOrDefault<double>("refineMeshKeepInterval", 0.0);
+  if (refineMeshKeepInterval_ < 0.0) {
+    FatalError << "cfdemCloudMix::cfdemCloudMix(): refineMeshKeepInterval should be >= 0.0 but get " << refineMeshKeepInterval_
+      << abort(FatalError);
+  }
 
   if (usedForSolverPiso() == false) {
     pRefCell_ = readLabel(mesh.solutionDict().subDict("PISO").lookup("pRefCell"));
@@ -130,10 +143,10 @@ void cfdemCloudMix::doCoupleDebug() {
     int cfdStep = timeIndex - timeIndexOffset;             // 发生耦合的流体时间步数
     scalar couplingTime = dataExchangeM().couplingTime();  // 耦合时间步长
     int couplingStep = dataExchangeM().couplingStep();     // 耦合时间步数
-    Info << "\tcurrent cfdStep: " << cfdStep << endl;
-    Info << "\tcurrent couplingStep: " << couplingStep << endl;
-    Info << "\tcfdStep * CFDts: " << cfdStep * CFDts - SMALL << endl;
-    Info << "\tcouplingStep * couplingTime: " << couplingStep * couplingTime << endl;
+    Info << "current cfdStep: " << cfdStep << endl;
+    Info << "current couplingStep: " << couplingStep << endl;
+    Info << "cfdStep * CFDts: " << cfdStep * CFDts - SMALL << endl;
+    Info << "couplingStep * couplingTime: " << couplingStep * couplingTime << endl;
   }
 }
 
@@ -153,6 +166,8 @@ void cfdemCloudMix::mixForceReAllocArrays() {
                               voidFractionM().maxCellsNumPerMiddleParticle());
     size_t cWidth = voidFractionM().maxCellsNumPerCoarseParticle();
 
+    Pout << "reallocate arrays: " << cWidth << endl;
+
     dataExchangeM().allocateArray(voidfractions_, 1., fmWidth);
     dataExchangeM().allocateArray(particleWeights_, 0., fmWidth);
     dataExchangeM().allocateArray(particleVolumes_, 0., fmWidth);
@@ -161,24 +176,25 @@ void cfdemCloudMix::mixForceReAllocArrays() {
     // 首先将宽度设置为 1, 获取 double* 指针的内存, 同时释放 double 内存
     dataExchangeM().allocateArray(cellIDs_, 0., 1, numberOfParticles_);
     dataExchangeM().allocateArray(volumefractions_, 0., 1, numberOfParticles_);
+    dataExchangeM().destroy(cellIDs_[0]);
+    dataExchangeM().destroy(volumefractions_[0]);
+
     for (int i = 0; i < numberOfParticles_; ++i) {
-      dataExchangeM().destroy(cellIDs_[i]);
-      dataExchangeM().destroy(volumefractions_[i]);
-    }
-    for (int i = 0; i < numberOfParticles_; ++i) {
-      // 获取当前颗粒的尺度
-      double globalRatio = globalDimensionRatios_[i];
       double** temp_cellIDs = NULL;
       double** temp_volumefractions = NULL;
-      if (checkFAndMParticle(globalRatio)) {
-        dataExchangeM().allocateArray(temp_cellIDs, 0, fmWidth, 1);
-        dataExchangeM().allocateArray(temp_volumefractions, 0, 1, 1);
-      } else {
+      // 如果是 coarse 颗粒或者强制使用 refine mesh
+      if (needSetFieldForCoarseParticle(i, false, globalDimensionRatios_)) {
         dataExchangeM().allocateArray(temp_cellIDs, 0, cWidth, 1);
         dataExchangeM().allocateArray(temp_volumefractions, 0, cWidth, 1);
+      } else {
+        dataExchangeM().allocateArray(temp_cellIDs, 0, fmWidth, 1);
+        dataExchangeM().allocateArray(temp_volumefractions, 0, fmWidth, 1);
       }
+      // 保留 double 内存，释放 double* 内存
       cellIDs_[i] = temp_cellIDs[0];
       volumefractions_[i] = temp_volumefractions[0];
+      dataExchangeM().destroy(temp_cellIDs);
+      dataExchangeM().destroy(temp_volumefractions);
     }
   }
   arraysReallocated_ = true;
@@ -206,7 +222,7 @@ bool cfdemCloudMix::reAllocArrays() const {
       dataExchangeM().allocateArray(particleWeights_, 0., width);
       dataExchangeM().allocateArray(particleVolumes_, 0., width);
       arraysReallocated_ = true;
-    } else if (!usedForSolverPiso() && usedForSolverIB()) {
+    } else if (usedForSolverIB()) {
       dataExchangeM().allocateArray(cellIDs_, -1., voidFractionM().maxCellsPerParticle());
       dataExchangeM().allocateArray(voidfractions_, 1., voidFractionM().maxCellsPerParticle());
       dataExchangeM().allocateArray(particleWeights_, 0., voidFractionM().maxCellsPerParticle());
@@ -254,7 +270,7 @@ bool cfdemCloudMix::reAllocArrays(int nP, bool forceRealloc) const {
       dataExchangeM().allocateArray(particleWeights_, 0., width, nP);
       dataExchangeM().allocateArray(particleVolumes_, 0., width, nP);
       arraysReallocated_ = true;
-    } else if (!usedForSolverPiso() && usedForSolverIB()) {
+    } else if (usedForSolverIB()) {
       dataExchangeM().allocateArray(cellIDs_, -1., voidFractionM().maxCellsPerParticle(), nP);
       dataExchangeM().allocateArray(voidfractions_, 1., voidFractionM().maxCellsPerParticle(), nP);
       dataExchangeM().allocateArray(particleWeights_, 0., voidFractionM().maxCellsPerParticle(), nP);
@@ -333,6 +349,10 @@ void cfdemCloudMix::mixCouplingKernel() {
                                                                      sumCellsNumbers_,
                                                                      sumCellsVolumes_,
                                                                      cellIDs_vec);
+  // for (int i = 0; i < numberOfParticles_; ++i) {
+  //   Pout << "index " << i << " dimensionRatios: " << dimensionRatios_[i] << endl;
+  // }
+  // MPI_Barrier(MPI_COMM_WORLD);
   if (verbose_) { Info << "voidFractionModel::getDimensionRatios() - done\n" << endl; }
 
   // 根据颗粒尺度分配内存
@@ -351,6 +371,7 @@ void cfdemCloudMix::mixCouplingKernel() {
                                         particleVolumes_,
                                         particleV_,
                                         dimensionRatios_);
+  if (verbose_) Info << "cfdemCloudMix::voidFractionModelInit() - done" << endl;
   voidFractionM().setVoidFractionAndVolumeFraction(NULL,
                                                    volumefractions_,
                                                    voidfractions_,
@@ -416,7 +437,7 @@ bool cfdemCloudMix::evolve(volScalarField& alphaVoidfraction,
     doCoupleDebug();
     // 因为耦合时间步长 = 流体时间步长的整数倍，所以判断当前流体时间步是否同时也是耦合时间步
     if (dataExchangeM().doCoupleNow()) {
-      Info << "do coupling now...\n" << endl;
+      Info << "\ndo coupling now...\n" << endl;
 
       // 当 dataExchangeModel 为 twoWayMPI or mixTwoWayMPI 时, couple 函数从 DEM 求解器读取颗粒数量, 同时调用 reAllocArray 函数分配内存
       // 注意: 在 reAllocArrays 函数中针对所有尺度的颗粒分配内存
@@ -437,9 +458,9 @@ bool cfdemCloudMix::evolve(volScalarField& alphaVoidfraction,
       mixCouplingKernel();
       Info << "mixCouplingKernel - done\n" << endl;
 
-      if (verbose_) { Info << "cfdemCloudMix::setInterFace()..." << endl; }
-      setInterFace(interFace);
-      if (verbose_) { Info << "cfdemCloudMix::setInterFace() - done\n" << endl; }
+      // if (verbose_) { Info << "cfdemCloudMix::setInterFace()..." << endl; }
+      // setInterFace(interFace);
+      // if (verbose_) { Info << "cfdemCloudMix::setInterFace() - done\n" << endl; }
 
       Info << "Do coupling - done\n" << endl;
     }  // End of doCoupleNow
@@ -460,6 +481,7 @@ bool cfdemCloudMix::evolve(volScalarField& alphaVoidfraction,
       alphaVoidfraction.oldTime().correctBoundaryConditions();
     }
     alphaVoidfraction.correctBoundaryConditions();
+    alphaVolumefraction.correctBoundaryConditions();
 
     // calc ddt(voidfraction)
     calcDdtVoidfraction(alphaVoidfraction, Us);
@@ -499,6 +521,10 @@ bool cfdemCloudMix::evolve(volScalarField& alphaVoidfraction,
       // write DEM data
       if (verbose_) { Info << "cfdemCloudMix::giveDEMdata()..." << endl; }
       giveDEMdata();
+
+      // for (int i = 0; i < numberOfParticles_; ++i) {
+      //   Info << "DEMForces_" << i << ": " << DEMForces_[i][0] << ", " << DEMForces_[i][1] << ", " << DEMForces_[i][2] << endl;
+      // }
       if (verbose_) { Info << "cfdemCloudMix::giveDEMdata() - done\n" << endl; }
 
       dataExchangeM().couple(1);
@@ -709,7 +735,7 @@ void cfdemCloudMix::calcVelocityCorrection(volScalarField& p,
   if(phiIB.needReference()) {
     phiIBEqn.setReference(pRefCell_, pRefValue_);
   }
-  
+
   phiIBEqn.solve();
 
   U = U - fvc::grad(phiIB);
@@ -735,18 +761,9 @@ void cfdemCloudMix::setParticleVelocity(volVectorField& U) {
   vector angularVel(0, 0, 0);
 
   for (int index = 0; index < numberOfParticles(); index++) {
-
-    bool particleNeedSet = false;
-    if (usedForSolverIB()) {
-      particleNeedSet = true;
-    } else if (dimensionRatios_.empty() != false) {
-      particleNeedSet = checkCoarseParticle(dimensionRatios_[index]);
-    }
-
-    if (particleNeedSet) {
+    if (needSetFieldForCoarseParticle(index, usedForSolverIB(), dimensionRatios_)) {
       for (int subCell = 0; subCell < cellsPerParticle()[index][0]; ++subCell) {
         cellI = cellIDs()[index][subCell];
-
         if (cellI >= 0) {
           for (int i = 0;i < 3; i++) {
             relativeVec[i] = U.mesh().C()[cellI][i] - position(index)[i];
@@ -763,8 +780,10 @@ void cfdemCloudMix::setParticleVelocity(volVectorField& U) {
           // 设置网格速度
           if (usedForSolverIB()) {
             U[cellI] = (1 - voidfractions_[index][subCell]) * particleVel + voidfractions_[index][subCell] * U[cellI];
-          } else {
-            // ??????????????????????????????????????????
+            continue;
+          }
+          if (!usedForSolverPiso()) {
+            U[cellI] = (1 - volumefractions_[index][subCell]) * particleVel + volumefractions_[index][subCell] * U[cellI];
           }
         }  // End of cellI >= 0
       }  // End of loop subCells
@@ -773,31 +792,170 @@ void cfdemCloudMix::setParticleVelocity(volVectorField& U) {
   U.correctBoundaryConditions();
 }
 
-// @brief 确定颗粒周围细化网格的区域(每个方向的尺寸都是颗粒尺寸的两倍)
-void cfdemCloudMix::setInterFace(volScalarField& interFace) {
+void cfdemCloudMix::calcLmpf(const volVectorField& U,
+                             const volScalarField& rhoField,
+                             const volScalarField& volumefraction,
+                             volVectorField& lmpf) {
+  label cellI = 0;
+  vector particleVel(0, 0, 0);
+  vector relativeVec(0, 0, 0);
+  vector rotationVel(0, 0, 0);
+  vector angularVel(0, 0, 0);
+  vector updateVel(0, 0, 0);
 
-  interFace == dimensionedScalar("zero", interFace.dimensions(), 0.);
+  vector sumLmpf = vector::zero;
+  vector sumVelDiff = vector::zero;
+  lmpf == dimensionedVector("zero", lmpf.dimensions(), vector::zero);
 
-  const boundBox& globalBb = mesh().bounds();
+#if 1
+  volVectorField globalUpdateVel = U;
+  for (int index = 0; index < numberOfParticles(); index++) {
+    if (needSetFieldForCoarseParticle(index, usedForSolverIB(), dimensionRatios_)) {
+      for (int i = 0;i < 3; i++) {
+        relativeVec[i] = U.mesh().C()[cellI][i] - position(index)[i];
+      }
+      for (int i = 0; i < 3; i++) {
+        angularVel[i] = angularVelocities()[index][i];
+      }
+      // 计算转动速度
+      rotationVel = angularVel ^ relativeVec;
+      // 计算颗粒速度
+      for (int i = 0; i < 3; ++i) {
+        particleVel[i] = velocities()[index][i] + rotationVel[i];
+      }
+      for (int subCell = 0; subCell < cellsPerParticle()[index][0]; ++subCell) {
+        cellI = cellIDs()[index][subCell];
+        if (cellI >= 0) {
+          globalUpdateVel[cellI] *= volumefractions_[index][subCell];
+          globalUpdateVel[cellI] += (1 - volumefractions_[index][subCell]) * particleVel;
+        }  // End of cellI >= 0
+      }  // End of loop subCells
+    }  // End of particleNeedSet
+  }  // End of loop all particles
+#endif
 
   for (int index = 0; index < numberOfParticles(); index++) {
+    if (needSetFieldForCoarseParticle(index, usedForSolverIB(), dimensionRatios_)) {
+      for (int subCell = 0; subCell < cellsPerParticle()[index][0]; ++subCell) {
+        cellI = cellIDs()[index][subCell];
+        if (cellI >= 0) {
+          for (int i = 0;i < 3; i++) {
+            relativeVec[i] = U.mesh().C()[cellI][i] - position(index)[i];
+          }
+          for (int i = 0; i < 3; i++) {
+            angularVel[i] = angularVelocities()[index][i];
+          }
+          // 计算转动速度
+          rotationVel = angularVel ^ relativeVec;
+          // 计算颗粒速度
+          for (int i = 0; i < 3; ++i) {
+            particleVel[i] = velocities()[index][i] + rotationVel[i];
+          }
+          if (!usedForSolverIB() && !usedForSolverPiso()) {
+#if 1
+#if 1
+          // 获取相邻网格的所有 neighbour cell
+          vector updateVel = vector::zero;
+          vector neighUpdateVel = vector::zero;
+          const labelList& neighList = U.mesh().cellCells()[cellI];
+          int neighbourNum = 0;
+          forAll (neighList, i) {
+            label neighbourCellI = neighList[i];
+            if (neighbourCellI < 0) { continue; }
+            neighbourNum += 1;
+            neighUpdateVel += globalUpdateVel[neighbourCellI];
+          }  // End of neighbour loop
 
-    bool particleNeedSet = false;
+          if (neighbourNum > 0) {
+            updateVel = 0.5 * globalUpdateVel[cellI] + 1.0 / (2.0 * neighbourNum) * neighUpdateVel;
+          } else {
+            updateVel = globalUpdateVel[cellI];
+          }
+#else
+            // 获取相邻网格的所有 neighbour cell
+            double neighWeight = 0.0;
+            vector neighUpdateVel = vector::zero;
+            const labelList& neighList = U.mesh().cellCells()[cellI];
+            forAll (neighList, i) {
+              label neighbourCellI = neighList[i];
+              if (neighbourCellI < 0) { continue; }
+              neighWeight += 1.0;
+              neighUpdateVel += globalUpdateVel[neighbourCellI];
+            }  // End of neighbour loop
+            vector updateVel = (neighUpdateVel + globalUpdateVel[cellI]) / (1.0 + neighWeight);
+#endif
+            // 计算 lmpf
+            lmpf[cellI] = (updateVel - U[cellI]) / (U.mesh().time().deltaT().value());
+            sumLmpf += lmpf[cellI] * rhoField[cellI] * U.mesh().V()[cellI];
+            sumVelDiff += updateVel - U[cellI];
+#else
+            // 计算网格速度
+            vector updateVel = (1 - volumefractions_[index][subCell]) * particleVel + volumefractions_[index][subCell] * U[cellI];
+            // vector updateVel = particleVel;
+            // 计算 lmpf
+            lmpf[cellI] = (updateVel - U[cellI]) / (U.mesh().time().deltaT().value());
+            sumLmpf += lmpf[cellI] * rhoField[cellI] * U.mesh().V()[cellI];
+            sumVelDiff += updateVel - U[cellI];
+#endif
+          }
+        }  // End of cellI >= 0
+      }  // End of loop subCells
+    }  // End of particleNeedSet
+  }  // End of loop all particles
 
-    if (usedForSolverIB()) {
-      particleNeedSet = true;
-    } else if (dimensionRatios_.empty() != false) {
-      particleNeedSet = checkCoarseParticle(dimensionRatios_[index]);
-    }
+  if (mag(sumVelDiff) > 0.0) {
+    Pout << "sumVelDiff: " << sumVelDiff << endl;
+  }
+  MPI_Barrier(MPI_COMM_WORLD);
 
-    if (particleNeedSet) {
+  if (mag(sumLmpf) > 0.0) {
+    Pout << "sumLmpf: " << sumLmpf << endl;
+  }
+  MPI_Barrier(MPI_COMM_WORLD);
+}
+
+void cfdemCloudMix::calcPrevLmpf(const volScalarField& rhoField,
+                                 const volScalarField& volumefraction,
+                                 const volVectorField& lmpf,
+                                 volVectorField& prevLmpf) {
+  prevLmpf = lmpf * (1 - volumefraction);
+  vector sumPrevLmpf = vector::zero;
+  for (int index = 0; index < numberOfParticles(); index++) {
+    if (needSetFieldForCoarseParticle(index, usedForSolverIB(), dimensionRatios_)) {
+      for (int subCell = 0; subCell < cellsPerParticle()[index][0]; ++subCell) {
+        label cellI = cellIDs()[index][subCell];
+        if (cellI >= 0) {
+          sumPrevLmpf += prevLmpf[cellI] * mesh().V()[cellI] * rhoField[cellI];
+        }  // End of cellI >= 0
+      }  // End of loop subCells
+    }  // End of particleNeedSet
+  }  // End of loop all particles
+  if (mag(sumPrevLmpf) > 0.0) {
+    Pout << "sumPrevLmpf: " << sumPrevLmpf << endl;
+  }
+  MPI_Barrier(MPI_COMM_WORLD);
+}
+
+// @brief 确定颗粒周围细化网格的区域(每个方向的尺寸都是颗粒尺寸的两倍)
+void cfdemCloudMix::setInterFace(volScalarField& interFace,
+                                 volScalarField& refineMeshKeepStep) {
+
+  if (firstSetInterFace_) {
+    interFace == dimensionedScalar("zero", interFace.dimensions(), 0.0);
+    refineMeshKeepStep == dimensionedScalar("zero", refineMeshKeepStep.dimensions(), 0.0);
+    firstSetInterFace_ = false;
+  }
+  volScalarField cellFirstEntry = interFace;
+  cellFirstEntry == dimensionedScalar("zero", cellFirstEntry.dimensions(), 0.0);
+
+  const boundBox& globalBb = mesh().bounds();
+  for (int index = 0; index < numberOfParticles(); index++) {
+    if (needSetFieldForCoarseParticle(index, usedForSolverIB(), dimensionRatios_)) {
       vector particlePos = position(index);
-      double skin = 2.0;
       // 遍历当前处理器上的所有网格
       forAll (mesh_.C(), cellI) {
         vector cellPos = mesh_.C()[cellI];
         if (checkPeriodicCells_) {
-
           // Some cells may be located on the other side of a periodic boundary.
           // In this case, the particle center has to be mirrored in order to correctly
           // evaluate the interpolation points.
@@ -810,7 +968,84 @@ void cfdemCloudMix::setInterFace(volScalarField& interFace) {
                                               wall_periodicityCheckRange());
           particlePos = minPeriodicParticlePos;
         }
-        double value = voidFractionM().pointInParticle(index, particlePos, cellPos, skin);
+        double value = voidFractionM().pointInParticle(index, particlePos, cellPos, refineMeshSkin_);
+        if (fixedParticle()) {
+          interFace[cellI] = 0.0;
+          // 来流速度
+          const vector flowVel = U0();
+          // 来流方向
+          const vector unitFlowDirection = flowVel / mag(flowVel);
+          // 相对位置矢量
+          const vector relativeVec = particlePos - cellPos;
+          if ((relativeVec & unitFlowDirection) >= 0.0) {
+            if (value <= 0.0) {  // cellI 位于颗粒中
+              // 设置 interFace
+              interFace[cellI] = value + 1.0;
+            }
+          } else {
+            // 计算 cellPos 点到直线(过 particlePos 点方向为来流方向)的垂直距离
+            double verticalDistance = mag(unitFlowDirection ^ relativeVec) / mag(unitFlowDirection);
+            // 计算垂直点坐标
+            vector verticalPos = particlePos + sqrt(mag(relativeVec) * mag(relativeVec) - verticalDistance * verticalDistance) * unitFlowDirection;
+            if (mag(verticalPos - particlePos) <= 12.0 * radius(index)) {
+              double value_1 = voidFractionM().pointInParticle(index, verticalPos, cellPos, refineMeshSkin_);
+              if (value_1 <= 0.0) {
+                interFace[cellI] = value_1 + 1.0;
+              }
+            }
+          }
+        } else {
+          if (value <= 0.0) {  // cellI 位于颗粒中
+            // 设置 interFace
+            interFace[cellI] = value + 1.0;
+            // 设置 refineMeshKeepStep
+            refineMeshKeepStep[cellI] = refineMeshKeepInterval_;
+            // 设置 cellFirstEntry 为 1
+            cellFirstEntry[cellI] = 1.0;
+          } else {
+            if (cellFirstEntry[cellI] > 0.0) {  // 如果 cellFirstEntry > 0.0 则跳过该 cellI
+              continue;
+            }
+            if (refineMeshKeepStep[cellI] > 1.0) {
+              // cellI 不在颗粒中，但是 refineMeshKeepStep[cellI] > 1.0，则保持 interFace 值
+              refineMeshKeepStep[cellI] -= 1.0;
+            } else {
+              // 否则设置 interFace 为 0.0;
+              interFace[cellI] = 0.0;
+            }
+          }
+        }
+      }  // End of loop all cells
+    }  // End of particleNeedSet
+  }  // End of loop all particles
+}
+
+// @brief 确定颗粒周围细化网格的区域(每个方向的尺寸都是颗粒尺寸的两倍)
+void cfdemCloudMix::setInterFace(volScalarField& interFace) {
+
+  interFace == dimensionedScalar("zero", interFace.dimensions(), 0.);
+
+  const boundBox& globalBb = mesh().bounds();
+  for (int index = 0; index < numberOfParticles(); index++) {
+    if (needSetFieldForCoarseParticle(index, usedForSolverIB(), dimensionRatios_)) {
+      vector particlePos = position(index);
+      // 遍历当前处理器上的所有网格
+      forAll (mesh_.C(), cellI) {
+        vector cellPos = mesh_.C()[cellI];
+        if (checkPeriodicCells_) {
+          // Some cells may be located on the other side of a periodic boundary.
+          // In this case, the particle center has to be mirrored in order to correctly
+          // evaluate the interpolation points.
+          vector minPeriodicParticlePos = particlePos;
+          voidFractionM().minPeriodicDistance(index,
+                                              cellPos,
+                                              particlePos,
+                                              globalBb,
+                                              minPeriodicParticlePos,
+                                              wall_periodicityCheckRange());
+          particlePos = minPeriodicParticlePos;
+        }
+        double value = voidFractionM().pointInParticle(index, particlePos, cellPos, refineMeshSkin_);
         if (value <= 0.0) {
           interFace[cellI] = value + 1.0;
         }
@@ -898,6 +1133,10 @@ bool cfdemCloudMix::evolve(volScalarField& alpha,
       }
       // write DEM data
       giveDEMdata();
+
+      for (int i = 0; i < numberOfParticles_; ++i) {
+        Info << "DEMForces_" << i << ": " << DEMForces_[i][0] << ", " << DEMForces_[i][1] << ", " << DEMForces_[i][2] << endl;
+      }
 
       dataExchangeM().couple(1);
       haveEvolvedOnce_ = true;

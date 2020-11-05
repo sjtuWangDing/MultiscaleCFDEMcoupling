@@ -37,7 +37,7 @@ Contributions
 \*---------------------------------------------------------------------------*/
 
 #ifndef __mix_debug__
-#define __mix_debug__ 1
+#define __mix_debug__ 0
 #endif
 
 #include "fvCFD.H"
@@ -118,7 +118,9 @@ int main(int argc, char *argv[])
         Info<< "Time = " << runTime.timeName() << nl << endl;
 
         //=== dyM ===================
-        interFace = mag(mesh.lookupObject<volScalarField>("voidfractionNext"));
+        // interFace = mag(mesh.lookupObject<volScalarField>("voidfractionNext"));
+        particleCloud.setInterFace(interFace);
+        interFace.correctBoundaryConditions();
         particleCloud.setMeshHasUpdatedFlag(mesh.update()); //dyM
 
         #if defined(version30)

@@ -1,0 +1,150 @@
+/*---------------------------------------------------------------------------*\
+| =========                 |                                                 |
+| \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox           |
+|  \\    /   O peration     | Version:  1.4                                   |
+|   \\  /    A nd           | Web:      http://www.openfoam.org               |
+|    \\/     M anipulation  |                                                 |
+\*---------------------------------------------------------------------------*/
+
+
+FoamFile
+{
+    version         2.0;
+    format          ascii;
+
+    root            "";
+    case            "";
+    instance        "";
+    local           "";
+
+    class           dictionary;
+    object          couplingProperties;
+}
+
+// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
+
+//===========================================================================//
+// sub-models & settings
+
+usedForSolverPiso false;
+
+usedForSolverIB true;
+
+modelType none;
+
+couplingInterval 5;
+
+depth 0;
+
+voidFractionModel IB;             // divided // centre // bigParticle
+
+locateModel engineIB;              // standard
+
+meshMotionModel noMeshMotion;
+
+dataExchangeModel twoWayMPI;    // M2M // twoWayMPI // mixTwoWayMPI
+
+IOModel basicIO;
+
+probeModel off;
+
+averagingModel dense;            // dense // dilute
+
+clockModel off;
+
+smoothingModel off;
+
+forceModels
+(
+    ArchimedesIB
+    ShirgaonkarIB
+    // mixArchimedesIB
+    // mixShirgaonkarIB
+);
+
+momCoupleModels
+(
+);
+
+//turbulenceModelType RASProperties;//LESProperties; //OFversion24x
+turbulenceModelType turbulenceProperties; //OFversion30x
+
+//===========================================================================//
+// sub-model properties
+
+ArchimedesIBProps
+{
+    gravityFieldName "g";
+    voidfractionFieldName "voidfractionNext";
+}
+
+ShirgaonkarIBProps
+{
+    velFieldName "U";
+    pressureFieldName "p";
+}
+
+mixArchimedesIBProps
+{
+    gravityFieldName "g";
+    voidfractionFieldName "voidfractionNext";
+    volumefractionFieldName "volumefractionNext";
+}
+
+mixShirgaonkarIBProps
+{
+    velFieldName "U";
+    pressureFieldName "p";
+}
+
+twoWayFilesProps
+{
+    maxNumberOfParticles 10000;
+    DEMts 0.00003;
+}
+
+"(mixTwoWayMPIProps|twoWayMPIProps)"
+{
+    maxNumberOfParticles 10100;
+    liggghtsPath "../DEM/in.liggghts_run";
+}
+
+IBProps
+{
+    maxCellsPerParticle 100000;
+    alphaMin 0.01;
+    scaleUpVol 1.0;
+}
+
+mixProps
+{
+    alphaMin 0.3;
+    scaleUpVol 1.0;
+}
+
+bigParticleProps
+{
+    maxCellsPerParticle 1000;
+    alphaMin 0.30;
+    scaleUpVol 1.0;
+}
+
+centreProps
+{
+    alphaMin 0.30;
+}
+
+dividedProps
+{
+    alphaMin 0.05;
+    scaleUpVol 1.2;
+}
+
+engineIBProps
+{
+    treeSearch false;
+    zSplit 8;
+    xySplit 16;
+}
+
+// ************************************************************************* //

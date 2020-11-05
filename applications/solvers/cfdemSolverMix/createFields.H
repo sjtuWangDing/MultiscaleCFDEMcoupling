@@ -35,10 +35,11 @@ volVectorField Us
     "Us",
     runTime.timeName(),
     mesh,
-    IOobject::MUST_READ,
+    IOobject::READ_IF_PRESENT,
     IOobject::AUTO_WRITE
   ),
-  mesh
+  mesh,
+  dimensionedVector("zero", dimensionSet(0, 1, -1, 0, 0), vector(0, 0, 0))
 );
 
 Info << "\nReading momentum exchange field Ksl\n" << endl;
@@ -49,10 +50,11 @@ volScalarField Ksl
     "Ksl",
     runTime.timeName(),
     mesh,
-    IOobject::MUST_READ,
+    IOobject::READ_IF_PRESENT,
     IOobject::AUTO_WRITE
   ),
-  mesh
+  mesh,
+  dimensionedScalar("zero", dimensionSet(1, -3, -1, 0, 0), 0)
 );
 
 Info << "\nReading voidfraction field voidfraction = (Vgas/Vparticle)\n" << endl;
@@ -63,10 +65,11 @@ volScalarField voidfraction
     "voidfraction",
     runTime.timeName(),
     mesh,
-    IOobject::MUST_READ,
+    IOobject::READ_IF_PRESENT,
     IOobject::AUTO_WRITE
   ),
-  mesh
+  mesh,
+  dimensionedScalar("zero", dimensionSet(0, 0, 0, 0, 0), 1)
 );
 
 Info << "\nReading volumefraction field volumefraction = (Vgas/Vparticle)\n" << endl;
@@ -139,6 +142,21 @@ autoPtr<incompressible::turbulenceModel> turbulence(
   incompressible::turbulenceModel::New(U, phi, laminarTransport)
 );
 
+Info << "Reading field phiIB\n" << endl;
+volScalarField phiIB
+(
+  IOobject
+  (
+    "phiIB",
+    runTime.timeName(),
+    mesh,
+    IOobject::READ_IF_PRESENT,
+    IOobject::AUTO_WRITE
+  ),
+  mesh,
+  dimensionedScalar("zero", dimensionSet(0, 2, -1, 0, 0), 0.0)
+);
+
 Info << "Reading field interFace\n" << endl;
 volScalarField interFace
 (
@@ -152,4 +170,49 @@ volScalarField interFace
   ),
   mesh,
   dimensionedScalar("0", dimensionSet(0, 0, 0, 0, 0), 0.0)
+);
+
+Info << "Reading field refineMeshKeepStep\n" << endl;
+volScalarField refineMeshKeepStep
+(
+  IOobject
+  (
+    "refineMeshKeepStep",
+    runTime.timeName(),
+    mesh,
+    IOobject::READ_IF_PRESENT,
+    IOobject::AUTO_WRITE
+  ),
+  mesh,
+  dimensionedScalar("0", dimensionSet(0, 0, 0, 0, 0), 0.0)
+);
+
+Info << "Reading lagrangeMultiplierForce field\n" << endl;
+volVectorField lmpf
+(
+  IOobject
+  (
+    "lmpf",
+    runTime.timeName(),
+    mesh,
+    IOobject::NO_READ,
+    IOobject::AUTO_WRITE
+  ),
+  mesh,
+  dimensionedVector("zero", dimensionSet(0, 1, -2, 0, 0), vector(0, 0, 0))
+);
+
+Info << "Reading prevLagrangeMultiplierForce field\n" << endl;
+volVectorField prevLmpf
+(
+  IOobject
+  (
+    "prevLmpf",
+    runTime.timeName(),
+    mesh,
+    IOobject::NO_READ,
+    IOobject::AUTO_WRITE
+  ),
+  mesh,
+  dimensionedVector("zero", dimensionSet(0, 1, -2, 0, 0), vector(0, 0, 0))
 );
