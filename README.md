@@ -11,3 +11,7 @@ This code provides new solvers for multiscale model to realize coupled CFD-DEM s
 ## List of new solvers
 
 - cfdemSolverMix
+
+## What's New
+
+- [1.0.0 Release](https://github.com/sjtuWangDing/MultiscaleCFDEMcoupling/releases/tag/v1.0.0) - MultiscaleCFDEMcoupling 1.0.0 Release (first release)
