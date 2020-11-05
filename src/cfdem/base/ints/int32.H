@@ -27,8 +27,8 @@ namespace base {
 using Foam::Istream;
 using Foam::Ostream;
 
-//! @brief toString() and IOstream operators
-inline std::string toString(const int32_t val);
+// toString() and IOstream operators
+std::string toString(const int32_t val);
 
 int32_t readInt32(Istream& is);
 

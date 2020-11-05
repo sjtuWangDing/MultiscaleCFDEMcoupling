@@ -76,8 +76,10 @@ public:
   virtual ~cfdemCloud();
 
   // interface
-  inline const IOdictionary& couplingPropertiesDict() { return couplingPropertiesDict_; }
-  inline const IOdictionary& liggghtsCommandsDict() { return liggghtsCommandsDict_; }
+  inline const fvMesh& mesh() const { return mesh_; }
+  inline const IOdictionary& couplingPropertiesDict() const { return couplingPropertiesDict_; }
+  inline const IOdictionary& liggghtsCommandsDict() const { return liggghtsCommandsDict_; }
+  inline const CouplingProperties& cProps() const { return cProps_; }
 
 protected:
   const fvMesh& mesh_;

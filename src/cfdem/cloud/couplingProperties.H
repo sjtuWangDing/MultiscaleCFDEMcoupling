@@ -54,10 +54,19 @@ public:
   // interfaces - getter
   inline bool verbose() const { return verbose_; }
   inline const word& modelType() const { return modelType_; }
-  inline const wordList& forceModels() const { return forceModels_; }
-  inline const wordList& momCoupleModels() const { return momCoupleModels_; }
-  inline const wordList& liggghtsCommandModels() const { return liggghtsCommandModels_; }
+  inline const wordList& forceModelList() const { return forceModelList_; }
+  inline const wordList& momCoupleModelList() const { return momCoupleModelList_; }
+  inline const wordList& liggghtsCommandModelList() const { return liggghtsCommandModelList_; }
   inline const word& turbulenceModelType() const { return turbulenceModelType_; }
+  inline const word& useDDTvoidfraction() const { return useDDTvoidfraction_; }
+  inline scalar impExpSplitFactor() const { return impExpSplitFactor_; }
+  inline bool solveFlow() const { return solveFlow_; }
+  inline bool treatVoidCellsAsExplicitForce() const { return treatVoidCellsAsExplicitForce_; }
+  inline bool debug() const { return debug_; }
+  inline bool ignore() const { return ignore_; }
+  inline bool allowAdjustTimeStep() const { return allowAdjustTimeStep_; }
+  inline bool allowCFDsubTimeStep() const { return allowCFDsubTimeStep_; }
+  inline label couplingInterval() const { return couplingInterval_; }
 
 protected:
   const fvMesh& mesh_;
@@ -74,22 +83,25 @@ protected:
   const word modelType_;
 
   //! @brief dict 中指定的所有 force model 的名称
-  const wordList forceModels_;
+  const wordList forceModelList_;
 
   //! @brief dict 中指定的所有 mom couple model 的名称
-  const wordList momCoupleModels_;
+  const wordList momCoupleModelList_;
 
   //! @brief dict 中指定的所有 liggghts command model 的名称
-  const wordList liggghtsCommandModels_;
+  const wordList liggghtsCommandModelList_;
 
   //! @brief dict 中指定的湍流模型的名称
   const word turbulenceModelType_;
+
+  //! @brief Choose "a" or "b" or "off"
+  const word useDDTvoidfraction_;
 
   //! @brief 显式、隐式分裂系数
   scalar impExpSplitFactor_;
 
   //! @brief 是否需要求解流体
-  Switch solveFlow_;
+  bool solveFlow_;
 
   //! @brief Treat the coupling force in cells with no Us data explicitly.
   bool treatVoidCellsAsExplicitForce_;
@@ -100,7 +112,10 @@ protected:
 
   bool allowAdjustTimeStep_;
 
-  word useDDtVoidfraction_;
+  bool allowCFDsubTimeStep_;
+
+  //! @brief 耦合间隔，单位：DEM 时间步，couplingInterval_ * DEMts_ 就是耦合间隔的秒数
+  label couplingInterval_;
 
 #if __MIXCLOUD__
 
@@ -111,7 +126,7 @@ public:
 
   static double coarseParticleRatio_;
 
-protected:
+private:
 
   //! @brief 是否用于求解器 cfdemSolverIB
   bool usedForSolverIB_;

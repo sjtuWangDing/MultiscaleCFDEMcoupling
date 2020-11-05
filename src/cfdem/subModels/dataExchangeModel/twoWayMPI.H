@@ -51,6 +51,7 @@ public:
 
   //! @brief Destructor
   ~twoWayMPI();
+
 };
 
 } // namespace Foam

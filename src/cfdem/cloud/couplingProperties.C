@@ -45,16 +45,22 @@ CouplingProperties::CouplingProperties(const fvMesh& mesh,
   mesh_(mesh),
   couplingPropertiesDict_(couplingPropertiesDict),
   liggghtsCommandsDict_(liggghtsCommandsDict),
-  modelType_(couplingPropertiesDict.lookup("modelType")),
-  forceModels_(couplingPropertiesDict.lookup("forceModels")),
-  momCoupleModels_(couplingPropertiesDict.lookup("momCoupleModels")),
-  liggghtsCommandModels_(couplingPropertiesDict.lookup("liggghtsCommandModels")),
-  turbulenceModelType_(couplingPropertiesDict.lookup("turbulenceModelType")),
+  verbose_(couplingPropertiesDict.lookupOrDefault<Switch>("verbose", false)),
+  modelType_(couplingPropertiesDict.lookupOrDefault<word>("modelType", "none")),
+  forceModelList_(couplingPropertiesDict.lookup("forceModels")),
+  momCoupleModelList_(couplingPropertiesDict.lookup("momCoupleModels")),
+  liggghtsCommandModelList_(couplingPropertiesDict.lookup("liggghtsCommandModels")),
+  turbulenceModelType_(couplingPropertiesDict.lookupOrDefault<word>("turbulenceModelType", "none")),
+  useDDTvoidfraction_(couplingPropertiesDict.lookupOrDefault<word>("useDDTvoidfraction", "off")),
+  impExpSplitFactor_(1.0),
+  solveFlow_(couplingPropertiesDict.lookupOrDefault<Switch>("solveFlow", true)),
+  treatVoidCellsAsExplicitForce_(
+    couplingPropertiesDict.lookupOrDefault<Switch>("treatVoidCellsAsExplicitForce", false)),
   debug_(couplingPropertiesDict.lookupOrDefault<Switch>("debug", false)),
   ignore_(couplingPropertiesDict.lookupOrDefault<Switch>("ignore", false)),
-  solveFlow_(couplingPropertiesDict.lookupOrDefault<Switch>("solveFlow", true)),
   allowAdjustTimeStep_(couplingPropertiesDict.lookupOrDefault<Switch>("allowAdjustTimeStep", false)),
-  verbose_(couplingPropertiesDict.lookupOrDefault<Switch>("verbose", false)) {
+  allowCFDsubTimeStep_(couplingPropertiesDict.lookupOrDefault<Switch>("allowCFDsubTimeStep", true)),
+  couplingInterval_(couplingPropertiesDict.lookupOrDefault<label>("couplingInterval", 0)) {
 
   Info << "CFDEM coupling version: " << CFDEM_VERSION <<  endl;
   Info << "LIGGGHTS version: " << LIGGGHTS_VERSION <<  endl;
