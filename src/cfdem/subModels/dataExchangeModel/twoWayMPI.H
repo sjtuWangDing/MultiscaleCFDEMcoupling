@@ -37,6 +37,14 @@ Class
 
 #include "dataExchangeModel.H"
 
+#include <lammps.h> // LAMMPS include files
+#include <input.h>
+#include <atom.h>
+#include <library.h>
+#include <error.h>
+#include <library_cfd_coupling.h>
+#include <update.h>
+
 namespace Foam {
 
 class twoWayMPI: public dataExchangeModel {
@@ -51,6 +59,47 @@ public:
 
   //! @brief Destructor
   ~twoWayMPI();
+
+public:
+
+  bool couple();
+
+  //! @brief Allocate and destroy for 2-D double array
+  void destroy(double**& array);
+  void destroy(double**& array, int);
+  void allocateArray(double**& array, double initVal, int width, int length);
+  void allocateArray(double**& array, double initVal, int width, const char* length = "nparticles");
+
+  //! @brief Allocate and destroy for 2-D int array
+  void destroy(int**& array);
+  void destroy(int**& array, int);
+  void allocateArray(int**& array, int initVal, int width, int length);
+  void allocateArray(int**& array, int initVal, int width, const char* length  = "nparticles");
+
+  //! @brief Allocate and destroy for 1-D double array
+  void destroy(double*& array);
+  void allocateArray(double*& array, double initVal, int length);
+
+  //! @brief Allocate and destroy for 1-D int array
+  void destroy(int*& array);
+  void allocateArray(int*& array, int initVal, int length);
+
+  void getData(const std::string& dataName,
+               const std::string& dataType,
+               double** const& field,
+               label step);
+  void getData(const std::string& dataName,
+               const std::string& dataType,
+               int** const& field,
+               label step);
+  void giveData(const std::string& dataName,
+                const std::string& dataType,
+                double** const& field,
+                const char* fieldType = "double");
+
+private:
+
+  LAMMPS_NS::LAMMPS* lmp_;
 
 };
 

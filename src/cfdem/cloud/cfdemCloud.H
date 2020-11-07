@@ -35,6 +35,8 @@ Class
 #define __CFDEM_CLOUD_H__
 
 #include <vector>
+#include <memory>
+
 #include "OFversion.H" // choose version
 #include "fvCFD.H"
 #include "IFstream.H"
@@ -45,8 +47,9 @@ Class
   #include "RASModel.H"
 #endif
 
-#include "couplingProperties.H"
-#include "particleCloud.H"
+#include "tools/runTimeSelectionTables.H"
+#include "cloud/couplingProperties.H"
+#include "cloud/particleCloud.H"
 
 namespace Foam {
 
@@ -75,13 +78,35 @@ public:
   //! @brief Destructor
   virtual ~cfdemCloud();
 
-  // interface
+  // interface of cfdemCloud
   inline const fvMesh& mesh() const { return mesh_; }
   inline const IOdictionary& couplingPropertiesDict() const { return couplingPropertiesDict_; }
   inline const IOdictionary& liggghtsCommandsDict() const { return liggghtsCommandsDict_; }
   inline const CouplingProperties& cProps() const { return cProps_; }
 
+  inline const std::vector<std::shared_ptr<liggghtsCommandModel> >& liggghtsCommandModel() const {
+    return liggghtsCommandModel_;
+  }
+
+  // interface of CouplingProperties
+  inline bool verbose() const { return cProps_.verbose(); }
+  inline const word& modelType() const { return cProps_.modelType(); }
+  inline const wordList& forceModelList() const { return cProps_.forceModelList(); }
+  inline const wordList& momCoupleModelList() const { return cProps_.momCoupleModelList(); }
+  inline const wordList& liggghtsCommandModelList() const { return cProps_.liggghtsCommandModelList(); }
+  inline const word& turbulenceModelType() const { return cProps_.turbulenceModelType(); }
+  inline const word& useDDTvoidfraction() const { return cProps_.useDDTvoidfraction(); }
+  inline scalar impExpSplitFactor() const { return cProps_.impExpSplitFactor(); }
+  inline bool solveFlow() const { return cProps_.solveFlow(); }
+  inline bool treatVoidCellsAsExplicitForce() const { return cProps_.treatVoidCellsAsExplicitForce(); }
+  inline bool debug() const { return cProps_.debug(); }
+  inline bool ignore() const { return cProps_.ignore(); }
+  inline bool allowAdjustTimeStep() const { return cProps_.allowAdjustTimeStep(); }
+  inline bool allowCFDsubTimeStep() const { return cProps_.allowCFDsubTimeStep(); }
+  inline label couplingInterval() const { return cProps_.couplingInterval(); }
+
 protected:
+
   const fvMesh& mesh_;
 
   //! @note 在当前类中一定要最先声明 couplingPropertiesDict_ 和 liggghtsCommandsDict_
@@ -93,11 +118,17 @@ protected:
 
   ParticleCloud pCloud_;
 
+  //! @note forceModel, liggghtsCommandModel, momCoupleModel
+  std::vector<std::shared_ptr<liggghtsCommandModel> > liggghtsCommandModel_;
+
+
+
+
   autoPtr<forceModel>* forceModel_;
 
-  autoPtr<locateModel> locateModel_;
+  autoPtr<momCoupleModel>* momCoupleModel_;
 
-  autoPtr<momCoupleModel> momCoupleModel_;
+  autoPtr<locateModel> locateModel_;
 
   autoPtr<dataExchangeModel> dataExchangeModel_;
 
@@ -116,8 +147,6 @@ protected:
   autoPtr<smoothingModel> smoothingModel_;
 
   autoPtr<meshMotionModel> meshMotionModel_;
-
-  autoPtr<liggghtsCommandModel> liggghtsCommand_;
 
   bool writeTimePassed_;
 

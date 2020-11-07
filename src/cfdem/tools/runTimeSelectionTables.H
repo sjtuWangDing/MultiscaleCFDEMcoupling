@@ -28,10 +28,6 @@ License
 #ifndef __RUN_TIME_SELECTION_TABLES_H__
 #define __RUN_TIME_SELECTION_TABLES_H__
 
-#include <unordered_map>
-#include "error.H"
-#include "word.H"
-
 /*!
  * @brief 在所有 sub model 的类声明中声明 type name 以及函数
  *        无论是这个模型的基类，还是子类都需要声明
@@ -81,6 +77,11 @@ License
     class AddNewFunctionToMap {                                                                                    \
     public:                                                                                                        \
       static AutoPtr<BaseType> New argList {                                                                       \
+        if (std::is_same<AutoPtr<BaseType>, std::unique_ptr<BaseType> >::value) {
+          return std::move(std::unique_ptr<BaseType>(new BaseType##Type parList));
+        } else if () {
+          return std::make_shared<BaseType>();
+        }
         return AutoPtr<BaseType>(new BaseType##Type parList);                                                      \
       }                                                                                                            \
       AddNewFunctionToMap(const std::string& typeName = BaseType##Type::typeName_) {                               \
@@ -128,14 +129,14 @@ License
  * @brief 用于在基类中定义 New 这个静态方法，而这个方法返回的就是运行期间动态选择的某一个子类对象的autoPtr
  * @param AutoPtr 用于封装 sub model 指针的模板，通常就选择 Foam::autoPtr
  * @param BaseType 指定基类
- * @param argList 构造函数的形参
- * @param parList 构造函数的实参
- * @param parCloud parList 中 cfdemCloud& 类型的实参
+ * @param argList New function 的形参
+ * @param parCloud argList 中 cfdemCloud& 类型的实参
+ * @param parDict argList 中 const dicttionary& 类型的实参
+ * @param parConstructor 构造函数的实参
  */
-#define cfdmeDefineBaseTypeNew(AutoPtr, BaseType, argList, parList, parCloud)                                      \
+#define cfdmeDefineBaseTypeNew(AutoPtr, BaseType, argList, parCloud, parDict, parConstructor)                      \
   AutoPtr<BaseType> BaseType::New argList {                                                                        \
-    const dictionary& dict = parCloud.couplingPropertiesDict();                                                    \
-    std::string modelType = dict.found(#BaseType) ? word(dict.lookup(#BaseType)) : "";                             \
+    std::string modelType = parDict.found(#BaseType) ? word(parDict.lookup(#BaseType)) : "";                       \
     Info << "Selecting " << #BaseType << ": " << modelType << endl;                                                \
     if (BaseType::newFunctionMapPtr_->find(modelType) == BaseType::newFunctionMapPtr_->end()) {                    \
       FatalError << #BaseType << "::New" << #argList << ": "                                                       \
@@ -147,7 +148,27 @@ License
       Info << "]" << endl << abort(FatalError);                                                                    \
     }                                                                                                              \
     BaseType::NewFunctionPtr& selectNewFunction = (BaseType::newFunctionMapPtr_)->operator[](modelType);           \
-    return AutoPtr<BaseType>(selectNewFunction parList);                                                           \
+    return AutoPtr<BaseType>(selectNewFunction parConstructor);                                                    \
+  }
+
+/*!
+ * @param parModelName argList 中用于指定模型名称的参数
+ */
+#define cfdmeDefineBaseTypeNewWithArg(AutoPtr, BaseType, argList, parCloud, parDict, parModelName, parConstructor)                                                                                                    \
+  AutoPtr<BaseType> BaseType::New argList {                                                                        \
+    Info << "Selecting " << #BaseType << ": " << parModelName << endl;                                             \
+    if (BaseType::newFunctionMapPtr_->find(parModelName) == BaseType::newFunctionMapPtr_->end()) {                 \
+      FatalError << #BaseType << "::New" << #argList << ": "                                                       \
+        << "unknow " << #BaseType << " type " << parModelName << ", constructor not in map" << endl                \
+        << "Valid " << #BaseType << " types are: [";                                                               \
+      for (const std::pair<std::string, BaseType::NewFunctionPtr>& item : *(BaseType::newFunctionMapPtr_)) {       \
+        Info << item.first << ", ";                                                                                \
+      }                                                                                                            \
+      Info << "]" << endl << abort(FatalError);                                                                    \
+    }                                                                                                              \
+    BaseType::NewFunctionPtr& selectNewFunction =                                                                  \
+      (BaseType::newFunctionMapPtr_)->operator[](std::string(parModelName));                                       \
+    return AutoPtr<BaseType>(selectNewFunction parConstructor)                                                     \
   }
 
 #define cfdemAddToNewFunctionMap(BaseType, DerivedType)                                                            \

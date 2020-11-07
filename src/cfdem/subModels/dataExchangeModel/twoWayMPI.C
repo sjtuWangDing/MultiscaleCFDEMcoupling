@@ -40,4 +40,77 @@ cfdemDefineTypeName(twoWayMPI)
 
 cfdemAddToNewFunctionMap(dataExchangeModel, twoWayMPI)
 
+bool twoWayMPI::couple() {
+  Info << "dataExchangeModel " << typeName() << ": Starting up CFD-DEM couping" << endl;
+  Info << "Starting up LIGGGHTS" << endl;
+  couplingStep_ += 1;
+  for (int i = 0; i < cloud_.liggghtsCommandModelList().size(); ++i) {
+    
+  }
+  Info << "LIGGGHTS finished" << endl;
+  // 获取颗粒数量并设置给 cloud
+}
+
+//! @brief Allocate and destroy for 2-D double array
+void twoWayMPI::destroy(double**& array) {
+}
+void twoWayMPI::destroy(double**& array, int) {
+
+}
+void twoWayMPI::allocateArray(double**& array, double initVal, int width, int length) {
+
+}
+void twoWayMPI::allocateArray(double**& array, double initVal, int width, const char* length/* = "nparticles" */) {
+
+}
+
+//! @brief Allocate and destroy for 2-D int array
+void twoWayMPI::destroy(int**& array) {
+
+}
+void twoWayMPI::destroy(int**& array, int) {
+
+}
+void twoWayMPI::allocateArray(int**& array, int initVal, int width, int length) {
+
+}
+void twoWayMPI::allocateArray(int**& array, int initVal, int width, const char* length/* = "nparticles" */) {
+
+}
+
+//! @brief Allocate and destroy for 1-D double array
+void twoWayMPI::destroy(double*& array) {
+
+}
+void twoWayMPI::allocateArray(double*& array, double initVal, int length) {
+
+}
+
+//! @brief Allocate and destroy for 1-D int array
+void twoWayMPI::destroy(int*& array) {
+
+}
+void twoWayMPI::allocateArray(int*& array, int initVal, int length) {
+
+}
+
+void twoWayMPI::getData(const std::string& dataName,
+              const std::string& dataType,
+              double** const& field,
+              label step) {
+
+}
+void twoWayMPI::getData(const std::string& dataName,
+              const std::string& dataType,
+              int** const& field,
+              label step) {
+
+}
+void twoWayMPI::giveData(const std::string& dataName,
+              const std::string& dataType,
+              double** const& field,
+              const char* fieldType/* = "double" */) {
+
+}
+
 } // namespace Foam

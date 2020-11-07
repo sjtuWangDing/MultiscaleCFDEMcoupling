@@ -29,36 +29,28 @@ Description
   and OpenFOAM(R). Note: this code is not part of OpenFOAM(R) (see DISCLAIMER).
 
 Class
-  dataExchangeModel
+  liggghtsCommandModel
 \*---------------------------------------------------------------------------*/
 
-#include "dataExchangeModel.H"
-#include "error.H"
+#include "liggghtsCommandModel.H"
 
 namespace Foam {
 
-cfdemDefineTypeName(dataExchangeModel)
+cfdemDefineTypeName(liggghtsCommandModel)
 
-cfdemDefineConstructNewFunctionMap(dataExchangeModel)
+cfdemDefineConstructNewFunctionMap(liggghtsCommandModel)
 
-cfdemDefineDestroyNewFunctionMap(dataExchangeModel)
+cfdemDefineDestroyNewFunctionMap(liggghtsCommandModel)
 
-cfdmeDefineBaseTypeNew(
-  autoPtr, dataExchangeModel, (cfdemCloud& cloud, const dictionary& dict), cloud, dict, (cloud))
+cfdmeDefineBaseTypeNew(autoPtr, liggghtsCommandModel,
+                       (cfdemCloud& cloud, const dictionary& dict, const std::string& modelName),
+                       cloud, dict, (cloud))
 
 //! @brief Constructor
-dataExchangeModel::dataExchangeModel(cfdemCloud& cloud):
-  cloud_(cloud),
-  // 在初始化 dataExchangeModel 的时候，记录下当前的流体时间步为 time index
-  timeIndexOffset_(cloud.mesh().time().timeIndex()),
-  // 初始化耦合时间步
-  couplingStep_(0),
-  // 初始化 DEM 时间步长，在具体的模型中读入具体的值
-  // twoWayMPI: 通过 LAMMP 读入
-  // twoWayFile: 通过字典文件读入
-  DEMts_(0.0) {}
+liggghtsCommandModel::liggghtsCommandModel(cfdemCloud& cloud):
+  cloud_(cloud) {}
 
 //! @brief Destructor
-dataExchangeModel::~dataExchangeModel() {}
+liggghtsCommandModel::~liggghtsCommandModel() {}
 
 } // namespace Foam

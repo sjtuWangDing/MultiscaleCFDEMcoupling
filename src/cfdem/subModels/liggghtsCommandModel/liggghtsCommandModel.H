@@ -29,36 +29,53 @@ Description
   and OpenFOAM(R). Note: this code is not part of OpenFOAM(R) (see DISCLAIMER).
 
 Class
-  dataExchangeModel
+  liggghtsCommandModel
 \*---------------------------------------------------------------------------*/
 
-#include "dataExchangeModel.H"
-#include "error.H"
+#ifndef __LIGGGHTS_COMMAND_MODEL_H__
+#define __LIGGGHTS_COMMAND_MODEL_H__
+
+#include "cloud/cfdemCloud.H"
+#include "tools/runTimeSelectionTables.H"
 
 namespace Foam {
 
-cfdemDefineTypeName(dataExchangeModel)
+class liggghtsCommandModel {
 
-cfdemDefineConstructNewFunctionMap(dataExchangeModel)
+public:
 
-cfdemDefineDestroyNewFunctionMap(dataExchangeModel)
+  //! @brief Runtime type information
+  cfdemTypeName("liggghtsCommandModel");
 
-cfdmeDefineBaseTypeNew(
-  autoPtr, dataExchangeModel, (cfdemCloud& cloud, const dictionary& dict), cloud, dict, (cloud))
+  //! @brief Declare runtime constructor selection
+  cfdemDeclareRunTimeSelection(std::unique_ptr, liggghtsCommandModel, (cfdemCloud& cloud), (cloud));
 
-//! @brief Constructor
-dataExchangeModel::dataExchangeModel(cfdemCloud& cloud):
-  cloud_(cloud),
-  // 在初始化 dataExchangeModel 的时候，记录下当前的流体时间步为 time index
-  timeIndexOffset_(cloud.mesh().time().timeIndex()),
-  // 初始化耦合时间步
-  couplingStep_(0),
-  // 初始化 DEM 时间步长，在具体的模型中读入具体的值
-  // twoWayMPI: 通过 LAMMP 读入
-  // twoWayFile: 通过字典文件读入
-  DEMts_(0.0) {}
+  //! @brief Selector
+  static std::unique_ptr<liggghtsCommandModel> New(cfdemCloud& cloud,
+                                                   const dictionary& dict,
+                                                   const std::string& modelName);
 
-//! @brief Destructor
-dataExchangeModel::~dataExchangeModel() {}
+  //! @brief Constructor
+  liggghtsCommandModel(cfdemCloud& cloud);
+
+  //! @brief Destructor
+  virtual ~liggghtsCommandModel();
+
+public:
+
+  virtual std::string getCommand(int index) = 0;
+
+public:
+
+  inline int commandLines() const { return commandLines_; }
+
+protected:
+
+  cfdemCloud& cloud_;
+
+  int commandLines_;
+};
 
 } // namespace Foam
+
+#endif // __LIGGGHTS_COMMAND_MODEL_H__

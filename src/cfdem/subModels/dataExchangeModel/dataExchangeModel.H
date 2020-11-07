@@ -36,7 +36,6 @@ Class
 #define __DATA_EXCHANGE_MODEL_H__
 
 #include "cloud/cfdemCloud.H"
-#include "tools/runTimeSelectionTables.H"
 
 namespace Foam {
 
@@ -49,7 +48,7 @@ public:
   //! @brief Declare runtime constructor selection
   cfdemDeclareRunTimeSelection(autoPtr, dataExchangeModel, (cfdemCloud& cloud), (cloud));
   //! @brief Selector
-  static autoPtr<dataExchangeModel> New(cfdemCloud& cloud);
+  static autoPtr<dataExchangeModel> New(cfdemCloud& cloud, const dictionary& dict);
   //! @brief Constructor
   dataExchangeModel(cfdemCloud& cloud);
   //! @brief Destructor
@@ -57,20 +56,7 @@ public:
 
 public:
 
-  virtual bool couple(int);
-
-  virtual void getData(const std::string& dataName,
-                       const std::string& dataType,
-                       double** const& field,
-                       label step) = 0;
-  virtual void getData(const std::string& dataName,
-                       const std::string& dataType,
-                       int** const& field,
-                       label step) = 0;
-  virtual void giveData(const std::string& dataName,
-                        const std::string& dataType,
-                        double** const& field,
-                        const char* fieldType = "double") = 0;
+  virtual bool couple();
 
   //! @brief Allocate and destroy for 2-D double array
   virtual void destroy(double**& array);
@@ -91,6 +77,19 @@ public:
   //! @brief Allocate and destroy for 1-D int array
   virtual void destroy(int*& array);
   virtual void allocateArray(int*& array, int initVal, int length);
+
+  virtual void getData(const std::string& dataName,
+                       const std::string& dataType,
+                       double** const& field,
+                       label step) = 0;
+  virtual void getData(const std::string& dataName,
+                       const std::string& dataType,
+                       int** const& field,
+                       label step) = 0;
+  virtual void giveData(const std::string& dataName,
+                        const std::string& dataType,
+                        double** const& field,
+                        const char* fieldType = "double") = 0;
 
   //! @brief 释放离散内存
   virtual void destroyDiscreteMemory(double** const& array, int length) {

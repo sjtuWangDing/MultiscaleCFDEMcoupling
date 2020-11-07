@@ -31,9 +31,10 @@ Class
   Foam::cfdemCloud
 \*---------------------------------------------------------------------------*/
 
-#include "cfdemCloud.H"
-#include "couplingProperties.H"
-#include "particleCloud.H"
+#include "cloud/cfdemCloud.H"
+#include "cloud/couplingProperties.H"
+#include "cloud/particleCloud.H"
+#include "subModels/liggghtsCommandModel/liggghtsCommandModel.H"
 
 namespace Foam {
 
@@ -58,6 +59,23 @@ cfdemCloud::cfdemCloud(const fvMesh& mesh):
     )
   ),
   cProps_(mesh, couplingPropertiesDict_, liggghtsCommandsDict_),
-  pCloud_(0) {}
+  pCloud_(0) {
+
+  Info << "\nEnding of Constructing cfdemCloud Base Class Object......\n" << endl;
+  Info << "\nEntry of cfdemCloud::cfdemCloud(const fvMesh&)......\n" << endl;
+
+  for (int i = 0; i < liggghtsCommandModelList().size(); ++i) {
+    liggghtsCommandModel_.emplace_back(
+      liggghtsCommandModel::New(*this, liggghtsCommandsDict_, liggghtsCommandModelList()[i]));
+  }
+
+
+
+  // liggghtsCommandModel_ = new autoPtr<liggghtsCommandModel>[liggghtsCommandModelList().size()];
+  // for (int i = 0; i < liggghtsCommandModelList().size(); ++i) {
+  //   liggghtsCommandModel_[i] =
+  //     liggghtsCommandModel::New(*this, liggghtsCommandsDict_, liggghtsCommandModelList()[i]);
+  // }
+}
 
 } // namespace Foam
