@@ -109,11 +109,13 @@ public:
   const std::vector<std::shared_ptr<forceModel>>& forceModels() const;
   const std::vector<std::shared_ptr<momCoupleModel>>& momCoupleModels() const;
 
+  std::shared_ptr<forceModel> forceM(int index) const;
   const dataExchangeModel& dataExchangeM() const;
   const averagingModel& averagingM() const;
-
+  const voidFractionModel& voidFractionM() const;
   dataExchangeModel& dataExchangeM();
   averagingModel& averagingM();
+  voidFractionModel& voidFractionM();
 
   inline bool writeTimePassed() const { return writeTimePassed_; }
 
@@ -161,6 +163,8 @@ protected:
 
   autoPtr<averagingModel> averagingModel_;
 
+  autoPtr<voidFractionModel> voidFractionModel_;
+
   autoPtr<locateModel> locateModel_;
 
   autoPtr<IOModel> IOModel_;
@@ -168,8 +172,6 @@ protected:
   autoPtr<probeModel> probeModel_;
 
   autoPtr<registryModel> registryModel_;
-
-  autoPtr<voidFractionModel> voidFractionModel_;
 
   autoPtr<clockModel> clockModel_;
 

@@ -140,9 +140,9 @@ License
  * @param argList New function 的形参
  * @param parCloud argList 中 cfdemCloud& 类型的实参
  * @param parDict argList 中 const dicttionary& 类型的实参
- * @param parConstructor 构造函数的实参
+ * @param parConstructorList 构造函数的实参
  */
-#define cfdmeDefineBaseTypeNew(AutoPtr, BaseType, argList, parCloud, parDict, parConstructor)                      \
+#define cfdmeDefineBaseTypeNew(AutoPtr, BaseType, argList, parCloud, parDict, parConstructorList)                  \
   AutoPtr<BaseType> BaseType::New argList {                                                                        \
     std::string modelType = parDict.found(#BaseType) ? word(parDict.lookup(#BaseType)) : "";                       \
     Info << "Selecting " << #BaseType << ": " << modelType << endl;                                                \
@@ -159,13 +159,13 @@ License
     if (!std::is_same<AutoPtr<BaseType>, decltype(selectNewFunction)>::value) {                                    \
       FatalError << "New funtion return type should be the same as the funtion in map" << abort(FatalError);       \
     }                                                                                                              \
-    return selectNewFunction parConstructor;                                                                       \
+    return selectNewFunction parConstructorList;                                                                   \
   }
 
 /*!
  * @param parModelName argList 中用于指定模型名称的参数
  */
-#define cfdmeDefineBaseTypeNewWithArg(AutoPtr, BaseType, argList, parCloud, parDict, parModelName, parConstructor)                                                                                                    \
+#define cfdmeDefineBaseTypeNewWithArg(AutoPtr, BaseType, argList, parCloud, parDict, parModelName, parConstructorList)                                                                                                \
   AutoPtr<BaseType> BaseType::New argList {                                                                        \
     Info << "Selecting " << #BaseType << ": " << parModelName << endl;                                             \
     if (BaseType::newFunctionMapPtr_->find(parModelName) == BaseType::newFunctionMapPtr_->end()) {                 \
@@ -182,7 +182,7 @@ License
     if (!std::is_same<AutoPtr<BaseType>, decltype(selectNewFunction)>::value) {                                    \
       FatalError << "New funtion return type should be the same as the funtion in map" << abort(FatalError);       \
     }                                                                                                              \
-    return selectNewFunction parConstructor;                                                                       \
+    return selectNewFunction parConstructorList;                                                                   \
   }
 
 #define cfdemAddToNewFunctionMap(BaseType, DerivedType)                                                            \

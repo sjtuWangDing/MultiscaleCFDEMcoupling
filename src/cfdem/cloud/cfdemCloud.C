@@ -37,6 +37,8 @@ Class
 #include "subModels/dataExchangeModel/dataExchangeModel.H"
 #include "subModels/liggghtsCommandModel/liggghtsCommandModel.H"
 #include "subModels/averagingModel/averagingModel.H"
+#include "subModels/voidFractionModel/voidFractionModel.H"
+#include "subModels/forceModel/forceModel.H"
 
 namespace Foam {
 
@@ -63,7 +65,8 @@ cfdemCloud::cfdemCloud(const fvMesh& mesh):
   cProps_(mesh, couplingPropertiesDict_, liggghtsCommandsDict_),
   pCloud_(0),
   dataExchangeModel_(dataExchangeModel::New(*this, couplingPropertiesDict_)),
-  averagingModel_(averagingModel::New(*this, couplingPropertiesDict_)) {
+  averagingModel_(averagingModel::New(*this, couplingPropertiesDict_)),
+  voidFractionModel_(voidFractionModel::New(*this, couplingPropertiesDict_)) {
 
   Info << "\nEnding of Constructing cfdemCloud Base Class Object......\n" << endl;
   Info << "\nEntry of cfdemCloud::cfdemCloud(const fvMesh&)......\n" << endl;
@@ -72,6 +75,10 @@ cfdemCloud::cfdemCloud(const fvMesh& mesh):
     // liggghtsCommandModel::New() 函数返回的是 std::unique_ptr
     liggghtsCommandModels_.emplace_back(
       liggghtsCommandModel::New(*this, liggghtsCommandsDict_, liggghtsCommandModelList()[i]));
+  }
+
+  for (int i = 0; i < forceModelList().size(); ++i) {
+    forceModels_.emplace_back(forceModel::New(*this, couplingPropertiesDict_, forceModelList()[i]));
   }
 }
 
@@ -98,8 +105,14 @@ bool cfdemCloud::evolve(volScalarField& VoidF,
         << dataExchangeM().couplingStep() << endl;
 
       // 重置局部平均颗粒速度
-      averagingM().resetVectorAverage(averagingM().UsPrev(),
-                                      averagingM().UsNext(), false);
+      averagingM().resetUs();
+      // 重置颗粒速度影响因数场
+      averagingM().resetUsWeightField();
+      // 重置小颗粒空隙率场
+      voidFractionM().resetVoidFraction();
+      // 重置隐式力场
+      // 重置显式力场
+      // 重置动量交换场
     }
   }
   Info << "Foam::cfdemCloud::evolve() - done\n" << endl;
@@ -108,30 +121,31 @@ bool cfdemCloud::evolve(volScalarField& VoidF,
 const std::vector<std::shared_ptr<liggghtsCommandModel>>& cfdemCloud::liggghtsCommandModels() const {
   return liggghtsCommandModels_;
 }
-
 const std::vector<std::shared_ptr<forceModel>>& cfdemCloud::forceModels() const {
   return forceModels_;
 }
-
 const std::vector<std::shared_ptr<momCoupleModel>>& cfdemCloud::momCoupleModels() const {
   return momCoupleModels_;
 }
-
-const dataExchangeModel& cfdemCloud::dataExchangeM() const {
-  // Foam::autoPtr<T> 中定义了 inline operator const T&() const;
-  return dataExchangeModel_;
+std::shared_ptr<forceModel> cfdemCloud::forceM(int index) const {
+  if (index < 0 || index >= forceModels_.size()) {
+    FatalError << "forceM(): " << "index " << index << " out of boundary" << abort(FatalError);
+  }
+  return forceModels_[index];
 }
+// Foam::autoPtr<T> 中定义了 inline operator const T&() const;
+const dataExchangeModel& cfdemCloud::dataExchangeM() const { return dataExchangeModel_; }
+const averagingModel& cfdemCloud::averagingM() const { return averagingModel_; }
+const voidFractionModel& cfdemCloud::voidFractionM() const { return voidFractionModel_; }
 
 dataExchangeModel& cfdemCloud::dataExchangeM() {
   return const_cast<dataExchangeModel&>(static_cast<const dataExchangeModel&>(dataExchangeModel_));
 }
-
-const averagingModel& cfdemCloud::averagingM() const {
-  return averagingModel_;
-}
-
 averagingModel& cfdemCloud::averagingM() {
   return const_cast<averagingModel&>(static_cast<const averagingModel&>(averagingModel_));
+}
+voidFractionModel& cfdemCloud::voidFractionM() {
+  return const_cast<voidFractionModel&>(static_cast<const voidFractionModel&>(voidFractionModel_));
 }
 
 } // namespace Foam

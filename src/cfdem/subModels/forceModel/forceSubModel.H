@@ -29,78 +29,48 @@ Description
   and OpenFOAM(R). Note: this code is not part of OpenFOAM(R) (see DISCLAIMER).
 
 Class
-  averagingModel
+  forceSubModel
 \*---------------------------------------------------------------------------*/
 
-#ifndef __AVERAGING_MODEL_H__
-#define __AVERAGING_MODEL_H__
+#ifndef __FORCE_SUB_MODEL_H__
+#define __FORCE_SUB_MODEL_H__
 
 #include "cloud/cfdemCloud.H"
-#include "base/runTimeSelectionTables.H"
+#include "forceModel.H"
 
 namespace Foam {
 
-//! @brief 局部平均模型
-class averagingModel {
+//! @brief forceSubModel
+class forceSubModel {
 
 public:
   /* --------------------------------- base class and functions -------------------------- */
 
-  //! @brief Runtime type information
-  cfdemTypeName("averagingModel")
-
-  //! @brief Declare runtime constructor selection
-  cfdemDeclareRunTimeSelection(autoPtr, averagingModel, (cfdemCloud& cloud), (cloud))
-
-  //! @brief Selector
-  static autoPtr<averagingModel> New(cfdemCloud& cloud, const dictionary& dict);
+  typedef enum {
+    treatForceExplicit, // 0
+  } forceSwitch;
 
   //! @brief Constructor
-  averagingModel(cfdemCloud& cloud);
+  forceSubModel(cfdemCloud& cloud, forceModel& forceModel);
 
   //! @brief Destructor
-  virtual ~averagingModel();
+  ~forceSubModel();
+
+  /* --------------------------------- virtual functions --------------------------------- */
 
   /* --------------------------------- member functions ---------------------------------- */
 
-  inline void resetVectorAverage(volVectorField& prev,
-                                 volVectorField& next,
-                                 bool single = false) const {
-    if (!single) { prev == next; }
-    next == dimensionedVector("zero", next.dimensions(), vector::zero);
-  }
-
-  inline void resetUs() { resetVectorAverage(UsPrev_, UsNext_, false); }
-
-  inline void resetUsWeightField() {
-    UsWeightField_ == dimensionedScalar("zero", UsWeightField_.dimensions(), 0.0);
-  }
-
   /* --------------------------------- public interfaces --------------------------------- */
-
-  inline volVectorField& UsPrev() { return UsPrev_; }
-
-  inline volVectorField& UsNext() { return UsNext_; }
-
-  inline volScalarField& UsWeightField() { return UsWeightField_; }
 
 protected:
 
   cfdemCloud& cloud_;
 
-  /*!
-   * @brief 覆盖 cellI 网格的所有颗粒对其影响系数的总和
-   * @note UsWeightField_[cellI]
-   */
-  volScalarField UsWeightField_;
+  forceModel& forceModel_;
 
-  //! @brief 上个时间步中局部平均颗粒速度场
-  volVectorField UsPrev_;
-
-  //! @brief 下个时间步中局部平均颗粒速度场
-  volVectorField UsNext_;
+  std::unordered_map<>
 };
 
 } // namespace Foam
 
-#endif // __AVERAGING_MODEL_H__
+#endif // __FORCE_SUB_MODEL_H__

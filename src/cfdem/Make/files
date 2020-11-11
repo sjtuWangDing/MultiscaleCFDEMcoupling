@@ -18,4 +18,7 @@ $(subModels)/averagingModel/averagingModel.C
 
 $(subModels)/voidFractionModel/voidFractionModel.C
 
+$(subModels)/forceModel/forceModel.C
+$(subModels)/forceModel/forceSubModel.C
+
 LIB = $(CFDEM_LIB_DIR)/lib$(CFDEM_LIB_NAME)-1.0
