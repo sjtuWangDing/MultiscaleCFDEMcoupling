@@ -29,98 +29,71 @@ Description
   and OpenFOAM(R). Note: this code is not part of OpenFOAM(R) (see DISCLAIMER).
 
 Class
-  liggghtsCommandModel
+  voidFractionModel
 \*---------------------------------------------------------------------------*/
 
-#ifndef __LIGGGHTS_COMMAND_MODEL_H__
-#define __LIGGGHTS_COMMAND_MODEL_H__
+#ifndef __VOID_FRACTION_MODEL_H__
+#define __VOID_FRACTION_MODEL_H__
 
 #include "cloud/cfdemCloud.H"
 #include "base/runTimeSelectionTables.H"
 
 namespace Foam {
 
-class liggghtsCommandModel {
+//! @brief 空隙率模型
+class voidFractionModel {
 
 public:
   /* --------------------------------- base class and functions -------------------------- */
 
   //! @brief Runtime type information
-  cfdemTypeName("liggghtsCommandModel");
+  cfdemTypeName("voidFractionModel")
 
   //! @brief Declare runtime constructor selection
-  cfdemDeclareRunTimeSelection(std::unique_ptr, liggghtsCommandModel, (cfdemCloud& cloud), (cloud));
+  cfdemDeclareRunTimeSelection(autoPtr, voidFractionModel, (cfdemCloud& cloud), (cloud))
 
   //! @brief Selector
-  static std::unique_ptr<liggghtsCommandModel> New(cfdemCloud& cloud,
-                                                   const dictionary& dict,
-                                                   const std::string& modelName);
+  static autoPtr<voidFractionModel> New(cfdemCloud& cloud, const dictionary& dict);
 
   //! @brief Constructor
-  liggghtsCommandModel(cfdemCloud& cloud);
+  voidFractionModel(cfdemCloud& cloud);
 
   //! @brief Destructor
-  virtual ~liggghtsCommandModel();
-
-  /* --------------------------------- sub class ----------------------------------------- */
-
-  struct CmdRunTime {
-    scalar couplingStartTime_;
-    scalar couplingEndTime_;
-    scalar couplingIntervalTime_;
-    int firstCouplingStep_;
-    int lastCouplingStep_;
-    int couplingStepInterval_;
-    CmdRunTime():
-      couplingStartTime_(-1.0), couplingEndTime_(-1.0), couplingIntervalTime_(0.0),
-      firstCouplingStep_(-1), lastCouplingStep_(-1), couplingStepInterval_(0) {}
-  };
+  virtual ~voidFractionModel();
 
   /* --------------------------------- virtual functions --------------------------------- */
 
-  //! @brief 根据 index 获取 command 的内容
-  virtual std::string getCommand(int index) const = 0;
-
-  //! @param couplingStep 当前耦合步计数
-  virtual bool runCommand(int couplingStep) = 0;
-
   /* --------------------------------- member functions ---------------------------------- */
 
-  void checkTimeMode(const dictionary& subPropsDict);
+  //! @brief 重置空隙率
+  inline void resetVoidFraction() {
+    voidFractionPrev_ == voidFractionNext_;
+    voidFractionNext_ == dimensionedScalar("one", voidFractionNext_.dimensions(), 1.);
+  }
 
-  void checkTimeSettings(const dictionary& subPropsDict);
-
-  bool runThisCommand(int couplingStep);
+  //! @brief 重置体积分数
+  inline void resetVolumeFraction() {
+    volumeFractionPrev_ == volumeFractionNext_;
+    volumeFractionNext_ == dimensionedScalar("one", volumeFractionNext_.dimensions(), 1.);
+  }
 
   /* --------------------------------- public interfaces --------------------------------- */
-
-  inline int commandLines() const { return commandLines_; }
 
 protected:
 
   cfdemCloud& cloud_;
 
-  std::string command_;
+  //! @brief 小颗粒空隙率
+  volScalarField voidFractionPrev_;
 
-  int commandLines_;
+  volScalarField voidFractionNext_;
 
-  Switch verbose_;
+  //! @brief 大颗粒体积分数
+  mutable volScalarField volumeFractionPrev_;
 
-  Switch runFirst_;
-
-  Switch runLast_;
-
-  Switch runEveryCouplingStep_;
-
-  Switch runEveryWriteStep_;
-
-  CmdRunTime cmdRunTime_;
-
-  int nextRun_;
-
-  int lastRun_;
+  mutable volScalarField volumeFractionNext_;
 };
 
 } // namespace Foam
 
-#endif // __LIGGGHTS_COMMAND_MODEL_H__
+#endif // __VOID_FRACTION_MODEL_H__

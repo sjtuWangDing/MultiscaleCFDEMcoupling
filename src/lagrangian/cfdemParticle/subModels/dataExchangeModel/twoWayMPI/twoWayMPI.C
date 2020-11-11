@@ -235,40 +235,40 @@ bool Foam::twoWayMPI::couple(int i) const
 
             forAll(particleCloud_.liggghtsCommandModelList(),i)
             {
-                // // Check if exact timing is needed
-                // // get time for execution
-                // // store time for execution in list
-                // if(particleCloud_.liggghtsCommand()[i]().exactTiming())
-                // {
-                //     exactTiming = true;
-                //     DynamicList<scalar> h = particleCloud_.liggghtsCommand()[i]().executionsWithinPeriod(TSstart(),TSend());
+                // Check if exact timing is needed
+                // get time for execution
+                // store time for execution in list
+                if(particleCloud_.liggghtsCommand()[i]().exactTiming())
+                {
+                    exactTiming = true;
+                    DynamicList<scalar> h = particleCloud_.liggghtsCommand()[i]().executionsWithinPeriod(TSstart(),TSend());
 
-                //     forAll(h,j)
-                //     {
-                //         // save interrupt times (is this necessary)
-                //         interruptTimes.append(h[j]);
+                    forAll(h,j)
+                    {
+                        // save interrupt times (is this necessary)
+                        interruptTimes.append(h[j]);
 
-                //         // calc stepsToInterrupt
-                //         DEMstepsToInterrupt.append(DEMstepsTillT(h[j]));
+                        // calc stepsToInterrupt
+                        DEMstepsToInterrupt.append(DEMstepsTillT(h[j]));
 
-                //         // remember which liggghtsCommandModel to run
-                //         lcModel.append(i);
-                //     }
+                        // remember which liggghtsCommandModel to run
+                        lcModel.append(i);
+                    }
 
-                //     // make cumulative
-                //     label len = DEMstepsToInterrupt.size();
-                //     label ind(0);
-                //     forAll(DEMstepsToInterrupt,i)
-                //     {
-                //         ind = len-i-1;
-                //         if(ind>0)
-                //             DEMstepsToInterrupt[ind] -= DEMstepsToInterrupt[ind-1];
-                //     }                    
+                    // make cumulative
+                    label len = DEMstepsToInterrupt.size();
+                    label ind(0);
+                    forAll(DEMstepsToInterrupt,i)
+                    {
+                        ind = len-i-1;
+                        if(ind>0)
+                            DEMstepsToInterrupt[ind] -= DEMstepsToInterrupt[ind-1];
+                    }                    
 
-                //     Info << "Foam::twoWayMPI::couple(i): interruptTimes=" << interruptTimes << endl;
-                //     Info << "Foam::twoWayMPI::couple(i): DEMstepsToInterrupt=" << DEMstepsToInterrupt << endl;
-                //     Info << "Foam::twoWayMPI::couple(i): lcModel=" << lcModel << endl;
-                // }
+                    Info << "Foam::twoWayMPI::couple(i): interruptTimes=" << interruptTimes << endl;
+                    Info << "Foam::twoWayMPI::couple(i): DEMstepsToInterrupt=" << DEMstepsToInterrupt << endl;
+                    Info << "Foam::twoWayMPI::couple(i): lcModel=" << lcModel << endl;
+                }
 
                 if(particleCloud_.liggghtsCommand()[i]().type()=="runLiggghts")
                     runComNr=i;
@@ -278,53 +278,53 @@ bool Foam::twoWayMPI::couple(int i) const
             label commandLines(0);
             if(exactTiming)
             {
-                // // extension for more liggghtsCommands active the same time:
-                // //    sort interrupt list within this run period
-                // //    keep track of corresponding liggghtsCommand
-                // int DEMstepsRun(0);
+                // extension for more liggghtsCommands active the same time:
+                //    sort interrupt list within this run period
+                //    keep track of corresponding liggghtsCommand
+                int DEMstepsRun(0);
                 
-                // forAll(interruptTimes,j)
-                // {                  
-                //     // set run command till interrupt
-                //     DEMstepsRun += DEMstepsToInterrupt[j];          
-                //     particleCloud_.liggghtsCommand()[runComNr]().set(DEMstepsToInterrupt[j]);
-                //     const char* command = particleCloud_.liggghtsCommand()[runComNr]().command(0);
-                //     Info << "Executing run command: '"<< command <<"'"<< endl;
-                //     lmp->input->one(command);
+                forAll(interruptTimes,j)
+                {                  
+                    // set run command till interrupt
+                    DEMstepsRun += DEMstepsToInterrupt[j];          
+                    particleCloud_.liggghtsCommand()[runComNr]().set(DEMstepsToInterrupt[j]);
+                    const char* command = particleCloud_.liggghtsCommand()[runComNr]().command(0);
+                    Info << "Executing run command: '"<< command <<"'"<< endl;
+                    lmp->input->one(command);
     
-                //     // run liggghts command with exact timing
-                //     command = particleCloud_.liggghtsCommand()[lcModel[j]]().command(0);
-                //     Info << "Executing command: '"<< command <<"'"<< endl;
-                //     lmp->input->one(command);
-                // }
+                    // run liggghts command with exact timing
+                    command = particleCloud_.liggghtsCommand()[lcModel[j]]().command(0);
+                    Info << "Executing command: '"<< command <<"'"<< endl;
+                    lmp->input->one(command);
+                }
 
-                // // do the run
-                // if(particleCloud_.liggghtsCommand()[runComNr]().runCommand(couplingStep()))
-                // {
-                //     particleCloud_.liggghtsCommand()[runComNr]().set(couplingInterval() - DEMstepsRun);
-                //     const char* command = particleCloud_.liggghtsCommand()[runComNr]().command(0);
-                //     Info << "Executing run command: '"<< command <<"'"<< endl;
-                //     lmp->input->one(command);
-                // }
+                // do the run
+                if(particleCloud_.liggghtsCommand()[runComNr]().runCommand(couplingStep()))
+                {
+                    particleCloud_.liggghtsCommand()[runComNr]().set(couplingInterval() - DEMstepsRun);
+                    const char* command = particleCloud_.liggghtsCommand()[runComNr]().command(0);
+                    Info << "Executing run command: '"<< command <<"'"<< endl;
+                    lmp->input->one(command);
+                }
 
-                // // do the other non exact timing models
-                // forAll(particleCloud_.liggghtsCommandModelList(),i)
-                // {
-                //     if
-                //     (
-                //       ! particleCloud_.liggghtsCommand()[i]().exactTiming() &&
-                //         particleCloud_.liggghtsCommand()[i]().runCommand(couplingStep())
-                //     )
-                //     {
-                //         commandLines=particleCloud_.liggghtsCommand()[i]().commandLines();
-                //         for(int j=0;j<commandLines;j++)
-                //         {
-                //             const char* command = particleCloud_.liggghtsCommand()[i]().command(j);
-                //             Info << "Executing command: '"<< command <<"'"<< endl;
-                //             lmp->input->one(command);
-                //         }
-                //     }
-                // }
+                // do the other non exact timing models
+                forAll(particleCloud_.liggghtsCommandModelList(),i)
+                {
+                    if
+                    (
+                      ! particleCloud_.liggghtsCommand()[i]().exactTiming() &&
+                        particleCloud_.liggghtsCommand()[i]().runCommand(couplingStep())
+                    )
+                    {
+                        commandLines=particleCloud_.liggghtsCommand()[i]().commandLines();
+                        for(int j=0;j<commandLines;j++)
+                        {
+                            const char* command = particleCloud_.liggghtsCommand()[i]().command(j);
+                            Info << "Executing command: '"<< command <<"'"<< endl;
+                            lmp->input->one(command);
+                        }
+                    }
+                }
             }
             // no model with exact timing exists
             else

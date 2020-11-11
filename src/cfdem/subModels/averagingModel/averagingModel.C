@@ -29,36 +29,55 @@ Description
   and OpenFOAM(R). Note: this code is not part of OpenFOAM(R) (see DISCLAIMER).
 
 Class
-  dataExchangeModel
+  averagingModel
 \*---------------------------------------------------------------------------*/
 
-#include "dataExchangeModel.H"
+#include "averagingModel.H"
 
 namespace Foam {
 
-cfdemDefineTypeName(dataExchangeModel)
+cfdemDefineTypeName(averagingModel)
 
-cfdemDefineConstructNewFunctionMap(dataExchangeModel)
+cfdemDefineConstructNewFunctionMap(averagingModel)
 
-cfdemDefineDestroyNewFunctionMap(dataExchangeModel)
-
-cfdmeDefineBaseTypeNew(
-  autoPtr, dataExchangeModel, (cfdemCloud& cloud, const dictionary& dict), cloud, dict, (cloud))
+cfdemDefineDestroyNewFunctionMap(averagingModel)
 
 //! @brief Constructor
-dataExchangeModel::dataExchangeModel(cfdemCloud& cloud):
+averagingModel::averagingModel(cfdemCloud& cloud):
   cloud_(cloud),
-  // 在初始化 dataExchangeModel 的时候，记录下当前的流体时间步为 time index
-  timeIndexOffset_(cloud.mesh().time().timeIndex()),
-  // 初始化耦合时间步
-  couplingStep_(0),
-  // 初始化 DEM 时间步长，在具体的模型中读入具体的值
-  // twoWayMPI: 通过 LAMMP 读入
-  // twoWayFile: 通过字典文件读入
-  DEMts_(-1.0) {
-}
+  UsPrev_(
+    IOobject(
+      "UsPrev",
+      cloud.mesh().time().timeName(),
+      cloud.mesh(),
+      IOobject::READ_IF_PRESENT,
+      IOobject::AUTO_WRITE
+    ),
+    cloud.mesh().lookupObject<volVectorField>("Us")
+  ),
+  UsNext_(
+    IOobject(
+      "UsNext",
+      cloud.mesh().time().timeName(),
+      cloud.mesh(),
+      IOobject::READ_IF_PRESENT,
+      IOobject::AUTO_WRITE
+    ),
+    cloud.mesh().lookupObject<volVectorField>("Us")
+  ),
+  UsWeightField_(
+    IOobject(
+      "UsWeightField_",
+      cloud.mesh().time().timeName(),
+      cloud.mesh(),
+      IOobject::NO_READ,
+      IOobject::AUTO_WRITE
+    ),
+    cloud.mesh(),
+    dimensionedScalar("zero", dimensionSet(0, 0, 0, 0, 0), 0.0)
+  ) {}
 
 //! @brief Destructor
-dataExchangeModel::~dataExchangeModel() {}
+averagingModel::~averagingModel() {}
 
 } // namespace Foam

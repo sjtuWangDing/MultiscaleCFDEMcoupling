@@ -77,11 +77,19 @@ License
     class AddNewFunctionToMap {                                                                                    \
     public:                                                                                                        \
       static AutoPtr<BaseType> New argList {                                                                       \
-        if (std::is_same<AutoPtr<BaseType>, std::unique_ptr<BaseType> >::value) {
-          return std::move(std::unique_ptr<BaseType>(new BaseType##Type parList));
-        } else if () {
-          return std::make_shared<BaseType>();
-        }
+        if (std::is_convertible<BaseType##Type, BaseType>::value) {                                                \
+          if (std::is_same<std::unique_ptr<BaseType>, AutoPtr<BaseType> >::value) {                                \
+            /* std::unique_ptr */                                                                                  \
+            return std::move(std::unique_ptr<BaseType>(new BaseType##Type parList));                               \
+          } else if (std::is_same<std::shared_ptr<BaseType>, AutoPtr<BaseType> >::value) {                         \
+            /* std::shared_ptr */                                                                                  \
+            return std::make_shared<BaseType##Type> parList;                                                       \
+          }                                                                                                        \
+        } else {                                                                                                   \
+          std::cerr << "New error: " << BaseType##Type::typeName_                                                  \
+            << " is not convertible to " << #BaseType << std::endl;                                                \
+          error::safePrintStack(std::cerr);                                                                        \
+        }                                                                                                          \
         return AutoPtr<BaseType>(new BaseType##Type parList);                                                      \
       }                                                                                                            \
       AddNewFunctionToMap(const std::string& typeName = BaseType##Type::typeName_) {                               \
@@ -147,8 +155,11 @@ License
       }                                                                                                            \
       Info << "]" << endl << abort(FatalError);                                                                    \
     }                                                                                                              \
-    BaseType::NewFunctionPtr& selectNewFunction = (BaseType::newFunctionMapPtr_)->operator[](modelType);           \
-    return AutoPtr<BaseType>(selectNewFunction parConstructor);                                                    \
+    BaseType::NewFunctionPtr selectNewFunction = (BaseType::newFunctionMapPtr_)->operator[](modelType);            \
+    if (!std::is_same<AutoPtr<BaseType>, decltype(selectNewFunction)>::value) {                                    \
+      FatalError << "New funtion return type should be the same as the funtion in map" << abort(FatalError);       \
+    }                                                                                                              \
+    return selectNewFunction parConstructor;                                                                       \
   }
 
 /*!
@@ -166,9 +177,12 @@ License
       }                                                                                                            \
       Info << "]" << endl << abort(FatalError);                                                                    \
     }                                                                                                              \
-    BaseType::NewFunctionPtr& selectNewFunction =                                                                  \
+    BaseType::NewFunctionPtr selectNewFunction =                                                                   \
       (BaseType::newFunctionMapPtr_)->operator[](std::string(parModelName));                                       \
-    return AutoPtr<BaseType>(selectNewFunction parConstructor)                                                     \
+    if (!std::is_same<AutoPtr<BaseType>, decltype(selectNewFunction)>::value) {                                    \
+      FatalError << "New funtion return type should be the same as the funtion in map" << abort(FatalError);       \
+    }                                                                                                              \
+    return selectNewFunction parConstructor;                                                                       \
   }
 
 #define cfdemAddToNewFunctionMap(BaseType, DerivedType)                                                            \

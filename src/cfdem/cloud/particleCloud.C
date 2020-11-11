@@ -36,7 +36,7 @@ Class
 
 namespace Foam {
 
-ParticleCloud::ParticleCloud(int numberOfParticle):
+ParticleCloud::ParticleCloud(int numberOfParticle/* = -1 */):
   numberOfParticles_(numberOfParticle),
   numberOfParticlesChanged_(false),
   positions_(nullptr),

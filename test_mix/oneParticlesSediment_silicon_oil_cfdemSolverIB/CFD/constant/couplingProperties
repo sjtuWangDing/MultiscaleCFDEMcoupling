@@ -26,6 +26,8 @@ FoamFile
 //===========================================================================//
 // sub-models & settings
 
+verbose true;
+
 usedForSolverPiso false;
 
 usedForSolverIB true;

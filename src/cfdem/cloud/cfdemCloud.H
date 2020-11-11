@@ -34,12 +34,16 @@ Class
 #ifndef __CFDEM_CLOUD_H__
 #define __CFDEM_CLOUD_H__
 
-#include <vector>
 #include <memory>
+#include <vector>
+#include <unordered_map>
+#include <unistd.h> // usleep
+#include "mpi.h" // MPI
 
 #include "OFversion.H" // choose version
 #include "fvCFD.H"
 #include "IFstream.H"
+#include "error.h"
 
 #if defined(version21) || defined(version16ext)
   #include "turbulenceModel.H"
@@ -47,9 +51,14 @@ Class
   #include "RASModel.H"
 #endif
 
-#include "tools/runTimeSelectionTables.H"
 #include "cloud/couplingProperties.H"
 #include "cloud/particleCloud.H"
+
+#ifndef USLEEP
+#define USLEEP(times) \
+  usleep((int)(times * 1000000)); \
+  MPI_Barrier(MPI_COMM_WORLD);
+#endif
 
 namespace Foam {
 
@@ -78,15 +87,35 @@ public:
   //! @brief Destructor
   virtual ~cfdemCloud();
 
+  /*!
+   * \brief 更新函数
+   * \note used for cfdemSolverPiso
+   * \param VoidF  <[in, out] 小颗粒空隙率场
+   * \param Us     <[in, out] 局部平均小颗粒速度场
+   * \param U      <[in] 流体速度场
+   */
+  virtual bool evolve(volScalarField& VoidF,
+                      volVectorField& Us,
+                      volVectorField& U);
+
   // interface of cfdemCloud
   inline const fvMesh& mesh() const { return mesh_; }
+  inline ParticleCloud& pCloud() { return pCloud_; }
+  inline const CouplingProperties& cProps() const { return cProps_; }
   inline const IOdictionary& couplingPropertiesDict() const { return couplingPropertiesDict_; }
   inline const IOdictionary& liggghtsCommandsDict() const { return liggghtsCommandsDict_; }
-  inline const CouplingProperties& cProps() const { return cProps_; }
 
-  inline const std::vector<std::shared_ptr<liggghtsCommandModel> >& liggghtsCommandModel() const {
-    return liggghtsCommandModel_;
-  }
+  const std::vector<std::shared_ptr<liggghtsCommandModel>>& liggghtsCommandModels() const;
+  const std::vector<std::shared_ptr<forceModel>>& forceModels() const;
+  const std::vector<std::shared_ptr<momCoupleModel>>& momCoupleModels() const;
+
+  const dataExchangeModel& dataExchangeM() const;
+  const averagingModel& averagingM() const;
+
+  dataExchangeModel& dataExchangeM();
+  averagingModel& averagingM();
+
+  inline bool writeTimePassed() const { return writeTimePassed_; }
 
   // interface of CouplingProperties
   inline bool verbose() const { return cProps_.verbose(); }
@@ -105,6 +134,9 @@ public:
   inline bool allowCFDsubTimeStep() const { return cProps_.allowCFDsubTimeStep(); }
   inline label couplingInterval() const { return cProps_.couplingInterval(); }
 
+  // interface of particleCloud
+  inline int numberOfParticles() const { return pCloud_.numberOfParticles(); }
+
 protected:
 
   const fvMesh& mesh_;
@@ -118,19 +150,18 @@ protected:
 
   ParticleCloud pCloud_;
 
-  //! @note forceModel, liggghtsCommandModel, momCoupleModel
-  std::vector<std::shared_ptr<liggghtsCommandModel> > liggghtsCommandModel_;
+  //! @note forceModel, liggghtsCommandModel, momCoupleModel using std::vector as container
+  std::vector<std::shared_ptr<liggghtsCommandModel>> liggghtsCommandModels_;
 
+  std::vector<std::shared_ptr<forceModel>> forceModels_;
 
-
-
-  autoPtr<forceModel>* forceModel_;
-
-  autoPtr<momCoupleModel>* momCoupleModel_;
-
-  autoPtr<locateModel> locateModel_;
+  std::vector<std::shared_ptr<momCoupleModel>> momCoupleModels_;
 
   autoPtr<dataExchangeModel> dataExchangeModel_;
+
+  autoPtr<averagingModel> averagingModel_;
+
+  autoPtr<locateModel> locateModel_;
 
   autoPtr<IOModel> IOModel_;
 
@@ -139,8 +170,6 @@ protected:
   autoPtr<registryModel> registryModel_;
 
   autoPtr<voidFractionModel> voidFractionModel_;
-
-  autoPtr<averagingModel> averagingModel_;
 
   autoPtr<clockModel> clockModel_;
 

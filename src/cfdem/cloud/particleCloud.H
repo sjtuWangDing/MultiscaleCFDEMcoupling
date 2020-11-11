@@ -35,6 +35,8 @@ Class
 #ifndef __PARTICLE_CLOUD_H__
 #define __PARTICLE_CLOUD_H__
 
+#include "error.H"
+
 namespace Foam {
 
 //! @brief The basic class for particles
@@ -42,7 +44,7 @@ class ParticleCloud {
 
 public:
 
-  ParticleCloud(int numberOfParticle = 0);
+  ParticleCloud(int numberOfParticle = -1);
 
   // interfaces - getter
   inline int numberOfParticles() const { return numberOfParticles_; }
@@ -61,6 +63,14 @@ public:
   inline double** cellIds() const { return cellIds_; }
   inline double** particleWeights() const { return particleWeights_; }
   inline double** particleVolumes() const { return particleVolumes_; }
+
+  // interface - setter
+  inline void setNumberOfParticles(int number) {
+    if (number <= 0) {
+      FatalError << "number of particle is <= 0" << abort(FatalError);
+    }
+    numberOfParticles_ = number;
+  }
 
 protected:
 

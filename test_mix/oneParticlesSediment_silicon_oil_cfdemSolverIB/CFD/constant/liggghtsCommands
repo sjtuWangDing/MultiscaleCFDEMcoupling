@@ -23,9 +23,11 @@ FoamFile
 
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
 
+runFirst true;
+
+verbose true;
+
 liggghtsCommandModels
 (
    runLiggghts
 );
-
-// ************************************************************************* //

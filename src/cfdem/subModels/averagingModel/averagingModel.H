@@ -29,98 +29,72 @@ Description
   and OpenFOAM(R). Note: this code is not part of OpenFOAM(R) (see DISCLAIMER).
 
 Class
-  liggghtsCommandModel
+  averagingModel
 \*---------------------------------------------------------------------------*/
 
-#ifndef __LIGGGHTS_COMMAND_MODEL_H__
-#define __LIGGGHTS_COMMAND_MODEL_H__
+#ifndef __AVERAGING_MODEL_H__
+#define __AVERAGING_MODEL_H__
 
 #include "cloud/cfdemCloud.H"
 #include "base/runTimeSelectionTables.H"
 
 namespace Foam {
 
-class liggghtsCommandModel {
+//! @brief 局部平均模型
+class averagingModel {
 
 public:
   /* --------------------------------- base class and functions -------------------------- */
 
   //! @brief Runtime type information
-  cfdemTypeName("liggghtsCommandModel");
+  cfdemTypeName("averagingModel")
 
   //! @brief Declare runtime constructor selection
-  cfdemDeclareRunTimeSelection(std::unique_ptr, liggghtsCommandModel, (cfdemCloud& cloud), (cloud));
+  cfdemDeclareRunTimeSelection(autoPtr, averagingModel, (cfdemCloud& cloud), (cloud))
 
   //! @brief Selector
-  static std::unique_ptr<liggghtsCommandModel> New(cfdemCloud& cloud,
-                                                   const dictionary& dict,
-                                                   const std::string& modelName);
+  static autoPtr<averagingModel> New(cfdemCloud& cloud, const dictionary& dict);
 
   //! @brief Constructor
-  liggghtsCommandModel(cfdemCloud& cloud);
+  averagingModel(cfdemCloud& cloud);
 
   //! @brief Destructor
-  virtual ~liggghtsCommandModel();
-
-  /* --------------------------------- sub class ----------------------------------------- */
-
-  struct CmdRunTime {
-    scalar couplingStartTime_;
-    scalar couplingEndTime_;
-    scalar couplingIntervalTime_;
-    int firstCouplingStep_;
-    int lastCouplingStep_;
-    int couplingStepInterval_;
-    CmdRunTime():
-      couplingStartTime_(-1.0), couplingEndTime_(-1.0), couplingIntervalTime_(0.0),
-      firstCouplingStep_(-1), lastCouplingStep_(-1), couplingStepInterval_(0) {}
-  };
-
-  /* --------------------------------- virtual functions --------------------------------- */
-
-  //! @brief 根据 index 获取 command 的内容
-  virtual std::string getCommand(int index) const = 0;
-
-  //! @param couplingStep 当前耦合步计数
-  virtual bool runCommand(int couplingStep) = 0;
+  virtual ~averagingModel();
 
   /* --------------------------------- member functions ---------------------------------- */
 
-  void checkTimeMode(const dictionary& subPropsDict);
-
-  void checkTimeSettings(const dictionary& subPropsDict);
-
-  bool runThisCommand(int couplingStep);
+  inline void resetVectorAverage(volVectorField& prev,
+                                 volVectorField& next,
+                                 bool single = false) const {
+    if (!single) { prev == next; }
+    next == dimensionedVector("zero", next.dimensions(), vector::zero);
+  }
 
   /* --------------------------------- public interfaces --------------------------------- */
 
-  inline int commandLines() const { return commandLines_; }
+  inline volVectorField& UsPrev() { return UsPrev_; }
+
+  inline volVectorField& UsNext() { return UsNext_; }
+
+  inline volScalarField& UsWeightField() { return UsWeightField_; }
 
 protected:
 
   cfdemCloud& cloud_;
 
-  std::string command_;
+  /*!
+   * @brief 覆盖 cellI 网格的所有颗粒对其影响系数的总和
+   * @note UsWeightField_[cellI]
+   */
+  volScalarField UsWeightField_;
 
-  int commandLines_;
+  //! @brief 上个时间步中局部平均颗粒速度场
+  volVectorField UsPrev_;
 
-  Switch verbose_;
-
-  Switch runFirst_;
-
-  Switch runLast_;
-
-  Switch runEveryCouplingStep_;
-
-  Switch runEveryWriteStep_;
-
-  CmdRunTime cmdRunTime_;
-
-  int nextRun_;
-
-  int lastRun_;
+  //! @brief 下个时间步中局部平均颗粒速度场
+  volVectorField UsNext_;
 };
 
 } // namespace Foam
 
-#endif // __LIGGGHTS_COMMAND_MODEL_H__
+#endif // __AVERAGING_MODEL_H__

@@ -37,6 +37,7 @@ Class
 
 #include "dataExchangeModel.H"
 
+#include "mpi.h"
 #include <lammps.h> // LAMMPS include files
 #include <input.h>
 #include <atom.h>
@@ -62,7 +63,8 @@ public:
 
 public:
 
-  bool couple();
+  //! @return 当前耦合时间步中颗粒的数量
+  int couple();
 
   //! @brief Allocate and destroy for 2-D double array
   void destroy(double**& array);
@@ -101,6 +103,9 @@ private:
 
   LAMMPS_NS::LAMMPS* lmp_;
 
+  MPI_Comm lgs_comm_;
+
+  dictionary subPropsDict_;
 };
 
 } // namespace Foam

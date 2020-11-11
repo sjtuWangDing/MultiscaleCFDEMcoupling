@@ -36,27 +36,34 @@ Class
 #define __DATA_EXCHANGE_MODEL_H__
 
 #include "cloud/cfdemCloud.H"
+#include "base/runTimeSelectionTables.H"
 
 namespace Foam {
 
 class dataExchangeModel {
 
 public:
+  /* --------------------------------- base class and functions -------------------------- */
 
   //! @brief Runtime type information
-  cfdemTypeName("dataExchangeModel");
+  cfdemTypeName("dataExchangeModel")
+
   //! @brief Declare runtime constructor selection
-  cfdemDeclareRunTimeSelection(autoPtr, dataExchangeModel, (cfdemCloud& cloud), (cloud));
+  cfdemDeclareRunTimeSelection(autoPtr, dataExchangeModel, (cfdemCloud& cloud), (cloud))
+
   //! @brief Selector
   static autoPtr<dataExchangeModel> New(cfdemCloud& cloud, const dictionary& dict);
+
   //! @brief Constructor
   dataExchangeModel(cfdemCloud& cloud);
+
   //! @brief Destructor
   virtual ~dataExchangeModel();
 
-public:
+  /* --------------------------------- virtual functions --------------------------------- */
 
-  virtual bool couple();
+  //! @return 当前耦合时间步中颗粒的数量
+  virtual int couple();
 
   //! @brief Allocate and destroy for 2-D double array
   virtual void destroy(double**& array);
@@ -104,7 +111,7 @@ public:
       << abort(FatalError);
   }
 
-public:
+  /* --------------------------------- member functions ---------------------------------- */
 
   template<typename DType>
   void getData(const std::string& dataName,
@@ -170,20 +177,25 @@ public:
     }
   }
 
-public:
+  /* --------------------------------- public interfaces --------------------------------- */
 
   inline int couplingStep() const { return couplingStep_; }
+
   inline scalar DEMts() const { return DEMts_; }
+
   //! @brief 计算耦合间隔的秒数
   inline scalar couplingTime() const { return cloud_.cProps().couplingInterval() * DEMts_; }
+
   //! @brief 当前耦合时间步的起始时间（全局时间）
   inline scalar TSstart() const {
     return cloud_.mesh().time().startTime().value() + (couplingStep_ - 1) * couplingTime();
   }
+
   //! @brief 当前耦合时间步的结束时间（全局时间）
   inline scalar TSend() const {
     return cloud_.mesh().time().startTime().value() + couplingStep_ * couplingTime();
   }
+
   //! @brief 计算指定时间的 DEM 步
   inline int DEMstepsTillT(scalar t) const {
     return (t - (cloud_.mesh().time().value() - couplingTime()) + SMALL) / DEMts_;

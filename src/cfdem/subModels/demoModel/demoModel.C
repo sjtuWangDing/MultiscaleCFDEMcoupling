@@ -29,36 +29,27 @@ Description
   and OpenFOAM(R). Note: this code is not part of OpenFOAM(R) (see DISCLAIMER).
 
 Class
-  dataExchangeModel
+  demoModel
 \*---------------------------------------------------------------------------*/
 
-#include "dataExchangeModel.H"
+#include "demoModel.H"
 
 namespace Foam {
 
-cfdemDefineTypeName(dataExchangeModel)
+cfdemDefineTypeName(demoModel)
 
-cfdemDefineConstructNewFunctionMap(dataExchangeModel)
+cfdemDefineConstructNewFunctionMap(demoModel)
 
-cfdemDefineDestroyNewFunctionMap(dataExchangeModel)
+cfdemDefineDestroyNewFunctionMap(demoModel)
 
 cfdmeDefineBaseTypeNew(
-  autoPtr, dataExchangeModel, (cfdemCloud& cloud, const dictionary& dict), cloud, dict, (cloud))
+  autoPtr, demoModel, (cfdemCloud& cloud, const dictionary& dict), cloud, dict, (cloud))
 
 //! @brief Constructor
-dataExchangeModel::dataExchangeModel(cfdemCloud& cloud):
-  cloud_(cloud),
-  // 在初始化 dataExchangeModel 的时候，记录下当前的流体时间步为 time index
-  timeIndexOffset_(cloud.mesh().time().timeIndex()),
-  // 初始化耦合时间步
-  couplingStep_(0),
-  // 初始化 DEM 时间步长，在具体的模型中读入具体的值
-  // twoWayMPI: 通过 LAMMP 读入
-  // twoWayFile: 通过字典文件读入
-  DEMts_(-1.0) {
-}
+demoModel::demoModel(cfdemCloud& cloud):
+  cloud_(cloud) {}
 
 //! @brief Destructor
-dataExchangeModel::~dataExchangeModel() {}
+demoModel::~demoModel() {}
 
 } // namespace Foam

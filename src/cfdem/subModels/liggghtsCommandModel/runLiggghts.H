@@ -44,14 +44,28 @@ class runLiggghts: public liggghtsCommandModel {
 public:
 
   //! @brief Runtime type information
-  cfdemTypeName("runLiggghts");
+  cfdemTypeName("runLiggghts")
 
   //! @brief Constructor
   runLiggghts(cfdemCloud& cloud);
 
   //! @brief Destructor
   ~runLiggghts();
+
+  std::string getCommand(int index) const;
+
+  bool runCommand(int couplingStep);
+
+  std::string createCommand(const std::string& cmd, int interval = 0);
+
+private:
+
+  static const std::string baseCommand_;
+
+  dictionary subPropsDict_;
 };
+
+const std::string runLiggghts::baseCommand_ = "run";
 
 } // namespace Foam
 
