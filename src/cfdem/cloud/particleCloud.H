@@ -36,6 +36,7 @@ Class
 #define __PARTICLE_CLOUD_H__
 
 #include "error.H"
+#include "base/tenser/tenser.H"
 
 namespace Foam {
 

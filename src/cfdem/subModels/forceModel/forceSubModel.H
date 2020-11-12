@@ -40,15 +40,82 @@ Class
 
 namespace Foam {
 
-//! @brief forceSubModel
-class forceSubModel {
+/*!
+  * @brief forceSwitch
+  *
+  * treatForceExplicit
+  *    true - 在CFD的动量方程中，耦合力都为显式力
+  *    false - 在CFD的动量方程中，耦合力都为半隐式力 (default)
+  *
+  * treatForceDEM
+  *    true - 仅在 DEM 中考虑耦合力，即仅考虑流体对颗粒的作用，不考虑颗粒对流体的反作用
+  *    false - 即 CFD 和 DEM 都考虑耦合力 (default)
+  *
+  * implForceDEM
+  *    true - 在每个耦合时间步，流体的速度和阻力系数都被传递到 DEM 中，从而在每个 DEM 时间步中，
+  *           使用上一个耦合时间步中的阻力系数和流体速度，与当前颗粒速度一起计算颗粒受到的阻力
+  *    false - 在每个耦合时间步中，流体对颗粒的阻力被传递到 DEM 中，并且在接下来
+  *            的 DEM 时间步中，这个力保持不变，直到下个耦合时间步 (default)
+  *
+  * verbose
+  *    true - 调试信息输出到屏幕
+  *    false - 调试信息不输出到屏幕 (default)
+  */
+enum ESwitch {
+  treatForceExplicit = 0,
+  treatForceDEM,
+  implForceDEM,
+  verbose
+};
 
+/*!
+ * @brief The force sub model is designed to hold the settings a force model can have.
+ *        For now it handles the treatForceExplicit, treatForceDEM and implForceDEM option.
+ */
+class forceSubModel {
 public:
   /* --------------------------------- base class and functions -------------------------- */
-
-  typedef enum {
-    treatForceExplicit, // 0
-  } forceSwitch;
+  class Switches {
+  public:
+    Switches(): value_(0) {}
+    void setTrue(ESwitch value) {
+      switch(value) {
+        case treatForceExplicit:
+          value_ |= (1 << treatForceExplicit);
+          break;
+        case treatForceDEM:
+          value_ |= (1 << treatForceDEM);
+          break;
+        case implForceDEM:
+          value_ |= (1 << implForceDEM);
+          break;
+        case verbose:
+          value_ |= (1 << verbose);
+          break;
+        default:
+          FatalError << "Error: illegal switch enum: " << value << " in forceSubModel"
+            << abort(FatalError);
+      }
+    }
+    bool isTrue(ESwitch value) const {
+      switch(value) {
+        case treatForceExplicit:
+          return value_ & (1 << treatForceExplicit);
+        case treatForceDEM:
+          return value_ & (1 << treatForceDEM);
+        case implForceDEM:
+          return value_ & (1 << implForceDEM);
+        case verbose:
+          return value_ & (1 << verbose);
+        default:
+          FatalError << "Error: illegal switch enum: " << value << " in forceSubModel"
+            << abort(FatalError);
+      }
+      return false;
+    }
+  private:
+    unsigned int value_;
+  };
 
   //! @brief Constructor
   forceSubModel(cfdemCloud& cloud, forceModel& forceModel);
@@ -60,6 +127,19 @@ public:
 
   /* --------------------------------- member functions ---------------------------------- */
 
+  /*!
+   * @param index                  <[in] 颗粒索引
+   * @param dragTot                <[in] 索引为 index 的颗粒受到的总阻力
+   * @param dragEx                 <[in] 索引为 index 的颗粒受到的显式阻力
+   * @param Ufluid = vector::zero  <[in] 索引为 index 的颗粒中心处流体速度(可以指定是否使用插值模型计算)
+   * @param scalar Cd = 0          <[in] 颗粒阻力系数
+   */
+  void partToArray(const label& index,
+                   const vector& dragTot,
+                   const vector& dragEx,
+                   const vector& Ufluid = vector::zero,
+                   scalar Cd = scalar(0)) const;
+
   /* --------------------------------- public interfaces --------------------------------- */
 
 protected:
@@ -68,7 +148,10 @@ protected:
 
   forceModel& forceModel_;
 
-  std::unordered_map<>
+  Switches switches_;
+
+  //! @brief 用户自定义动力粘度，该粘度仅用于计算颗粒所受阻力
+  volScalarField nu_;
 };
 
 } // namespace Foam

@@ -28,8 +28,25 @@ File
 #ifndef __LOGGING_H__
 #define __LOGGING_H__
 
+#include <inttypes.h>
 #include <iostream>
-#include "error.H"
+#include <cstdlib> // abort()
+
+/*! \brief type that will be used for index */
+#ifndef CFDEM_INT64_TENSOR_SIZE
+#define CFDEM_INT64_TENSOR_SIZE 0
+#endif
+
+/*! \brief whether do padding during allocation */
+#ifndef CFDEM_ALLOC_PAD
+#define CFDEM_ALLOC_PAD true
+#endif
+
+#if CFDEM_INT64_TENSOR_SIZE == 1
+  typedef int64_t index_t;
+#else
+  typedef int32_t index_t;
+#endif
 
 namespace base {
 
@@ -66,6 +83,8 @@ private:
   LogMessageFatal& operator= (const LogMessageFatal&);
 };
 
+} // namespace base
+
 #define CHECK(x)                                                                                                   \
   if (!(x)) {                                                                                                      \
     base::LogMessageFatal(__FILE__, __LINE__).stream() << "Check failed: " << #x;                                  \
@@ -78,7 +97,5 @@ private:
 #define CHECK_NE(x, y) CHECK((x) != (y))
 #define CHECK_NOTNULL(x)                                                                                           \
   ((x) == NULL ? base::LogMessageFatal(__FILE__, __LINE__).stream() << "Check not null failed: " #x, (x) : (x))
-
-} // namespace base
 
 #endif // __LOGGING_H__
