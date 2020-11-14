@@ -257,7 +257,7 @@ class Tensor<1, Device, DType>: public TRValue<Tensor<1, Device, DType>,
     return shape_[idx];
   }
   inline DType& operator[] (int idx) {
-    CHECK(idx >= 0 && idx < static_cast<int>(mSize));
+    CHECK(idx >= 0 && idx < static_cast<int>(mSize()));
     return dptr_[idx];
   }
   inline const DType operator[] (int idx) const {

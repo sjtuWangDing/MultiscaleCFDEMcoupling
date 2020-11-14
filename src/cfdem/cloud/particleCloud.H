@@ -36,7 +36,11 @@ Class
 #define __PARTICLE_CLOUD_H__
 
 #include "error.H"
-#include "base/tenser/tenser.H"
+#include "base/tensor/tensor.H"
+
+#ifndef CFDEM_CLOUD_USE_TENSOR
+#define CFDEM_CLOUD_USE_TENSOR 1
+#endif
 
 namespace Foam {
 
@@ -50,20 +54,37 @@ public:
   // interfaces - getter
   inline int numberOfParticles() const { return numberOfParticles_; }
   inline bool numberOfParticlesChanged() const { return numberOfParticlesChanged_; }
+#if CFDEM_CLOUD_USE_TENSOR
+  inline base::CDTensor1& radii() { return radii_; }
+  inline base::CDTensor1& volumes() { return volumes_; }
+  inline base::CDTensor1& cds() { return cds_; }
+  inline base::CDTensor2& positions() { return positions_; }
+  inline base::CDTensor2& velocities() { return velocities_; }
+  inline base::CDTensor2& fluidVel() { return fluidVel_; }
+  inline base::CDTensor2& fAcc() { return fAcc_; }
+  inline base::CDTensor2& impForces() { return impForces_; }
+  inline base::CDTensor2& expForces() { return expForces_; }
+  inline base::CDTensor2& DEMForces() { return DEMForces_; }
+  inline base::CDTensor2& voidfractions() { return voidfractions_; }
+  inline base::CDTensor2& cellIds() { return cellIds_; }
+  inline base::CDTensor2& particleWeights() { return particleWeights_; }
+  inline base::CDTensor2& particleVolumes() { return particleVolumes_; }
+#else
+  inline double** radii() const { return radii_; }
+  inline double** volumes() const { return volumes_; }
+  inline double** cds() const { return cds_; }
   inline double** positions() const { return positions_; }
   inline double** velocities() const { return velocities_; }
-  inline double** fluidVelocites() const { return fluidVelocites_; }
-  inline double** cds() const { return cds_; }
+  inline double** fluidVel() const { return fluidVel_; }
   inline double** fAcc() const { return fAcc_; }
   inline double** impForces() const { return impForces_; }
   inline double** expForces() const { return expForces_; }
-  inline double** demForces() const { return demForces_; }
-  inline double** radii() const { return radii_; }
-  inline double** volumes() const { return volumes_; }
+  inline double** DEMForces() const { return DEMForces_; }
   inline double** voidfractions() const { return voidfractions_; }
   inline double** cellIds() const { return cellIds_; }
   inline double** particleWeights() const { return particleWeights_; }
   inline double** particleVolumes() const { return particleVolumes_; }
+#endif
 
   // interface - setter
   inline void setNumberOfParticles(int number) {
@@ -81,6 +102,36 @@ protected:
   //! @brief 颗粒总数是否发生变化
   bool numberOfParticlesChanged_;
 
+#if CFDEM_CLOUD_USE_TENSOR
+  base::CDTensor1 radii_;
+  base::CDTensor1 volumes_;
+  base::CDTensor1 cds_;
+  base::CDTensor2 positions_;
+  base::CDTensor2 velocities_;
+  base::CDTensor2 fluidVel_;
+  base::CDTensor2 fAcc_;
+  base::CDTensor2 impForces_;
+  base::CDTensor2 expForces_;
+  base::CDTensor2 DEMForces_;
+  base::CDTensor2 voidfractions_;
+  base::CDTensor2 cellIds_;
+  base::CDTensor2 particleWeights_;
+  base::CDTensor2 particleVolumes_;
+#else
+  //! @brief 颗粒半径
+  //! @note radii_[index][0]
+  double** radii_;
+
+  //! @brief 颗粒体积
+  //! @note volumes_[index][0]
+  double** volumes_;
+
+  //! @brief 颗粒阻力系数
+  //         当 forceSubModel implForceDEM 为 true 时候，该 cds_ 和 fluidVel_ 传递给 DEM 求解器， 
+  //         DEM 求解器使用颗粒中心处的流体速度与阻力系数一起计算颗粒受到的阻力
+  //! @note cds_[index][0]
+  double** cds_;
+
   //! @brief 颗粒位置矢量
   //! @note positions_[index][0 ~ 2]
   double** positions_;
@@ -90,14 +141,10 @@ protected:
   double** velocities_;
 
   //! @brief 小颗粒的中心处的流体速度
-  //         该速度用于传递给 DEM 求解器, 则 DEM 求解器使用颗粒中心处的流体速度与阻力系数一起计算颗粒受到的阻力
-  //! @note fluidVelocites_[index][0 ~ 2]
-  double** fluidVelocites_;
-
-  //! @brief 颗粒阻力系数
-  //         该阻力系数用于传递给 DEM 求解器, 则 DEM 求解器使用颗粒中心处的流体速度与阻力系数一起计算颗粒受到的阻力
-  //! @note cds_[index][0]
-  double** cds_;
+  //         当 forceSubModel implForceDEM 为 true 时候，该 cds_ 和 fluidVel_ 传递给 DEM 求解器， 
+  //         DEM 求解器使用颗粒中心处的流体速度与阻力系数一起计算颗粒受到的阻力
+  //! @note fluidVel_[index][0 ~ 2]
+  double** fluidVel_;
 
   //! @brief 在一个耦合时间间隔中，小颗粒所受的阻力的累计，将在下个耦合步中，传递给流场
   //! @note fAcc_[index][0 ~ 2] ??????????
@@ -111,17 +158,9 @@ protected:
   //! @note expForces_[index][0 ~ 2]
   double** expForces_;
 
-  //! @brief 流体对颗粒的总作用力
-  //! @note demForces_[index][0 ~ 2] ??????????
-  double** demForces_;
-
-  //! @brief 颗粒半径
-  //! @note radii_[index][0]
-  double** radii_;
-
-  //! @brief 颗粒体积
-  //! @note volumes_[index][0]
-  double** volumes_;
+  //! @brief 流体对颗粒的总作用力，如果不设置 cds_，则
+  //! @note DEMForces_[index][0 ~ 2]
+  double** DEMForces_;
 
   //! @brief 空隙率
   //! @note voidfractions_[index][subcell]
@@ -142,6 +181,7 @@ protected:
   //         只要有一个颗粒标志点在网格中，particleVolumes_[index][subcell] += (1.0 / 29.0) * 颗粒体积
   //! @note particleVolumes_[index][subcell]
   double** particleVolumes_;
+#endif // CFDEM_CLOUD_USE_TENSOR
 };
 
 } // namespace Foam

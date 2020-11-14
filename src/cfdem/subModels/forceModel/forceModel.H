@@ -37,6 +37,7 @@ Class
 
 #include "cloud/cfdemCloud.H"
 #include "base/runTimeSelectionTables.H"
+#include "forceSubModel.H"
 
 namespace Foam {
 
@@ -65,22 +66,41 @@ public:
 
   /* --------------------------------- virtual functions --------------------------------- */
 
+  virtual void setForce() {
+    FatalError << "forceModel:setForce(): using base class function, please use derived class function\n"
+      << abort(FatalError);
+  }
+
+  virtual void setMixForce(const std::vector<double>& dimensionRatios) {
+    FatalError << "forceModel:setMixForce(): using base class function, please use derived class function\n"
+      << abort(FatalError);
+  }
+
   /* --------------------------------- member functions ---------------------------------- */
 
   /* --------------------------------- public interfaces --------------------------------- */
 
+  inline base::CDTensor2& impForces() { return cloud_.pCloud().impForces(); }
+  inline base::CDTensor2& expForces() { return cloud_.pCloud().expForces(); }
+  inline base::CDTensor2& DEMForces() { return cloud_.pCloud().DEMForces(); }
+  inline base::CDTensor2& fluidVel() { return cloud_.pCloud().fluidVel(); }
+  inline base::CDTensor1& cds() { return cloud_.pCloud().cds(); }
+
 protected:
 
   cfdemCloud& cloud_;
+
+  //! @brief 当前 force model 的 forceSubModel
+  forceSubModel forceSubModel_;
+
+  //! @brief 是否激活探针
+  bool useProbe_;
 
   //! @brief 颗粒隐式力的总和 [N]
   volVectorField impParticleForces_;
 
   //! @brief 颗粒显式力的总和 [N]
   volVectorField expParticleForces_;
-
-  //! @brief 是否激活探针
-  bool useProbe_;
 };
 
 } // namespace Foam

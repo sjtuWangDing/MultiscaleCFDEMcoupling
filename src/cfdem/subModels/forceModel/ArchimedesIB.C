@@ -29,29 +29,37 @@ Description
   and OpenFOAM(R). Note: this code is not part of OpenFOAM(R) (see DISCLAIMER).
 
 Class
-  Foam::ParticleCloud
+  ArchimedesIB
 \*---------------------------------------------------------------------------*/
 
-#include "particleCloud.H"
+#include "Archimedes.H"
 
 namespace Foam {
 
-ParticleCloud::ParticleCloud(int numberOfParticle/* = -1 */):
-  numberOfParticles_(numberOfParticle),
-  numberOfParticlesChanged_(false),
-  radii_(),
-  volumes_(),
-  cds_(),
-  positions_(),
-  velocities_(),
-  fluidVel_(),
-  fAcc_(),
-  impForces_(),
-  expForces_(),
-  DEMForces_(),
-  voidfractions_(),
-  cellIds_(),
-  particleWeights_(),
-  particleVolumes_() {}
+cfdemDefineTypeName(Archimedes)
+
+cfdemAddToNewFunctionMap(forceModel, Archimedes)
+
+//! @brief Constructor
+ArchimedesIB::ArchimedesIB(cfdemCloud& cloud):
+  forceModel(cloud),
+  subPropsDict_(cloud.couplingPropertiesDict().subDict(typeName_ + "Props")),
+  voidFractionFieldName_(subPropsDict_.lookupOrDefault("voidfractionFieldName", "voidfractionNext")),
+  gravityFieldName_(subPropsDict_.lookupOrDefault("gravityFieldName", "g")),
+  voidFraction_(cloud.mesh().lookupObject<volScalarField>(voidFractionFieldName_)),
+#if defined(version21)
+  g_(cloud.mesh().lookupObject<uniformDimensionedVectorField>(gravityFieldName_))
+#elif defined(version16ext) || defined(version15)
+  g_(dimensionedVector(cloud.mesh().lookupObject<IOdictionary>("environmentalProperties").lookup(environmentalProperties)).value())
+#endif
+{
+
+}
+
+ArchimedesIB::~ArchimedesIB() {}
+
+void ArchimedesIB::setForce() {
+  
+}
 
 } // namespace Foam

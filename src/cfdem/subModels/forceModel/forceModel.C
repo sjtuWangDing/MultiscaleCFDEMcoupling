@@ -49,6 +49,7 @@ cfdmeDefineBaseTypeNewWithArg(std::unique_ptr, forceModel,
 //! @brief Constructor
 forceModel::forceModel(cfdemCloud& cloud):
   cloud_(cloud),
+  forceSubModel_(cloud, *this),
   useProbe_(false),
   impParticleForces_(
     IOobject(

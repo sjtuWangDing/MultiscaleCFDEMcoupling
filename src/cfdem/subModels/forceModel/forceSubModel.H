@@ -36,7 +36,6 @@ Class
 #define __FORCE_SUB_MODEL_H__
 
 #include "cloud/cfdemCloud.H"
-#include "forceModel.H"
 
 namespace Foam {
 
@@ -49,6 +48,8 @@ namespace Foam {
   *
   * treatForceDEM
   *    true - 仅在 DEM 中考虑耦合力，即仅考虑流体对颗粒的作用，不考虑颗粒对流体的反作用
+  *           在 resolved 方法中，比如 cfdemSolverIB，ArchimedesIB force 会直接设置 treatForceDEM 为 true
+  *           因为颗粒对流体的作用力是通过虚拟域方法得到 ？？？？？？？？？？？？？？？？？
   *    false - 即 CFD 和 DEM 都考虑耦合力 (default)
   *
   * implForceDEM
@@ -77,6 +78,13 @@ public:
   /* --------------------------------- base class and functions -------------------------- */
   class Switches {
   public:
+    static constexpr int Num = 4;
+    static constexpr const char* NameList[] = {
+      "treatForceExplicit",
+      "treatForceDEM",
+      "implForceDEM",
+      "verbose"
+    };
     Switches(): value_(0) {}
     void setTrue(ESwitch value) {
       switch(value) {
@@ -135,10 +143,12 @@ public:
    * @param scalar Cd = 0          <[in] 颗粒阻力系数
    */
   void partToArray(const label& index,
-                   const vector& dragTot,
-                   const vector& dragEx,
-                   const vector& Ufluid = vector::zero,
+                   const Foam::vector& dragTot,
+                   const Foam::vector& dragEx,
+                   const Foam::vector& Ufluid = Foam::vector::zero,
                    scalar Cd = scalar(0)) const;
+
+  void readSwitches();
 
   /* --------------------------------- public interfaces --------------------------------- */
 

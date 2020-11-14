@@ -40,19 +40,20 @@ Class
 #include <unistd.h> // usleep
 #include "mpi.h" // MPI
 
-#include "OFversion.H" // choose version
 #include "fvCFD.H"
 #include "IFstream.H"
 #include "error.h"
+
+#include "base/tensor/tensor.H"
+#include "cloud/OFVersion.H" // choose version
+#include "cloud/couplingProperties.H"
+#include "cloud/particleCloud.H"
 
 #if defined(version21) || defined(version16ext)
   #include "turbulenceModel.H"
 #elif defined(version15)
   #include "RASModel.H"
 #endif
-
-#include "cloud/couplingProperties.H"
-#include "cloud/particleCloud.H"
 
 #ifndef USLEEP
 #define USLEEP(times) \

@@ -33,6 +33,7 @@ Class
 \*---------------------------------------------------------------------------*/
 
 #include "forceSubModel.H"
+#include "forceModel.H"
 
 namespace Foam {
 
@@ -64,17 +65,51 @@ forceSubModel::~forceSubModel() {}
  * @param scalar Cd = 0          <[in] 颗粒阻力系数
  */
 void forceSubModel::partToArray(const label& index,
-                                const vector& dragTot,
-                                const vector& dragEx,
-                                const vector& Ufluid,
+                                const Foam::vector& dragTot,
+                                const Foam::vector& dragEx,
+                                const Foam::vector& Ufluid,
                                 scalar Cd) const {
   if (false == switches_.isTrue(treatForceDEM)) {
     // CFD 与 DEM 求解器都考虑耦合力
     if (switches_.isTrue(treatForceExplicit)) {
       // 耦合力视为显式力
+      #pragma unroll
+      for (int j = 0; j < 3; ++j) {
+        // 将耦合力累加到 expFoces_
+        forceModel_.expForces()[index][j] += dragTot[j];
+      }
+    } else {
+      // 耦合力视为隐式力
+      #pragma unroll
+      for (int j = 0; j < 3; ++j) {
+        // 将耦合力累加到 impForces_ 和 expFoces_
+        forceModel_.impForces()[index][j] += dragTot[j] - dragEx[j];  // 隐式力 = dragTot[j] - dragEx[j]
+        forceModel_.expForces()[index][j] += dragEx[j];
+      }
+    }
+  }
+  // implForceDEM - true:
+  // 颗粒中心处的流体速度和阻力系数都被传递到 DEM 中，从而在每个 DEM 时间步中，使用阻力系数和流体速度，与当前颗粒速度一起计算颗粒受到的阻力
+  if (switches_.isTrue(implForceDEM)) {
+    #pragma unroll
+    for (int j = 0; j < 3; j++) {
+      forceModel_.fluidVel()[index][j] = Ufluid[j];
+    }
+    forceModel_.cds()[index] = Cd;
+  } else {
+    // 直接将总阻力传递给 DEMForces_[index]
+    #pragma unroll
+    for (int j = 0; j < 3; j++) {
+      forceModel_.DEMForces()[index][j] = dragTot[j];
     }
   }
 }
 
+void forceSubModel::readSwitches() {
+  for (int i = 0; i < Switches::Num; ++i) {
+    Info << "Foam::forceSubModel::readSwitches(): looking for " << Switches::NameList[i] << "...";
+    
+  }
+}
 
 } // namespace Foam
