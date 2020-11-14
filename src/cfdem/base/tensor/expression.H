@@ -3,6 +3,7 @@
 
 #include <iostream>
 
+namespace base {
 /*!
  * \brief type of expressions defined as bitmask
  *   subtype relationshop kRValue < kMapper < kPull < kComplex
@@ -32,7 +33,7 @@ struct SaveTo {
 
 } // namespace sv
 
-template<typename Saver, typename 
+namespace expr {
 
 /*!
  * \brief expression engine that actually interprets these expressions
@@ -41,12 +42,7 @@ template<typename Saver, typename
  * \tparam RValue the type of RValue to be saved
  */
 template<typename Saver, typename RValue, typename DType>
-struct ExpEngine {
-  template<typename E>
-  inline static void evaluate(RValue *dst, Exp<E, DType, type::kMapper>& exp) {
-    MapExp<Saver>(dst, exp);
-  }
-};
+struct ExpEngine;
 
 /*!
  * \brief base class for expression
@@ -92,15 +88,13 @@ inline ScalarExp<DType> scalar(DType s) {
  */
 template<typename Container, typename DType>
 struct RValueExp: public Exp<Container, DType, type::kRValue> {
-  inline Container& __assign(DType s) {
-    ExpEngine<sv::SaveTo, Container, DType>::evaluate(this->ptrself(), scalar<Dtype>(s));
-    return *(this->ptrself());
-  }
+  // inline Container& __assign(DType s) {
+  //   ExpEngine<sv::SaveTo, Container, DType>::evaluate(this->ptrself(), scalar<DType>(s));
+  //   return *(this->ptrself());
+  // }
 };
 
-template<typename Container, int dimension, typename DType>
-struct TRValue: public RValueExp<> {
-
-};
+} // namespace expr
+} // namespace base
 
 #endif // __EXPRESSION_H__

@@ -1,25 +1,10 @@
 #ifndef __TENSOR_H__
 #define __TENSOR_H__
 
-#include "base/logging.H"
-// #include "base/tenser/expression.H"
+#include "logging.H"
+#include "expression.H"
 
 namespace base {
-
-struct cpu {
-  /*! \brief whether this device is CPU or not */
-  static const bool kDevCPU = true;
-  /*! \brief device flag number, identifies this device */
-  static const int kDevMask = 1 << 0;
-};
-
-/*! \brief device name GPU */
-struct gpu {
-  /*! \brief whether this device is CPU or not */
-  static const bool kDevCPU = false;
-  /*! \brief device flag number, identifies this device */
-  static const int kDevMask = 1 << 1;
-};
 
 /*!
  * \brief shape of a tensor
@@ -105,11 +90,11 @@ class Shape {
   }
   /*! \brief allow string printing of the shape */
   template<int dim>
-  friend std::ostream& operator<< (std::ostream& os, Shape<dim>& shape);
+  friend std::ostream& operator<< (std::ostream& os, const Shape<dim>& shape);
 };
 
 template<int dim>
-std::ostream& operator<< (std::ostream& os, Shape<dim>& shape) {
+std::ostream& operator<< (std::ostream& os, const Shape<dim>& shape) {
   os << "(";
   for (int i = 0; i < dim; ++i) {
     if (i != 0) os << ", ";
@@ -124,7 +109,7 @@ std::ostream& operator<< (std::ostream& os, Shape<dim>& shape) {
  * \param s0 size of dimension 0
  * \return the shape construction
  */
-inline Shape<1> shape1(index_t s0) {
+inline Shape<1> makeShape1(index_t s0) {
   Shape<1> s;
   s[0] = s0;
   return s;
@@ -136,7 +121,7 @@ inline Shape<1> shape1(index_t s0) {
  * \param s1 size of dimension 1
  * \return the shape construction
  */
-inline Shape<2> shape2(index_t s0, index_t s1) {
+inline Shape<2> makeShape2(index_t s0, index_t s1) {
   Shape<2> s;
   s[0] = s0;
   s[1] = s1;
@@ -144,13 +129,27 @@ inline Shape<2> shape2(index_t s0, index_t s1) {
 }
 
 /*!
- * \brief general tensor
+ * \brief Tensor RValue, this is the super type of all kinds of possible tensors
+ * \tparam Container the tensor type
  * \tparam dimension dimension of the tensor
+ * \tparam Device which device the tensor is on
  * \tparam DType the type of elements in the tensor
  */
-template<int dimension, typename DType = double>
-class Tensor {
+template<typename Container, int dimension, typename Device, typename DType>
+struct TRValue: public expr::RValueExp<Container, DType> {};
+
+/*!
+ * \brief general tensor
+ * \tparam dimension dimension of the tensor
+ * \tparam Device which device the tensor is on
+ * \tparam DType the type of elements in the tensor
+ */
+template<int dimension, typename Device CFDEM_DEFAULT_DEVICE, typename DType CFDEM_DEFAULT_DTYPE>
+class Tensor: public TRValue<Tensor<dimension, Device, DType>,
+                             dimension, Device, DType> {
  public:
+  /*! \brief whether current type lies in cpu */
+  static const bool kDevCPU = Device::kDevCPU;
   /*! \brief dimension of subtype */
   static const int  kSubdim = dimension - 1;
   /*! \brief pointer to the data */
@@ -215,14 +214,15 @@ class Tensor {
    * \param idx index
    * \return the result tensor
    */
-  inline Tensor<kSubdim, DType> operator[] (int idx) const {
-    return Tensor<kSubdim, DType>(dptr_ + this->memSize<1>() * idx, shape_.subShape(), stride_);
+  inline Tensor<kSubdim, Device, DType> operator[] (int idx) const {
+    return Tensor<kSubdim, Device, DType>(dptr_ + this->memSize<1>() * idx, shape_.subShape(), stride_);
   }
 };
 
 /*! \brief respecialized class Tensor1D, thei is due to different implementation in operator[] */
-template<typename DType>
-class Tensor<1, DType> {
+template<typename Device, typename DType>
+class Tensor<1, Device, DType>: public TRValue<Tensor<1, Device, DType>,
+                                               1, Device, DType> {
  public:
   DType *dptr_;
   Shape<1> shape_;
@@ -235,16 +235,16 @@ class Tensor<1, DType> {
       : dptr_(dptr), shape_(shape), stride_(shape[0]) {}
   inline Tensor(DType *dptr, const Shape<1> &shape, index_t stride)
       : dptr_(dptr), shape_(shape), stride_(stride) {}
-  inline Tensor<1, DType>& operator= (const Tensor<1, DType> &exp) {
+  inline Tensor<1, Device, DType>& operator= (const Tensor<1, Device, DType> &exp) {
     dptr_ = exp.dptr_;
     shape_ = exp.shape_;
     stride_ = exp.stride_;
     return *this;
   }
   // member function
-  template<int startDim = 0>
+  template<int startDim>
   inline index_t memSize() const {
-    CHECK_EQ(startDim, 0)
+    CHECK_EQ(startDim, 0);
     return stride_;
   }
   inline bool isContinus() const {
@@ -257,14 +257,48 @@ class Tensor<1, DType> {
     return shape_[idx];
   }
   inline DType& operator[] (int idx) {
-    CHECK(idx >= 0 && idx < static_cast<int>(mSize))
+    CHECK(idx >= 0 && idx < static_cast<int>(mSize));
     return dptr_[idx];
   }
   inline const DType operator[] (int idx) const {
-    return const_cast<Tensor<1, DType>*>(this)->operator[](idx);
+    return const_cast<Tensor<1, Device, DType>*>(this)->operator[](idx);
   }
 };
+using CDTensor1 = ::base::Tensor<1, cpu, double>;
+using CDTensor2 = ::base::Tensor<2>;
+
+//------------------------
+// Function Declarations
+//-----------------------
+
+// /*!
+//  * \brief map a expression to a tensor, this function calls MapPlan
+//  *        implemented in tensor_cpu-inl.H
+//  * \tparam Saver specify storage method
+//  * \tparam TContainer specifies the storage type of the tensor
+//  * \tparam dim dim of the tensor, during usage, there is no need to specify this parameter
+//  * \tparam DType the type of elements in the tensor
+//  * \tparam EContainer specifies the expression type, not need to specify this parameter during usage
+//  * \tparam exp_type expression type
+//  * \param dst destination
+//  * \param exp expression
+//  */
+// template<typename Saver, typename TContainer, int dim,
+//          typename DType, typename EContainer, int exp_type>
+// inline void MapExp(TRValue<TContainer, dim, DType> *dst,
+//                    const expr::Exp<EContainer, DType, exp_type>& exp);
+// {
+//   Shape<dim> expShape = expr::ShapeCheck<dim, EContainer>::Check(exp.self());
+//   Shape<dim> destShape = expr::ShapeCheck<dim, TContainer>::Check(dst->self());
+//   CHECK(expShape[0] == 0 || expShape == destShape)
+//       << "Assignment: Shape of Tensors are not consistent with target, "
+//       << "expression shape: " << expShape
+//       << " dest shape: " << destShape;
+// }
 
 } // namespace base
+
+#include "expression_engine-inl.H"
+#include "tensor_cpu-inl.H"
 
 #endif // __TENSOR_H__

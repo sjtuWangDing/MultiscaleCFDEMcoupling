@@ -32,22 +32,6 @@ File
 #include <iostream>
 #include <cstdlib> // abort()
 
-/*! \brief type that will be used for index */
-#ifndef CFDEM_INT64_TENSOR_SIZE
-#define CFDEM_INT64_TENSOR_SIZE 0
-#endif
-
-/*! \brief whether do padding during allocation */
-#ifndef CFDEM_ALLOC_PAD
-#define CFDEM_ALLOC_PAD true
-#endif
-
-#if CFDEM_INT64_TENSOR_SIZE == 1
-  typedef int64_t index_t;
-#else
-  typedef int32_t index_t;
-#endif
-
 namespace base {
 
 class LogMessage {
@@ -83,13 +67,61 @@ private:
   LogMessageFatal& operator= (const LogMessageFatal&);
 };
 
+/*! \brief double type that will be used in default by cfdem */
+typedef double d_real_t;
+
+/*! \brief device name CPU */
+struct cpu {
+  /*! \brief whether this device is CPU or not */
+  static const bool kDevCPU = true;
+  /*! \brief device flag number, identifies this device */
+  static const int kDevMask = 1 << 0;
+};
+
+/*! \brief device name GPU */
+struct gpu {
+  /*! \brief whether this device is CPU or not */
+  static const bool kDevCPU = false;
+  /*! \brief device flag number, identifies this device */
+  static const int kDevMask = 1 << 1;
+};
+
 } // namespace base
 
+/*! \brief type that will be used for index */
+#ifndef CFDEM_INT64_TENSOR_SIZE
+#define CFDEM_INT64_TENSOR_SIZE 0
+#endif
+
+/*! \brief whether do padding during allocation */
+#ifndef CFDEM_ALLOC_PAD
+#define CFDEM_ALLOC_PAD true
+#endif
+
+/*! \brief whether use SSE */
+#ifndef CFDEM_USE_SSE
+  #define CFDEM_USE_SSE 1
+#endif
+
+#if CFDEM_INT64_TENSOR_SIZE == 1
+  typedef int64_t index_t;
+#else
+  typedef int32_t index_t;
+#endif
+
+/*! \brief default data type for tensor string */
+#ifndef CFDEM_DEFAULT_DTYPE
+#define CFDEM_DEFAULT_DTYPE = ::base::d_real_t
+#endif
+
+/*! \brief default device type */
+#ifndef CFDEM_DEFAULT_DEVICE
+#define CFDEM_DEFAULT_DEVICE = ::base::cpu
+#endif
+
 #define CHECK(x)                                                                                                   \
-  if (!(x)) {                                                                                                      \
-    base::LogMessageFatal(__FILE__, __LINE__).stream() << "Check failed: " << #x;                                  \
-  }
-#define CHECK_LT(x, y) CHECK((x) < (y))
+  if (!(x))                                                                                                        \
+    base::LogMessageFatal(__FILE__, __LINE__).stream() << "Check failed: " << #x
 #define CHECK_GT(x, y) CHECK((x) > (y))
 #define CHECK_LE(x, y) CHECK((x) <= (y))
 #define CHECK_GE(x, y) CHECK((x) >= (y))
