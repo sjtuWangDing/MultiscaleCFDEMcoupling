@@ -25,17 +25,30 @@ License
   Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA
 
 Description
-  This code is designed to realize coupled CFD-DEM simulations using LIGGGHTS
-  and OpenFOAM(R). Note: this code is not part of OpenFOAM(R) (see DISCLAIMER).
+  The force model performs the calculation of forces (e.g. fluid-particle
+  interaction forces) acting on each DEM particle. The ArchimedesIB model
+  is a model that calculates the ArchimedesIB’s volumetric lift force
+  stemming from density difference of fluid and particle. This model is
+  especially suited for resolved CFD-DEM simulations where the particle
+  is represented by immersed boundary method.
 
-Class
-  ArchimedesIB
+Examples
+  forceModels
+  (
+    ArchimedesIB
+  );
+  ArchimedesIBProps
+  {
+    gravityFieldName "g";
+    voidfractionFieldName "voidfractionNext";
+    treatForceExplicit true;
+  };
 \*---------------------------------------------------------------------------*/
 
 #ifndef __ARCHIMEDES_IB_H__
 #define __ARCHIMEDES_IB_H__
 
-#include "forceModel.H"
+#include "subModels/forceModel/forceModel.H"
 
 namespace Foam {
 
@@ -43,22 +56,23 @@ class ArchimedesIB: public forceModel {
 
 public:
 
-  //! @brief Runtime type information
+  //! \brief Runtime type information
   cfdemTypeName("ArchimedesIB")
 
-  //! @brief Constructor
+  //! \brief Constructor
   ArchimedesIB(cfdemCloud& cloud);
 
-  //! @brief Destructor
+  //! \brief Destructor
   ~ArchimedesIB();
 
   void setForce();
 
 private:
 
-  //! @note subPropsDict_ should be declared in front of other members
+  //! \note subPropsDict_ should be declared in front of other members
   dictionary subPropsDict_;
 
+  //! \brief name of the finite volume gravity field
   std::string voidFractionFieldName_;
 
   std::string gravityFieldName_;
@@ -66,9 +80,9 @@ private:
   const volScalarField& voidFraction_;
 
 #ifdef version21
-  const uniformDimensionedVectorField& g_;    // ref to gravity
+  const uniformDimensionedVectorField& g_;
 #elif defined(version16ext) || defined(version15)
-  const dimensionedVector& g_;    // ref to gravity
+  const dimensionedVector& g_;
 #endif
 };
 

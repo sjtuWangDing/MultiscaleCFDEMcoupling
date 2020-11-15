@@ -43,13 +43,13 @@ class noDataExchange: public dataExchangeModel {
 
 public:
 
-  //! @brief Runtime type information
+  //! \brief Runtime type information
   cfdemTypeName("noDataExchange")
 
-  //! @brief Constructor
+  //! \brief Constructor
   noDataExchange(cfdemCloud& cloud);
 
-  //! @brief Destructor
+  //! \brief Destructor
   ~noDataExchange();
 };
 

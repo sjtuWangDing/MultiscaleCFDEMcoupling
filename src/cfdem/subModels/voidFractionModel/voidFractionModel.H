@@ -40,38 +40,38 @@ Class
 
 namespace Foam {
 
-//! @brief 空隙率模型
+//! \brief 空隙率模型
 class voidFractionModel {
 
 public:
   /* --------------------------------- base class and functions -------------------------- */
 
-  //! @brief Runtime type information
+  //! \brief Runtime type information
   cfdemTypeName("voidFractionModel")
 
-  //! @brief Declare runtime constructor selection
+  //! \brief Declare runtime constructor selection
   cfdemDeclareRunTimeSelection(autoPtr, voidFractionModel, (cfdemCloud& cloud), (cloud))
 
-  //! @brief Selector
+  //! \brief Selector
   static autoPtr<voidFractionModel> New(cfdemCloud& cloud, const dictionary& dict);
 
-  //! @brief Constructor
+  //! \brief Constructor
   voidFractionModel(cfdemCloud& cloud);
 
-  //! @brief Destructor
+  //! \brief Destructor
   virtual ~voidFractionModel();
 
   /* --------------------------------- virtual functions --------------------------------- */
 
   /* --------------------------------- member functions ---------------------------------- */
 
-  //! @brief 重置空隙率
+  //! \brief 重置空隙率
   inline void resetVoidFraction() {
     voidFractionPrev_ == voidFractionNext_;
     voidFractionNext_ == dimensionedScalar("one", voidFractionNext_.dimensions(), 1.);
   }
 
-  //! @brief 重置体积分数
+  //! \brief 重置体积分数
   inline void resetVolumeFraction() {
     volumeFractionPrev_ == volumeFractionNext_;
     volumeFractionNext_ == dimensionedScalar("one", volumeFractionNext_.dimensions(), 1.);
@@ -83,12 +83,12 @@ protected:
 
   cfdemCloud& cloud_;
 
-  //! @brief 小颗粒空隙率
+  //! \brief 小颗粒空隙率
   volScalarField voidFractionPrev_;
 
   volScalarField voidFractionNext_;
 
-  //! @brief 大颗粒体积分数
+  //! \brief 大颗粒体积分数
   mutable volScalarField volumeFractionPrev_;
 
   mutable volScalarField volumeFractionNext_;

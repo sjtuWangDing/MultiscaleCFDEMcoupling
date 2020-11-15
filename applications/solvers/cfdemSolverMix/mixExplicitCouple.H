@@ -49,14 +49,14 @@ private:
 
   dictionary propsDict_;
 
-  // @brief Limit for for exchange field
+  // \brief Limit for for exchange field
   vector fLimit_;
 
   mutable volVectorField fPrev_;
 
   mutable volVectorField fNext_;
 
-  // @brief 单位体积上颗粒对流体的作用力源项场(单位: N / m^3)
+  // \brief 单位体积上颗粒对流体的作用力源项场(单位: N / m^3)
   mutable volVectorField sourceField_;
 
 private:
@@ -65,13 +65,13 @@ private:
 
 public:
 
-  // @brief Runtime type information
+  // \brief Runtime type information
   TypeName("mixExplicitCouple");
 
-  // @brief Constructors
+  // \brief Constructors
   mixExplicitCouple(const dictionary& dict, cfdemCloud& sm);
 
-  // @brief Destructor
+  // \brief Destructor
   ~mixExplicitCouple();
 
   // Member Functions
@@ -92,8 +92,8 @@ public:
     sourceField_ = field;
   }
 
-  // @brief 累加当前处理器上的全部源项
-  // @note 返回值单位为 N，而不是 N / m^3
+  // \brief 累加当前处理器上的全部源项
+  // \note 返回值单位为 N，而不是 N / m^3
   dimensionedVector returnIntegralSourceField() const;
 
   tmp<volVectorField> expMomSource() const;

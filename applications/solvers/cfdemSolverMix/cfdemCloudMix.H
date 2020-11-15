@@ -51,24 +51,24 @@ class cfdemCloudMix: public cfdemCloud {
 
 protected:
 
-  // @brief 颗粒角速度
+  // \brief 颗粒角速度
   mutable double** angularVelocities_;
 
-  // @brief 流体对颗粒的力矩
+  // \brief 流体对颗粒的力矩
   mutable double** DEMTorques_;
 
-  // @brief 是否跳过拉格朗日映射到欧拉场
+  // \brief 是否跳过拉格朗日映射到欧拉场
   mutable bool skipLagrangeToEulerMapping_;
 
-  // @brief 是否在指定时间步后 Skip Lagrange To Euler Mapping.
+  // \brief 是否在指定时间步后 Skip Lagrange To Euler Mapping.
   mutable bool skipAfter_;
 
-  // @brief 指定在多少时间步后 Skip Lagrange To Euler Mapping.
+  // \brief 指定在多少时间步后 Skip Lagrange To Euler Mapping.
   mutable int  timeStepsToSkip_;
 
   mutable bool calculateTortuosity_;
 
-  // @brief Mean flow direction
+  // \brief Mean flow direction
   vector flowDir_;
 
   volScalarField* frontMeshRefineField_;
@@ -81,47 +81,47 @@ protected:
 
   mutable bool haveEvolvedOnce_;
 
-  // @brief 颗粒体积分数
+  // \brief 颗粒体积分数
   mutable double** volumefractions_;
 
-  // @brief 颗粒网格尺寸比
+  // \brief 颗粒网格尺寸比
   std::vector<double> dimensionRatios_;
 
-  // @brief 全局颗粒网格尺寸比
+  // \brief 全局颗粒网格尺寸比
   std::vector<double> globalDimensionRatios_;
 
-  // @brief 颗粒覆盖当前求解器上网格的总个数
+  // \brief 颗粒覆盖当前求解器上网格的总个数
   std::vector<double> sumCellsNumbers_;
 
-  // @brief 颗粒覆盖当前求解器上网格的总体积
+  // \brief 颗粒覆盖当前求解器上网格的总体积
   std::vector<double> sumCellsVolumes_;
 
-  // // @brief fine 颗粒索引
+  // // \brief fine 颗粒索引
   // std::vector<int> fineParticleIndexs_;
 
-  // // @brief middle 颗粒索引
+  // // \brief middle 颗粒索引
   // std::vector<int> middleParticleIndexs_;
 
-  // // @brief coarse 颗粒索引
+  // // \brief coarse 颗粒索引
   // std::vector<int> coarseParticleIndexs_;
 
-  // @brief 颗粒影响的网格集合
-  // @note 用于计算 drag force for middle particle
+  // \brief 颗粒影响的网格集合
+  // \note 用于计算 drag force for middle particle
   std::vector<std::vector<int> > affectedCellIDs;
 
-  // @brief 重构网格的颗粒直径因数
-  // @note 在颗粒 refineMeshSkin_ * diameter 中的网格设置 interFace 用于 refine mesh
+  // \brief 重构网格的颗粒直径因数
+  // \note 在颗粒 refineMeshSkin_ * diameter 中的网格设置 interFace 用于 refine mesh
   double refineMeshSkin_;
 
-  // @brief 重构网格保留时间间隔(以流体时间步为单位)
-  // @note 如果设置为 100, 即重构网格会保留 100 个时间步，默认值为 0
+  // \brief 重构网格保留时间间隔(以流体时间步为单位)
+  // \note 如果设置为 100, 即重构网格会保留 100 个时间步，默认值为 0
   double refineMeshKeepInterval_;
 
-  // @brief 重构网格保留时间步
-  // @note 如果某个网格 cellI 处，refineMeshKeepStep_[cellI] = 50，则表示 50 个时间步内保留该网格的 interface
+  // \brief 重构网格保留时间步
+  // \note 如果某个网格 cellI 处，refineMeshKeepStep_[cellI] = 50，则表示 50 个时间步内保留该网格的 interface
   // volScalarField refineMeshKeepStep_;
 
-  // @brief 是否首次设置 interFace
+  // \brief 是否首次设置 interFace
   bool firstSetInterFace_;
 
 private:
@@ -196,7 +196,7 @@ public:
                               volScalarField& phiIB,
                               volScalarField& voidfraction);
 
-  // @brief 设置 coarse particle 中的流体速度
+  // \brief 设置 coarse particle 中的流体速度
   void setParticleVelocity(volVectorField& U);
 
   void calcLmpf(const volVectorField& U,
@@ -209,11 +209,11 @@ public:
                     const volVectorField& lmpf,
                     volVectorField& prevLmpf);
 
-  // @brief 确定颗粒周围细化网格的区域(每个方向的尺寸都是颗粒尺寸的两倍)
+  // \brief 确定颗粒周围细化网格的区域(每个方向的尺寸都是颗粒尺寸的两倍)
   void setInterFace(volScalarField& interFace,
                     volScalarField& refineMeshKeepStep);
 
-  // @brief 确定颗粒周围细化网格的区域(每个方向的尺寸都是颗粒尺寸的两倍)
+  // \brief 确定颗粒周围细化网格的区域(每个方向的尺寸都是颗粒尺寸的两倍)
   void setInterFace(volScalarField& interFace);
 
   // Access Functions

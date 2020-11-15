@@ -39,7 +39,7 @@ defineTypeNameAndDebug(mixDiFeliceDrag, 0);
 
 addToRunTimeSelectionTable(forceModel, mixDiFeliceDrag, dictionary);
 
-// @brief Constructors
+// \brief Constructors
 mixDiFeliceDrag::mixDiFeliceDrag(const dictionary& dict, cfdemCloud& sm):
   forceModel(dict, sm),
   propsDict_(dict.subDict(typeName + "Props")),
@@ -84,7 +84,7 @@ mixDiFeliceDrag::mixDiFeliceDrag(const dictionary& dict, cfdemCloud& sm):
   // }
 }
 
-// @brief Destructor
+// \brief Destructor
 mixDiFeliceDrag::~mixDiFeliceDrag() {}
 
 void mixDiFeliceDrag::calForceKernel(const int& index,

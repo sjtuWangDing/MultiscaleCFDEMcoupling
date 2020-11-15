@@ -53,15 +53,15 @@ protected:
 
   cfdemCloud& particleCloud_;
 
-  // @brief Max fluid volume fraction to calculate exchange field
+  // \brief Max fluid volume fraction to calculate exchange field
   scalar maxAlpha_;
 
 public:
 
-  // @brief Runtime type information
+  // \brief Runtime type information
   TypeName("momCoupleModel");
 
-  // @brief Declare runtime constructor selection table
+  // \brief Declare runtime constructor selection table
   declareRunTimeSelectionTable(
     autoPtr,
     momCoupleModel,
@@ -73,13 +73,13 @@ public:
     (dict, sm)
   );
 
-  // @brief Constructors
+  // \brief Constructors
   momCoupleModel(const dictionary& dict, cfdemCloud& sm);
 
-  // @brief Destructor
+  // \brief Destructor
   virtual ~momCoupleModel();
 
-  // @brief Selector
+  // \brief Selector
   static autoPtr<momCoupleModel> New(const dictionary& dict,
                                      cfdemCloud& sm,
                                      word momCoupleType);
@@ -88,10 +88,10 @@ public:
 
   virtual void applyDebugSettings(bool) const {}
 
-  // @brief implicit momentum source field
+  // \brief implicit momentum source field
   virtual tmp<volScalarField> impMomSource() const;
 
-  // @brief explicit momentum source field
+  // \brief explicit momentum source field
   virtual tmp<volVectorField> expMomSource() const;
 
   virtual dimensionedVector returnIntegralSourceField() const;

@@ -45,7 +45,7 @@ cfdemDefineDestroyNewFunctionMap(voidFractionModel)
 cfdmeDefineBaseTypeNew(
   autoPtr, voidFractionModel, (cfdemCloud& cloud, const dictionary& dict), cloud, dict, (cloud))
 
-//! @brief Constructor
+//! \brief Constructor
 voidFractionModel::voidFractionModel(cfdemCloud& cloud):
   cloud_(cloud),
   voidFractionPrev_(
@@ -97,7 +97,7 @@ voidFractionModel::voidFractionModel(cfdemCloud& cloud):
     dimensionedScalar("zero", dimensionSet(0, 0, 0, 0, 0), 1)
   ) {}
 
-//! @brief Destructor
+//! \brief Destructor
 voidFractionModel::~voidFractionModel() {}
 
 } // namespace Foam

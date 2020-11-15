@@ -42,7 +42,7 @@ defineTypeNameAndDebug(mixConstDiffSmoothing, 0);
 
 addToRunTimeSelectionTable(smoothingModel, mixConstDiffSmoothing, dictionary);
 
-// @brief Constructors
+// \brief Constructors
 mixConstDiffSmoothing::mixConstDiffSmoothing(const dictionary& dict, cfdemCloud& sm):
   smoothingModel(dict, sm),
   propsDict_(dict.subDict(typeName + "Props")),
@@ -67,7 +67,7 @@ mixConstDiffSmoothing::mixConstDiffSmoothing(const dictionary& dict, cfdemCloud&
   checkFields(vSmoothField_);
 }
 
-// @brief Destructor
+// \brief Destructor
 mixConstDiffSmoothing::~mixConstDiffSmoothing() {}
 
 void mixConstDiffSmoothing::smoothen(volScalarField& fieldSrc) const {

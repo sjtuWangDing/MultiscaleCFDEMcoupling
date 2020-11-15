@@ -1,7 +1,7 @@
 /*!
  * Copyright (c) 2020 by Contributors
  * @file int32.H
- * @brief 32bit integer
+ * \brief 32bit integer
  *
  * @author Wang Ding
  */
@@ -39,7 +39,7 @@ Istream& operator>> (Istream& is, int32_t& val);
 Ostream& operator<< (Ostream& os, const int32_t val);
 
 /*!
- * @note On 32bit OSs, long is ambiguously causing problems for IO operator resolution.
+ * \note On 32bit OSs, long is ambiguously causing problems for IO operator resolution.
  *       This problem is avoided by explicitly defining the following operators.
  */
 #if WM_ARCH_OPTION == 32
@@ -47,7 +47,7 @@ Ostream& operator<< (Ostream& os, const int32_t val);
   Ostream& operator<< (Ostream&, const long);
 #endif
 
-//! @brief Template specialization for pTraits<int32_t>
+//! \brief Template specialization for pTraits<int32_t>
 template<>
 class Traits<int32_t> {
 
@@ -62,13 +62,13 @@ public:
 
 public:
 
-  //! @brief Construct from int32_t explicitly.
+  //! \brief Construct from int32_t explicitly.
   explicit Traits(const int32_t& p): p_(p) {}
 
-  //! @brief Construct from Istream.
+  //! \brief Construct from Istream.
   Traits(Foam::Istream& is) { is >> p_; }
 
-  //! @brief Access to int32_t value
+  //! \brief Access to int32_t value
   operator int32_t() const { return p_; }
   operator int32_t&() { return p_; }
 

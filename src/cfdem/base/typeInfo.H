@@ -33,7 +33,7 @@ License
 
 namespace base {
 
-// //! @brief Reference type cast template function
+// //! \brief Reference type cast template function
 // //         wraps dynamic_cast to handle bad_cast exception and generate a FatalError.
 // template<typename ToType, typename FromType>
 // inline ToType& dynamicCast(FromType& from) {

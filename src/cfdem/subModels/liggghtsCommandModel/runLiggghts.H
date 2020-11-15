@@ -43,13 +43,13 @@ class runLiggghts: public liggghtsCommandModel {
 
 public:
 
-  //! @brief Runtime type information
+  //! \brief Runtime type information
   cfdemTypeName("runLiggghts")
 
-  //! @brief Constructor
+  //! \brief Constructor
   runLiggghts(cfdemCloud& cloud);
 
-  //! @brief Destructor
+  //! \brief Destructor
   ~runLiggghts();
 
   std::string getCommand(int index) const;

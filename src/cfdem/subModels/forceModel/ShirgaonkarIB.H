@@ -29,44 +29,37 @@ Description
   and OpenFOAM(R). Note: this code is not part of OpenFOAM(R) (see DISCLAIMER).
 
 Class
-  runLiggghts
+  ShirgaonkarIB
 \*---------------------------------------------------------------------------*/
 
-#include "runLiggghts.H"
+#ifndef __SHIRGAONKAR_IB_H__
+#define __SHIRGAONKAR_IB_H__
+
+#include "subModels/forceModel/forceModel.H"
 
 namespace Foam {
 
-cfdemDefineTypeName(runLiggghts)
+class ShirgaonkarIB: public forceModel {
 
-cfdemAddToNewFunctionMap(liggghtsCommandModel, runLiggghts)
+public:
 
-//! \brief Constructor
-runLiggghts::runLiggghts(cfdemCloud& cloud):
-  liggghtsCommandModel(cloud), subPropsDict_(cloud.liggghtsCommandsDict()) {
-  std::string dictName = typeName_ + "Props";
-  if (cloud.liggghtsCommandsDict().found(dictName)) {
-    subPropsDict_ = cloud.liggghtsCommandsDict().subDict(dictName);
-    verbose_ = subPropsDict_.lookupOrDefault<Switch>("verbose", false);
-  }
-  checkTimeMode(subPropsDict_);
-  checkTimeSettings(subPropsDict_);
-  command_ = createCommand(baseCommand_);
-}
+  //! \brief Runtime type information
+  cfdemTypeName("ShirgaonkarIB")
 
-//! \brief Destructor
-runLiggghts::~runLiggghts() {}
+  //! \brief Constructor
+  ShirgaonkarIB(cfdemCloud& cloud);
 
-std::string runLiggghts::getCommand(int index) const {
-  return command_;
-}
+  //! \brief Destructor
+  ~ShirgaonkarIB();
 
-std::string runLiggghts::createCommand(const std::string& cmd, int interval) {
-  return cmd + " " + std::to_string(interval);
-}
+  void setForce();
 
-bool runLiggghts::runCommand(int couplingStep) {
-  command_ = createCommand(baseCommand_, cloud_.couplingInterval());
-  return runThisCommand(couplingStep);
-}
+private:
+
+  //! \note subPropsDict_ should be declared in front of other members
+  dictionary subPropsDict_;
+};
 
 } // namespace Foam
+
+#endif // __SHIRGAONKAR_IB_H__

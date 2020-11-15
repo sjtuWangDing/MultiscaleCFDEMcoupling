@@ -45,11 +45,11 @@ cfdemDefineDestroyNewFunctionMap(demoModel)
 cfdmeDefineBaseTypeNew(
   autoPtr, demoModel, (cfdemCloud& cloud, const dictionary& dict), cloud, dict, (cloud))
 
-//! @brief Constructor
+//! \brief Constructor
 demoModel::demoModel(cfdemCloud& cloud):
   cloud_(cloud) {}
 
-//! @brief Destructor
+//! \brief Destructor
 demoModel::~demoModel() {}
 
 } // namespace Foam

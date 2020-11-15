@@ -39,7 +39,7 @@ defineTypeNameAndDebug(mixShirgaonkarIB, 0);
 
 addToRunTimeSelectionTable(forceModel, mixShirgaonkarIB, dictionary);
 
-// @brief 构造函数
+// \brief 构造函数
 mixShirgaonkarIB::mixShirgaonkarIB(const dictionary& dict,
                                    cfdemCloud& sm):
   forceModel(dict,sm),
@@ -92,7 +92,7 @@ mixShirgaonkarIB::mixShirgaonkarIB(const dictionary& dict,
   particleCloud_.checkCG(false);
 }
 
-// @brief Destructor
+// \brief Destructor
 mixShirgaonkarIB::~mixShirgaonkarIB() {}
 
 void mixShirgaonkarIB::calForceKernel(const int& index,

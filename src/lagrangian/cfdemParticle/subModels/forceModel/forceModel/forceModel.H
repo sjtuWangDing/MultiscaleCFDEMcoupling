@@ -55,46 +55,46 @@ protected:
 
   cfdemCloud& particleCloud_;
 
-  // @brief 颗粒隐式力的总和 [N]
+  // \brief 颗粒隐式力的总和 [N]
   mutable volVectorField impParticleForces_;
 
-  // @brief 颗粒显式力的总和 [N]
+  // \brief 颗粒显式力的总和 [N]
   mutable volVectorField expParticleForces_;
 
-  // @brief cfdemCloud 类型名称("A" or "B" or "Bfull" or "off")
+  // \brief cfdemCloud 类型名称("A" or "B" or "Bfull" or "off")
   const word modelType_;
 
-  // @brief 是否激活探针
+  // \brief 是否激活探针
   bool probeIt_;
 
-  // @brief 是否需要方向矢量(orientation vector)
+  // \brief 是否需要方向矢量(orientation vector)
   bool requiresEx_;
 
-  // @brief 是否需要颗粒形状信息
+  // \brief 是否需要颗粒形状信息
   bool requiresShape_;
 
   bool requiresQuaternion_;
 
   bool requiresSuperquadric_;
 
-  // @brief 是否会改变转动信息(rotation information)
+  // \brief 是否会改变转动信息(rotation information)
   bool pullPushRotation_;
 
-  // @brief 是否会改变动量交换场 Ksl
+  // \brief 是否会改变动量交换场 Ksl
   bool implicitDrag_;
 
-  // @brief 是否会改变各向异性动量交换场 Ksl
+  // \brief 是否会改变各向异性动量交换场 Ksl
   bool implicitAnisotropicDrag_;
 
-  // @brief 是否会改变转动动量交换场 Ksl
+  // \brief 是否会改变转动动量交换场 Ksl
   bool implicitRotation_;
 
-  // @brief 保存当前 force model 的所有 forceSubModel 的名称
-  // @note 每一类型的力都可以指定多个种类的 forceSubModel, 但是目前只有一种 forceSubModel 的实现, 即 ImEx
+  // \brief 保存当前 force model 的所有 forceSubModel 的名称
+  // \note 每一类型的力都可以指定多个种类的 forceSubModel, 但是目前只有一种 forceSubModel 的实现, 即 ImEx
   wordList forceSubModels_;
 
-  // @brief 保存当前 force model 的所有 forceSubModel 的指针
-  // @note 每一类型的力都可以指定多个种类的 forceSubModel, 但是目前只有一种 forceSubModel 的实现, 即 ImEx
+  // \brief 保存当前 force model 的所有 forceSubModel 的指针
+  // \note 每一类型的力都可以指定多个种类的 forceSubModel, 但是目前只有一种 forceSubModel 的实现, 即 ImEx
   autoPtr<forceSubModel>* forceSubModel_;
 
   mutable autoPtr<interpolation<scalar> > GInterpolator_;
@@ -141,10 +141,10 @@ protected:
 
 public:
 
-  // @brief Runtime type information
+  // \brief Runtime type information
   TypeName("forceModel");
 
-  // @brief Declare runtime constructor selection table
+  // \brief Declare runtime constructor selection table
   declareRunTimeSelectionTable(
     autoPtr,
     forceModel,
@@ -156,13 +156,13 @@ public:
     (dict,sm)
   );
 
-  // @brief Constructors
+  // \brief Constructors
   forceModel(const dictionary& dict, cfdemCloud& sm);
 
-  // @brief Destructor
+  // \brief Destructor
   virtual ~forceModel();
 
-  // @brief Selector
+  // \brief Selector
   static autoPtr<forceModel> New(const dictionary& dict,
                                  cfdemCloud& sm,
                                  word forceType);
@@ -177,31 +177,31 @@ public:
 
   void applyDebugSettings(bool) const;
 
-  // @brief 对于不包含任何颗粒的网格使用显式力耦合
+  // \brief 对于不包含任何颗粒的网格使用显式力耦合
   void treatVoidCells() const;
 
-  // @brief 重新划分 Implicit / Explicit force
+  // \brief 重新划分 Implicit / Explicit force
   void repartitionImExForces() const;
 
-  // @brief 设置 force sub model
-  // @brief 比如对于 DiFeliceDrag force model, setForceSubModels 会从 DiFeliceDragProps 中寻找并设置所有的 forceSubModels 字段
+  // \brief 设置 force sub model
+  // \brief 比如对于 DiFeliceDrag force model, setForceSubModels 会从 DiFeliceDragProps 中寻找并设置所有的 forceSubModels 字段
   //        如果 DiFeliceDragProps 中没有指定 forceSubModels 字段, 则会默认设置为 ImEx
-  // @note 每一类型的力都可以指定多个种类的 forceSubModel, 但是目前只有一种 forceSubModel 的实现, 即 ImEx
+  // \note 每一类型的力都可以指定多个种类的 forceSubModel, 但是目前只有一种 forceSubModel 的实现, 即 ImEx
   void setForceSubModels(dictionary& dict);
 
-  // @brief 添加由于多相作用而产生的湍流
+  // \brief 添加由于多相作用而产生的湍流
   virtual void multiphaseTurbulence(volScalarField& field, bool) const { field *= 0.0; }
 
-  // @brief Function for simple explicit treatment of coupling terms, only for temperature
+  // \brief Function for simple explicit treatment of coupling terms, only for temperature
   virtual void manipulateScalarField(volScalarField& field) const { field *= 0.0; }
 
-  // @brief Function for explicit or implicit treatment of coupling terms, for heat and species balance equations
+  // \brief Function for explicit or implicit treatment of coupling terms, for heat and species balance equations
   virtual void manipulateScalarField(volScalarField& field, volScalarField& fieldImpl, int speciesID) const {
     field *= 0.0;
     fieldImpl *= 0.0;
   }
 
-  // @brief Function for return particle based data to DEM
+  // \brief Function for return particle based data to DEM
   virtual void commToDEM() const {}
 
   virtual void setForcesOnParticle() const {}

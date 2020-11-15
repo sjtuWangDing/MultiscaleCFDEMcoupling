@@ -64,14 +64,14 @@ private:
 
 public:
 
-  // @brief Runtime type information
+  // \brief Runtime type information
   TypeName("mixArchimedes");
 
 
-  // @brief Constructors
+  // \brief Constructors
   mixArchimedes(const dictionary& dict, cfdemCloud& sm);
 
-  // @brief Destructor
+  // \brief Destructor
   ~mixArchimedes();
 
   // Member Functions

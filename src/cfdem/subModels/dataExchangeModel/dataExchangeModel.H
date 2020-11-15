@@ -45,43 +45,43 @@ class dataExchangeModel {
 public:
   /* --------------------------------- base class and functions -------------------------- */
 
-  //! @brief Runtime type information
+  //! \brief Runtime type information
   cfdemTypeName("dataExchangeModel")
 
-  //! @brief Declare runtime constructor selection
+  //! \brief Declare runtime constructor selection
   cfdemDeclareRunTimeSelection(autoPtr, dataExchangeModel, (cfdemCloud& cloud), (cloud))
 
-  //! @brief Selector
+  //! \brief Selector
   static autoPtr<dataExchangeModel> New(cfdemCloud& cloud, const dictionary& dict);
 
-  //! @brief Constructor
+  //! \brief Constructor
   dataExchangeModel(cfdemCloud& cloud);
 
-  //! @brief Destructor
+  //! \brief Destructor
   virtual ~dataExchangeModel();
 
   /* --------------------------------- virtual functions --------------------------------- */
 
-  //! @return 当前耦合时间步中颗粒的数量
+  //! \return 当前耦合时间步中颗粒的数量
   virtual int couple();
 
-  //! @brief Allocate and destroy for 2-D double array
+  //! \brief Allocate and destroy for 2-D double array
   virtual void destroy(double**& array);
   virtual void destroy(double**& array, int);
   virtual void allocateArray(double**& array, double initVal, int width, int length);
   virtual void allocateArray(double**& array, double initVal, int width, const char* length = "nparticles");
 
-  //! @brief Allocate and destroy for 2-D int array
+  //! \brief Allocate and destroy for 2-D int array
   virtual void destroy(int**& array);
   virtual void destroy(int**& array, int);
   virtual void allocateArray(int**& array, int initVal, int width, int length);
   virtual void allocateArray(int**& array, int initVal, int width, const char* length  = "nparticles");
 
-  //! @brief Allocate and destroy for 1-D double array
+  //! \brief Allocate and destroy for 1-D double array
   virtual void destroy(double*& array);
   virtual void allocateArray(double*& array, double initVal, int length);
 
-  //! @brief Allocate and destroy for 1-D int array
+  //! \brief Allocate and destroy for 1-D int array
   virtual void destroy(int*& array);
   virtual void allocateArray(int*& array, int initVal, int length);
 
@@ -98,13 +98,13 @@ public:
                         double** const& field,
                         const char* fieldType = "double") = 0;
 
-  //! @brief 释放离散内存
+  //! \brief 释放离散内存
   virtual void destroyDiscreteMemory(double** const& array, int length) {
     FatalError << "dataExchangeModel::destroyDiscreteMemory(): "
       << "using base class function, please use derived class function\n"
       << abort(FatalError);
   }
-  //! @brief 释放离散内存
+  //! \brief 释放离散内存
   virtual void destroyDiscreteMemory(int** const& array, int length) {
     FatalError << "dataExchangeModel::destroyDiscreteMemory(): "
       << "using base class function, please use derived class function\n"
@@ -121,7 +121,7 @@ public:
   }
 
   /*!
-   * @brief 因为耦合时间步长 = 流体时间步长的整数倍，所以 timeStepFraction() 用于计算每个流体时间步在耦合时间步中的所占比例，
+   * \brief 因为耦合时间步长 = 流体时间步长的整数倍，所以 timeStepFraction() 用于计算每个流体时间步在耦合时间步中的所占比例，
    *        如果 couplingTime() == 3 * CFDts，那么每一个耦合时间步由 3 个流体时间步构成，
    *        那么这三个流体时间步的 timeStepFraction() 分别返回 0, 0.333333, 0.666666
    */
@@ -133,7 +133,7 @@ public:
     return ((timeIndex - timeIndexOffset_) * CFDts - (couplingStep_ - 1) * couplingTime()) / couplingTime();
   }
 
-  //! @brief 检查时间步长是否满足耦合要求
+  //! \brief 检查时间步长是否满足耦合要求
   void checkTimeStepSize() const {
     scalar CFDts = cloud_.mesh().time().deltaT().value(); // 获取 CFD 时间步长
 
@@ -163,7 +163,7 @@ public:
     }
   }
 
-  //! @brief 因为耦合时间步长 = 流体时间步长的整数倍，所以判断当前流体时间步是否同时也是耦合时间步
+  //! \brief 因为耦合时间步长 = 流体时间步长的整数倍，所以判断当前流体时间步是否同时也是耦合时间步
   bool doCoupleNow() const {
     // couple at first sub TS(耦合发生在耦合时间步中的第一个流体时间步中)
     scalar CFDts = cloud_.mesh().time().deltaT().value();
@@ -183,20 +183,20 @@ public:
 
   inline scalar DEMts() const { return DEMts_; }
 
-  //! @brief 计算耦合间隔的秒数
+  //! \brief 计算耦合间隔的秒数
   inline scalar couplingTime() const { return cloud_.cProps().couplingInterval() * DEMts_; }
 
-  //! @brief 当前耦合时间步的起始时间（全局时间）
+  //! \brief 当前耦合时间步的起始时间（全局时间）
   inline scalar TSstart() const {
     return cloud_.mesh().time().startTime().value() + (couplingStep_ - 1) * couplingTime();
   }
 
-  //! @brief 当前耦合时间步的结束时间（全局时间）
+  //! \brief 当前耦合时间步的结束时间（全局时间）
   inline scalar TSend() const {
     return cloud_.mesh().time().startTime().value() + couplingStep_ * couplingTime();
   }
 
-  //! @brief 计算指定时间的 DEM 步
+  //! \brief 计算指定时间的 DEM 步
   inline int DEMstepsTillT(scalar t) const {
     return (t - (cloud_.mesh().time().value() - couplingTime()) + SMALL) / DEMts_;
   }
@@ -205,13 +205,13 @@ protected:
 
   cfdemCloud& cloud_;
 
-  //! @brief 初始化 dataExchangeModel 的时候，即耦合开始的时候，记录当前的流体时间步，通常从 0 开始
+  //! \brief 初始化 dataExchangeModel 的时候，即耦合开始的时候，记录当前的流体时间步，通常从 0 开始
   const int timeIndexOffset_;
 
-  //! @brief 耦合时间步的计数，每执行一次 coupling 记录一次
+  //! \brief 耦合时间步的计数，每执行一次 coupling 记录一次
   int couplingStep_;
 
-  //! @brief DEM 的时间步长
+  //! \brief DEM 的时间步长
   scalar DEMts_;
 };
 

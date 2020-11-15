@@ -40,7 +40,7 @@ defineTypeNameAndDebug(forceSubModel, 0);
 
 defineRunTimeSelectionTable(forceSubModel, dictionary);
 
-// @brief Constructors
+// \brief Constructors
 forceSubModel::forceSubModel(const dictionary& dict, cfdemCloud& sm, forceModel& fm):
   dict_(dict),
   particleCloud_(sm),
@@ -133,14 +133,14 @@ forceSubModel::forceSubModel(const dictionary& dict, cfdemCloud& sm, forceModel&
   }
 }
 
-// @brief Destructor
+// \brief Destructor
 forceSubModel::~forceSubModel() {}
 
-// @param index                  <[in] 颗粒索引
-// @param dragTot                <[in] 索引为 index 的颗粒受到的总阻力
-// @param dragEx                 <[in] 索引为 index 的颗粒受到的显式阻力
-// @param Ufluid = vector::zero  <[in] 索引为 index 的颗粒中心处流体速度(可以指定是否使用插值模型计算)
-// @param scalar Cd = 0          <[in] 颗粒阻力系数
+// \param index                  <[in] 颗粒索引
+// \param dragTot                <[in] 索引为 index 的颗粒受到的总阻力
+// \param dragEx                 <[in] 索引为 index 的颗粒受到的显式阻力
+// \param Ufluid = vector::zero  <[in] 索引为 index 的颗粒中心处流体速度(可以指定是否使用插值模型计算)
+// \param scalar Cd = 0          <[in] 颗粒阻力系数
 void forceSubModel::partToArray(const label& index,
                                 const vector& dragTot,
                                 const vector& dragEx,
@@ -179,9 +179,9 @@ void forceSubModel::partToArray(const label& index,
   }
 }
 
-// @brief 计算索引为 index 的颗粒的 scale 直径
-// @param d     <[in, out] 颗粒直径
-// @param index <[in] 颗粒索引
+// \brief 计算索引为 index 的颗粒的 scale 直径
+// \param d     <[in, out] 颗粒直径
+// \param index <[in] 颗粒索引
 void forceSubModel::scaleDia(scalar& d, int index) const {
   if (particleCloud_.cgTypeSpecificDifferent) {
     d /= particleCloud_.cg(particleCloud_.particleType(index));
@@ -315,8 +315,8 @@ const volScalarField& forceSubModel::rhoField() const {
   return rho_;
 }
 
-// @brief 计算粘性力
-// @note 用于计算 viscForceModel
+// \brief 计算粘性力
+// \note 用于计算 viscForceModel
 const volVectorField& forceSubModel::divTauField(const volVectorField& U) const {
 #ifdef compre
   const volScalarField& mu_ = muField();
@@ -329,8 +329,8 @@ const volVectorField& forceSubModel::divTauField(const volVectorField& U) const 
   return divTau_;
 }
 
-// @brief 计算 IB drag
-// @note 用于计算 ShirgaonkarIBModel
+// \brief 计算 IB drag
+// \note 用于计算 ShirgaonkarIBModel
 const volVectorField& forceSubModel::IBDragPerV(const volVectorField& U, const volScalarField& p) const {
 #ifdef compre
   IBDragPerV_ = muField() * fvc::laplacian(U) - fvc::grad(p);

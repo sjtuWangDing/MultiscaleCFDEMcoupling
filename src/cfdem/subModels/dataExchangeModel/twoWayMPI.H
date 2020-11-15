@@ -52,37 +52,37 @@ class twoWayMPI: public dataExchangeModel {
 
 public:
 
-  //! @brief Runtime type information
+  //! \brief Runtime type information
   cfdemTypeName("twoWayMPI")
 
-  //! @brief Constructor
+  //! \brief Constructor
   twoWayMPI(cfdemCloud& cloud);
 
-  //! @brief Destructor
+  //! \brief Destructor
   ~twoWayMPI();
 
 public:
 
-  //! @return 当前耦合时间步中颗粒的数量
+  //! \return 当前耦合时间步中颗粒的数量
   int couple();
 
-  //! @brief Allocate and destroy for 2-D double array
+  //! \brief Allocate and destroy for 2-D double array
   void destroy(double**& array);
   void destroy(double**& array, int);
   void allocateArray(double**& array, double initVal, int width, int length);
   void allocateArray(double**& array, double initVal, int width, const char* length = "nparticles");
 
-  //! @brief Allocate and destroy for 2-D int array
+  //! \brief Allocate and destroy for 2-D int array
   void destroy(int**& array);
   void destroy(int**& array, int);
   void allocateArray(int**& array, int initVal, int width, int length);
   void allocateArray(int**& array, int initVal, int width, const char* length  = "nparticles");
 
-  //! @brief Allocate and destroy for 1-D double array
+  //! \brief Allocate and destroy for 1-D double array
   void destroy(double*& array);
   void allocateArray(double*& array, double initVal, int length);
 
-  //! @brief Allocate and destroy for 1-D int array
+  //! \brief Allocate and destroy for 1-D int array
   void destroy(int*& array);
   void allocateArray(int*& array, int initVal, int length);
 

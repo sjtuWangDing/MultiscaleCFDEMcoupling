@@ -29,9 +29,9 @@ License
 #define __RUN_TIME_SELECTION_TABLES_H__
 
 /*!
- * @brief 在所有 sub model 的类声明中声明 type name 以及函数
+ * \brief 在所有 sub model 的类声明中声明 type name 以及函数
  *        无论是这个模型的基类，还是子类都需要声明
- * @param typeNameCString type name，类型应该是 const char*
+ * \param typeNameCString type name，类型应该是 const char*
  */
 #define cfdemTypeName(typeNameCString)                                                                             \
   static const char* cTypeName() { return typeNameCString; }                                                       \
@@ -39,19 +39,19 @@ License
   virtual const std::string& typeName() const { return typeName_; }
 
 /*!
- * @brief 在所有 sub model 的类定义中初始化静态成员 typeName_
+ * \brief 在所有 sub model 的类定义中初始化静态成员 typeName_
  *        无论是这个模型的基类，还是子类都需要声明
- * @param Type 指定当前类的类名
+ * \param Type 指定当前类的类名
  */
 #define cfdemDefineTypeName(Type)                                                                                  \
   const std::string Type::typeName_(Type::cTypeName());
 
 /*!
- * @brief 运行时选择器，这个宏只需要在每一个 sub model 的基类的声明中使用
- * @param AutoPtr 用于封装 sub model 指针的模板，通常就选择 Foam::autoPtr
- * @param BaseType 基类类型
- * @param argList 构造函数的形参
- * @param parList 构造函数的实参
+ * \brief 运行时选择器，这个宏只需要在每一个 sub model 的基类的声明中使用
+ * \param AutoPtr 用于封装 sub model 指针的模板，通常就选择 Foam::autoPtr
+ * \param BaseType 基类类型
+ * \param argList 构造函数的形参
+ * \param parList 构造函数的实参
  * @pre NewFunctionPtr: 定义一个函数指针类型，返回值类型为 autoPtr<baseType>，参数为 argList
  * @pre NewFunctionMap: 定义 unordered_map 的类型，key 类型为 std::string，value 类型为 NewFunctionPtr
  * @pre newFunctionMapPtr_: 声明 NewFunctionMap 类型静态指针
@@ -109,8 +109,8 @@ License
     };
 
 /*!
- * @brief 定义 BaseType 中的静态方法 constructNewFunctionMap()，用于创建对象 map 对象
- * @param BaseType 指定基类
+ * \brief 定义 BaseType 中的静态方法 constructNewFunctionMap()，用于创建对象 map 对象
+ * \param BaseType 指定基类
  */
 #define cfdemDefineConstructNewFunctionMap(BaseType)                                                               \
   void BaseType::constructNewFunctionMap() {                                                                       \
@@ -122,8 +122,8 @@ License
   }
 
 /*!
- * @brief 定义 BaseType 中的静态方法 newRunTimeSelectionConstructorMap()，用于创建对象 map 对象
- * @param BaseType 指定基类
+ * \brief 定义 BaseType 中的静态方法 newRunTimeSelectionConstructorMap()，用于创建对象 map 对象
+ * \param BaseType 指定基类
  */
 #define cfdemDefineDestroyNewFunctionMap(BaseType)                                                                 \
   void BaseType::destroyNewFunctionMap() {                                                                         \
@@ -134,13 +134,13 @@ License
   }
 
 /*!
- * @brief 用于在基类中定义 New 这个静态方法，而这个方法返回的就是运行期间动态选择的某一个子类对象的autoPtr
- * @param AutoPtr 用于封装 sub model 指针的模板，通常就选择 Foam::autoPtr
- * @param BaseType 指定基类
- * @param argList New function 的形参
- * @param parCloud argList 中 cfdemCloud& 类型的实参
- * @param parDict argList 中 const dicttionary& 类型的实参
- * @param parConstructorList 构造函数的实参
+ * \brief 用于在基类中定义 New 这个静态方法，而这个方法返回的就是运行期间动态选择的某一个子类对象的autoPtr
+ * \param AutoPtr 用于封装 sub model 指针的模板，通常就选择 Foam::autoPtr
+ * \param BaseType 指定基类
+ * \param argList New function 的形参
+ * \param parCloud argList 中 cfdemCloud& 类型的实参
+ * \param parDict argList 中 const dicttionary& 类型的实参
+ * \param parConstructorList 构造函数的实参
  */
 #define cfdmeDefineBaseTypeNew(AutoPtr, BaseType, argList, parCloud, parDict, parConstructorList)                  \
   AutoPtr<BaseType> BaseType::New argList {                                                                        \
@@ -163,7 +163,7 @@ License
   }
 
 /*!
- * @param parModelName argList 中用于指定模型名称的参数
+ * \param parModelName argList 中用于指定模型名称的参数
  */
 #define cfdmeDefineBaseTypeNewWithArg(AutoPtr, BaseType, argList, parCloud, parDict, parModelName, parConstructorList)                                                                                                \
   AutoPtr<BaseType> BaseType::New argList {                                                                        \

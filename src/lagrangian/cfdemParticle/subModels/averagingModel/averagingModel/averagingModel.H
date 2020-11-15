@@ -45,7 +45,7 @@ SourceFiles
 
 namespace Foam {
 
-// @brief 局部平均模型
+// \brief 局部平均模型
 class averagingModel {
 
 protected:
@@ -54,22 +54,22 @@ protected:
 
   cfdemCloud& particleCloud_;
 
-  // @brief 覆盖 cellI 网格的所有颗粒对其影响系数的总和
+  // \brief 覆盖 cellI 网格的所有颗粒对其影响系数的总和
   // @usage UsWeightField_[cellI]
   mutable volScalarField UsWeightField_;
 
-  // @brief 上个时间步中局部平均颗粒速度场
+  // \brief 上个时间步中局部平均颗粒速度场
   mutable volVectorField UsPrev_;
 
-  // @brief 下个时间步中局部平均颗粒速度场
+  // \brief 下个时间步中局部平均颗粒速度场
   mutable volVectorField UsNext_;
 
 public:
 
-  // @brief Runtime type information
+  // \brief Runtime type information
   TypeName("averagingModel");
 
-  // @brief Declare runtime constructor selection table
+  // \brief Declare runtime constructor selection table
   declareRunTimeSelectionTable(
     autoPtr,
     averagingModel,
@@ -81,13 +81,13 @@ public:
     (dict, sm)
   );
 
-  // @brief Constructors
+  // \brief Constructors
   averagingModel(const dictionary& dict, cfdemCloud& sm);
 
-  // @brief Destructor
+  // \brief Destructor
   virtual ~averagingModel();
 
-  // @brief Selector
+  // \brief Selector
   static autoPtr<averagingModel> New(const dictionary& dict, cfdemCloud& sm);
 
   void applyDebugSettings(bool debug) const;
@@ -164,13 +164,13 @@ public:
 
   // * * * * * * * * * * * * * *  Not Implemented * * * * * * * * * * * * * * * * //
 
-  // @note If need, refer to averagingModel.C in https://github.com/CFDEMproject/CFDEMcoupling-PUBLIC
+  // \note If need, refer to averagingModel.C in https://github.com/CFDEMproject/CFDEMcoupling-PUBLIC
   void setVectorSumSimple(volVectorField& field,
                           double**& value,
                           double**& weight,
                           int nP) const {}
 
-  // @note If need, refer to averagingModel.C in https://github.com/CFDEMproject/CFDEMcoupling-PUBLIC
+  // \note If need, refer to averagingModel.C in https://github.com/CFDEMproject/CFDEMcoupling-PUBLIC
   void undoVectorAverage(volVectorField& fieldPrev,
                          volVectorField& fieldNext,
                          volScalarField& weightField,
@@ -179,13 +179,13 @@ public:
                          double**const& mask,
                          bool single = false) const {}
 
-  // @note If need, refer to averagingModel.C in https://github.com/CFDEMproject/CFDEMcoupling-PUBLIC
+  // \note If need, refer to averagingModel.C in https://github.com/CFDEMproject/CFDEMcoupling-PUBLIC
   void undoVectorSum(volVectorField& field,
                      double** const& value,
                      double** const& weight,
                      double**const& mask) const {}
 
-  // @note If need, refer to averagingModel.C in https://github.com/CFDEMproject/CFDEMcoupling-PUBLIC
+  // \note If need, refer to averagingModel.C in https://github.com/CFDEMproject/CFDEMcoupling-PUBLIC
   void setDSauter(volScalarField& dSauter,
                   double**& weight,
                   volScalarField& weightField,

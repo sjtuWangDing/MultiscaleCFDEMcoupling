@@ -82,7 +82,7 @@ averagingModel::averagingModel(const dictionary& dict, cfdemCloud& sm):
     // dimensionedVector("zero", dimensionSet(0, 1, -1, 0, 0), vector::zero)
   ) {}
 
-// @brief Destructor
+// \brief Destructor
 averagingModel::~averagingModel() {}
 
 void averagingModel::applyDebugSettings(bool debug) const {

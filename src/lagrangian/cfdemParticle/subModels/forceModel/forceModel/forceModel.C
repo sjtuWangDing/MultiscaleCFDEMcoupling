@@ -39,7 +39,7 @@ defineTypeNameAndDebug(forceModel, 0);
 
 defineRunTimeSelectionTable(forceModel, dictionary);
 
-// @brief Constructors
+// \brief Constructors
 forceModel::forceModel(const dictionary& dict, cfdemCloud& sm):
   dict_(dict),
   particleCloud_(sm),
@@ -102,7 +102,7 @@ forceModel::forceModel(const dictionary& dict, cfdemCloud& sm):
   DDtUInterpolator_(NULL),
   divTauInterpolator_(NULL) {}
 
-// @brief Destructor
+// \brief Destructor
 forceModel::~forceModel() {}
 
 void forceModel::applyDebugSettings(bool debug) const {
@@ -112,7 +112,7 @@ void forceModel::applyDebugSettings(bool debug) const {
   }
 }
 
-// @brief 重新划分 Implicit / Explicit force
+// \brief 重新划分 Implicit / Explicit force
 void forceModel::repartitionImExForces() const {
   if (particleCloud_.imExSplitFactor() < 1.0) {
     Info << "Will re-partition split of implicit and explicit forces: alpha = " << particleCloud_.imExSplitFactor() << endl;
@@ -122,7 +122,7 @@ void forceModel::repartitionImExForces() const {
   }
 }
 
-// @brief 对于不包含任何颗粒的网格使用显式力耦合
+// \brief 对于不包含任何颗粒的网格使用显式力耦合
 void forceModel::treatVoidCells() const {
   if (particleCloud_.treatVoidCellsAsExplicitForce()) {
     int counter(0);
@@ -138,10 +138,10 @@ void forceModel::treatVoidCells() const {
   }
 }
 
-// @brief 设置 force sub model
-// @brief 比如对于 DiFeliceDrag force model, setForceSubModels 会从 DiFeliceDragProps 中寻找并设置所有的 forceSubModels 字段
+// \brief 设置 force sub model
+// \brief 比如对于 DiFeliceDrag force model, setForceSubModels 会从 DiFeliceDragProps 中寻找并设置所有的 forceSubModels 字段
 //        如果 DiFeliceDragProps 中没有指定 forceSubModels 字段, 则会默认设置为 ImEx
-// @note 每一类型的力都可以指定多个种类的 forceSubModel, 但是目前只有一种 forceSubModel 的实现, 即 ImEx
+// \note 每一类型的力都可以指定多个种类的 forceSubModel, 但是目前只有一种 forceSubModel 的实现, 即 ImEx
 void forceModel::setForceSubModels(dictionary& dict) {
   if (dict.found("forceSubModels")) {
     // 读入字典文件中指定的所有 force Sub Models 的名称

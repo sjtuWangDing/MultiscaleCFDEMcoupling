@@ -74,14 +74,14 @@ private:
 
 public:
 
-  // @brief Runtime type information
+  // \brief Runtime type information
   TypeName("mixArchimedesIB");
 
-  // @brief Constructors
+  // \brief Constructors
   mixArchimedesIB(const dictionary& dict,
                   cfdemCloud& sm);
 
-  // @brief Destructor
+  // \brief Destructor
   ~mixArchimedesIB();
 
   void calForceKernel(const int& index,

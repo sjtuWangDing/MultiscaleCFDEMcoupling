@@ -71,39 +71,39 @@ public:
 protected:
   const fvMesh& mesh_;
 
-  //! @note 在当前类中一定要最先声明 couplingPropertiesDict_ 和 liggghtsCommandsDict_
+  //! \note 在当前类中一定要最先声明 couplingPropertiesDict_ 和 liggghtsCommandsDict_
   const IOdictionary& couplingPropertiesDict_;
 
   const IOdictionary& liggghtsCommandsDict_;
 
-  //! @brief 是否打印多余调试信息
+  //! \brief 是否打印多余调试信息
   bool verbose_;
 
-  //! @brief 模型类型(A, B, Bfull, none)
+  //! \brief 模型类型(A, B, Bfull, none)
   const word modelType_;
 
-  //! @brief dict 中指定的所有 force model 的名称
+  //! \brief dict 中指定的所有 force model 的名称
   const wordList forceModelList_;
 
-  //! @brief dict 中指定的所有 mom couple model 的名称
+  //! \brief dict 中指定的所有 mom couple model 的名称
   const wordList momCoupleModelList_;
 
-  //! @brief dict 中指定的所有 liggghts command model 的名称
+  //! \brief dict 中指定的所有 liggghts command model 的名称
   const wordList liggghtsCommandModelList_;
 
-  //! @brief dict 中指定的湍流模型的名称
+  //! \brief dict 中指定的湍流模型的名称
   const word turbulenceModelType_;
 
-  //! @brief Choose "a" or "b" or "off"
+  //! \brief Choose "a" or "b" or "off"
   const word useDDTvoidfraction_;
 
-  //! @brief 显式、隐式分裂系数
+  //! \brief 显式、隐式分裂系数
   scalar impExpSplitFactor_;
 
-  //! @brief 是否需要求解流体
+  //! \brief 是否需要求解流体
   bool solveFlow_;
 
-  //! @brief Treat the coupling force in cells with no Us data explicitly.
+  //! \brief Treat the coupling force in cells with no Us data explicitly.
   bool treatVoidCellsAsExplicitForce_;
 
   bool debug_;
@@ -114,33 +114,33 @@ protected:
 
   bool allowCFDsubTimeStep_;
 
-  //! @brief 耦合间隔，单位：DEM 时间步，couplingInterval_ * DEMts_ 就是耦合间隔的秒数
+  //! \brief 耦合间隔，单位：DEM 时间步，couplingInterval_ * DEMts_ 就是耦合间隔的秒数
   label couplingInterval_;
 
 #if __MIXCLOUD__
 
 public:
 
-  //! @brief 颗粒尺度系数
+  //! \brief 颗粒尺度系数
   static double fineParticleRatio_;
 
   static double coarseParticleRatio_;
 
 private:
 
-  //! @brief 是否用于求解器 cfdemSolverIB
+  //! \brief 是否用于求解器 cfdemSolverIB
   bool usedForSolverIB_;
 
-  //! @brief 是否用于求解器 cfdemSolverPiso
+  //! \brief 是否用于求解器 cfdemSolverPiso
   bool usedForSolverPiso_;
 
-  //! @brief 是否使用 dynamic refine mesh
+  //! \brief 是否使用 dynamic refine mesh
   bool useDynamicRefineMesh_;
 
-  //! @brief true if particle is fixed
+  //! \brief true if particle is fixed
   bool fixedParticle_;
 
-  //! @brief 来流速度
+  //! \brief 来流速度
   vector flowVelocity_;
 
 public:

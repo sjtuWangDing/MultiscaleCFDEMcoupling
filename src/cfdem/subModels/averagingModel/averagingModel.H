@@ -40,25 +40,25 @@ Class
 
 namespace Foam {
 
-//! @brief 局部平均模型
+//! \brief 局部平均模型
 class averagingModel {
 
 public:
   /* --------------------------------- base class and functions -------------------------- */
 
-  //! @brief Runtime type information
+  //! \brief Runtime type information
   cfdemTypeName("averagingModel")
 
-  //! @brief Declare runtime constructor selection
+  //! \brief Declare runtime constructor selection
   cfdemDeclareRunTimeSelection(autoPtr, averagingModel, (cfdemCloud& cloud), (cloud))
 
-  //! @brief Selector
+  //! \brief Selector
   static autoPtr<averagingModel> New(cfdemCloud& cloud, const dictionary& dict);
 
-  //! @brief Constructor
+  //! \brief Constructor
   averagingModel(cfdemCloud& cloud);
 
-  //! @brief Destructor
+  //! \brief Destructor
   virtual ~averagingModel();
 
   /* --------------------------------- member functions ---------------------------------- */
@@ -89,15 +89,15 @@ protected:
   cfdemCloud& cloud_;
 
   /*!
-   * @brief 覆盖 cellI 网格的所有颗粒对其影响系数的总和
-   * @note UsWeightField_[cellI]
+   * \brief 覆盖 cellI 网格的所有颗粒对其影响系数的总和
+   * \note UsWeightField_[cellI]
    */
   volScalarField UsWeightField_;
 
-  //! @brief 上个时间步中局部平均颗粒速度场
+  //! \brief 上个时间步中局部平均颗粒速度场
   volVectorField UsPrev_;
 
-  //! @brief 下个时间步中局部平均颗粒速度场
+  //! \brief 下个时间步中局部平均颗粒速度场
   volVectorField UsNext_;
 };
 

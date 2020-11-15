@@ -53,7 +53,7 @@ std::string makeString(const ATypes&... args) {
   return std::string(ss.str());
 }
 
-//! @brief Specializations for std::string type.
+//! \brief Specializations for std::string type.
 template<>
 inline std::string makeString(const std::string& str) {
   return str;

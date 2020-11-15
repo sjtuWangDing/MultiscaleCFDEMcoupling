@@ -40,25 +40,25 @@ Class
 
 namespace Foam {
 
-//! @brief demoModel
+//! \brief demoModel
 class demoModel {
 
 public:
   /* --------------------------------- base class and functions -------------------------- */
 
-  //! @brief Runtime type information
+  //! \brief Runtime type information
   cfdemTypeName("demoModel")
 
-  //! @brief Declare runtime constructor selection
+  //! \brief Declare runtime constructor selection
   cfdemDeclareRunTimeSelection(autoPtr, demoModel, (cfdemCloud& cloud), (cloud))
 
-  //! @brief Selector
+  //! \brief Selector
   static autoPtr<demoModel> New(cfdemCloud& cloud, const dictionary& dict);
 
-  //! @brief Constructor
+  //! \brief Constructor
   demoModel(cfdemCloud& cloud);
 
-  //! @brief Destructor
+  //! \brief Destructor
   virtual ~demoModel();
 
   /* --------------------------------- virtual functions --------------------------------- */

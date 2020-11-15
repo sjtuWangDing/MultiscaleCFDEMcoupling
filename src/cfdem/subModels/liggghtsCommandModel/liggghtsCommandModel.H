@@ -45,21 +45,21 @@ class liggghtsCommandModel {
 public:
   /* --------------------------------- base class and functions -------------------------- */
 
-  //! @brief Runtime type information
+  //! \brief Runtime type information
   cfdemTypeName("liggghtsCommandModel");
 
-  //! @brief Declare runtime constructor selection
+  //! \brief Declare runtime constructor selection
   cfdemDeclareRunTimeSelection(std::unique_ptr, liggghtsCommandModel, (cfdemCloud& cloud), (cloud));
 
-  //! @brief Selector
+  //! \brief Selector
   static std::unique_ptr<liggghtsCommandModel> New(cfdemCloud& cloud,
                                                    const dictionary& dict,
                                                    const std::string& modelName);
 
-  //! @brief Constructor
+  //! \brief Constructor
   liggghtsCommandModel(cfdemCloud& cloud);
 
-  //! @brief Destructor
+  //! \brief Destructor
   virtual ~liggghtsCommandModel();
 
   /* --------------------------------- sub class ----------------------------------------- */
@@ -78,10 +78,10 @@ public:
 
   /* --------------------------------- virtual functions --------------------------------- */
 
-  //! @brief 根据 index 获取 command 的内容
+  //! \brief 根据 index 获取 command 的内容
   virtual std::string getCommand(int index) const = 0;
 
-  //! @param couplingStep 当前耦合步计数
+  //! \param couplingStep 当前耦合步计数
   virtual bool runCommand(int couplingStep) = 0;
 
   /* --------------------------------- member functions ---------------------------------- */

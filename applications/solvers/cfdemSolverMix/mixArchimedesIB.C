@@ -40,7 +40,7 @@ defineTypeNameAndDebug(mixArchimedesIB, 0);
 
 addToRunTimeSelectionTable(forceModel, mixArchimedesIB, dictionary);
 
-// @brief Constructors
+// \brief Constructors
 mixArchimedesIB::mixArchimedesIB(const dictionary& dict,
                                  cfdemCloud& sm):
   forceModel(dict, sm),
@@ -92,7 +92,7 @@ mixArchimedesIB::mixArchimedesIB(const dictionary& dict,
   particleCloud_.checkCG(true);
 }
 
-// @brief Destructor
+// \brief Destructor
 mixArchimedesIB::~mixArchimedesIB() {}
 
 void mixArchimedesIB::calForceKernel(const int& index,

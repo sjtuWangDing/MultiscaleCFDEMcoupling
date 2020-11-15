@@ -37,7 +37,7 @@ Class
 
 namespace Foam {
 
-//! @brief Constructor
+//! \brief Constructor
 forceSubModel::forceSubModel(cfdemCloud& cloud, forceModel& forceModel):
   cloud_(cloud),
   forceModel_(forceModel),
@@ -54,15 +54,15 @@ forceSubModel::forceSubModel(cfdemCloud& cloud, forceModel& forceModel):
     dimensionedScalar("nu0", dimensionSet(0, 2, -1, 0, 0), 1.)
   ) {}
 
-//! @brief Destructor
+//! \brief Destructor
 forceSubModel::~forceSubModel() {}
 
 /*!
- * @param index                  <[in] 颗粒索引
- * @param dragTot                <[in] 索引为 index 的颗粒受到的总阻力
- * @param dragEx                 <[in] 索引为 index 的颗粒受到的显式阻力
- * @param Ufluid = vector::zero  <[in] 索引为 index 的颗粒中心处流体速度(可以指定是否使用插值模型计算)
- * @param scalar Cd = 0          <[in] 颗粒阻力系数
+ * \param index                  <[in] 颗粒索引
+ * \param dragTot                <[in] 索引为 index 的颗粒受到的总阻力
+ * \param dragEx                 <[in] 索引为 index 的颗粒受到的显式阻力
+ * \param Ufluid = vector::zero  <[in] 索引为 index 的颗粒中心处流体速度(可以指定是否使用插值模型计算)
+ * \param scalar Cd = 0          <[in] 颗粒阻力系数
  */
 void forceSubModel::partToArray(const label& index,
                                 const Foam::vector& dragTot,

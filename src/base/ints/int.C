@@ -1,7 +1,7 @@
 /*!
  * Copyright (c) 2020 by Contributors
  * @file int.C
- * @brief system int
+ * \brief system int
  *
  * @author Wang Ding
  */

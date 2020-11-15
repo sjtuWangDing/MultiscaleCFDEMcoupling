@@ -47,12 +47,12 @@ cfdmeDefineBaseTypeNewWithArg(std::unique_ptr, liggghtsCommandModel,
                               (cfdemCloud& cloud, const dictionary& dict, const std::string& modelName),
                               cloud, dict, modelName, (cloud))
 
-//! @brief Constructor
+//! \brief Constructor
 liggghtsCommandModel::liggghtsCommandModel(cfdemCloud& cloud):
   cloud_(cloud), command_("notDefined"), commandLines_(1), nextRun_(-1), lastRun_(-1), verbose_(false),
   runFirst_(false), runLast_(false), runEveryCouplingStep_(false), runEveryWriteStep_(false) {}
 
-//! @brief Destructor
+//! \brief Destructor
 liggghtsCommandModel::~liggghtsCommandModel() {}
 
 void liggghtsCommandModel::checkTimeMode(const dictionary& subPropsDict) {

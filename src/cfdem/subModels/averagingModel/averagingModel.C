@@ -42,7 +42,7 @@ cfdemDefineConstructNewFunctionMap(averagingModel)
 
 cfdemDefineDestroyNewFunctionMap(averagingModel)
 
-//! @brief Constructor
+//! \brief Constructor
 averagingModel::averagingModel(cfdemCloud& cloud):
   cloud_(cloud),
   UsPrev_(
@@ -77,7 +77,7 @@ averagingModel::averagingModel(cfdemCloud& cloud):
     dimensionedScalar("zero", dimensionSet(0, 0, 0, 0, 0), 0.0)
   ) {}
 
-//! @brief Destructor
+//! \brief Destructor
 averagingModel::~averagingModel() {}
 
 } // namespace Foam

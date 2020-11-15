@@ -100,7 +100,7 @@ void voidFractionModel::applyDebugSettings(bool debug) const {
   }
 }
 
-// @brief 计算空隙率时间插值
+// \brief 计算空隙率时间插值
 tmp<volScalarField> voidFractionModel::voidFractionInterp() const {
   scalar tsf = particleCloud_.dataExchangeM().timeStepFraction();
   Info << "using voidfraction blend, tsf=" << tsf << endl;
@@ -109,14 +109,14 @@ tmp<volScalarField> voidFractionModel::voidFractionInterp() const {
   );
 }
 
-// @brief 重置空隙率
+// \brief 重置空隙率
 void voidFractionModel::resetVoidFractions() const {
   voidfractionPrev_ == voidfractionNext_;
   voidfractionNext_ == dimensionedScalar("one", voidfractionNext_.dimensions(), 1.);
 }
 
 #if __VF_MIX__
-// @brief 重置体积分数
+// \brief 重置体积分数
 void voidFractionModel::resetVolumeFractions() const {
   volumefractionPrev_ == volumefractionNext_;
   volumefractionNext_ == dimensionedScalar("one", volumefractionNext_.dimensions(), 1.);
@@ -137,8 +137,8 @@ void voidFractionModel::reAllocArrays(int nP) const {
   }
 }
 
-// @brief 判断某一点是否在颗粒中
-// @return < 0 -- 在颗粒中
+// \brief 判断某一点是否在颗粒中
+// \return < 0 -- 在颗粒中
 //         > 0 -- 在颗粒外
 double voidFractionModel::pointInParticle(int index,
                                           vector positionCenter,
@@ -168,7 +168,7 @@ void voidFractionModel::checkWeightNporosity(dictionary& propsDict) const {
   }
 }
 
-// @brief 如果边界是周期性边界，获取流场中某一点到某个颗粒或者其镜像的最小距离
+// \brief 如果边界是周期性边界，获取流场中某一点到某个颗粒或者其镜像的最小距离
 //        并返回颗粒的位置坐标(可能是镜像颗粒的坐标，也可能是原颗粒的坐标)
 double voidFractionModel::minPeriodicDistance(
   int index,                  // <[in] 颗粒的编号

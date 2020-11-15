@@ -37,31 +37,31 @@ Class
 
 #include "cloud/cfdemCloud.H"
 #include "base/runTimeSelectionTables.H"
-#include "forceSubModel.H"
+#include "subModels/forceModel/forceSubModel.H"
 
 namespace Foam {
 
-//! @brief forceModel
+//! \brief forceModel
 class forceModel {
 
 public:
   /* --------------------------------- base class and functions -------------------------- */
 
-  //! @brief Runtime type information
+  //! \brief Runtime type information
   cfdemTypeName("forceModel")
 
-  //! @brief Declare runtime constructor selection
+  //! \brief Declare runtime constructor selection
   cfdemDeclareRunTimeSelection(std::unique_ptr, forceModel, (cfdemCloud& cloud), (cloud))
 
-  //! @brief Selector
+  //! \brief Selector
   static std::unique_ptr<forceModel> New(cfdemCloud& cloud,
                                          const dictionary& dict,
                                          const std::string& modelName);
 
-  //! @brief Constructor
+  //! \brief Constructor
   forceModel(cfdemCloud& cloud);
 
-  //! @brief Destructor
+  //! \brief Destructor
   virtual ~forceModel();
 
   /* --------------------------------- virtual functions --------------------------------- */
@@ -71,10 +71,10 @@ public:
       << abort(FatalError);
   }
 
-  virtual void setMixForce(const std::vector<double>& dimensionRatios) {
-    FatalError << "forceModel:setMixForce(): using base class function, please use derived class function\n"
-      << abort(FatalError);
-  }
+  // virtual void setMixForce(const std::vector<double>& dimensionRatios) {
+  //   FatalError << "forceModel:setMixForce(): using base class function, please use derived class function\n"
+  //     << abort(FatalError);
+  // }
 
   /* --------------------------------- member functions ---------------------------------- */
 
@@ -90,16 +90,16 @@ protected:
 
   cfdemCloud& cloud_;
 
-  //! @brief 当前 force model 的 forceSubModel
+  //! \brief 当前 force model 的 forceSubModel
   forceSubModel forceSubModel_;
 
-  //! @brief 是否激活探针
+  //! \brief 是否激活探针
   bool useProbe_;
 
-  //! @brief 颗粒隐式力的总和 [N]
+  //! \brief 颗粒隐式力的总和 [N]
   volVectorField impParticleForces_;
 
-  //! @brief 颗粒显式力的总和 [N]
+  //! \brief 颗粒显式力的总和 [N]
   volVectorField expParticleForces_;
 };
 

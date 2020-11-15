@@ -44,7 +44,7 @@ Class
 
 namespace Foam {
 
-//! @brief The basic class for particles
+//! \brief The basic class for particles
 class ParticleCloud {
 
 public:
@@ -96,10 +96,10 @@ public:
 
 protected:
 
-  //! @brief 颗粒总数
+  //! \brief 颗粒总数
   int numberOfParticles_;
 
-  //! @brief 颗粒总数是否发生变化
+  //! \brief 颗粒总数是否发生变化
   bool numberOfParticlesChanged_;
 
 #if CFDEM_CLOUD_USE_TENSOR
@@ -118,68 +118,68 @@ protected:
   base::CDTensor2 particleWeights_;
   base::CDTensor2 particleVolumes_;
 #else
-  //! @brief 颗粒半径
-  //! @note radii_[index][0]
+  //! \brief 颗粒半径
+  //! \note radii_[index][0]
   double** radii_;
 
-  //! @brief 颗粒体积
-  //! @note volumes_[index][0]
+  //! \brief 颗粒体积
+  //! \note volumes_[index][0]
   double** volumes_;
 
-  //! @brief 颗粒阻力系数
+  //! \brief 颗粒阻力系数
   //         当 forceSubModel implForceDEM 为 true 时候，该 cds_ 和 fluidVel_ 传递给 DEM 求解器， 
   //         DEM 求解器使用颗粒中心处的流体速度与阻力系数一起计算颗粒受到的阻力
-  //! @note cds_[index][0]
+  //! \note cds_[index][0]
   double** cds_;
 
-  //! @brief 颗粒位置矢量
-  //! @note positions_[index][0 ~ 2]
+  //! \brief 颗粒位置矢量
+  //! \note positions_[index][0 ~ 2]
   double** positions_;
 
-  //! @brief 颗粒速度
-  //! @note velocities_[index][0 ~ 2]
+  //! \brief 颗粒速度
+  //! \note velocities_[index][0 ~ 2]
   double** velocities_;
 
-  //! @brief 小颗粒的中心处的流体速度
+  //! \brief 小颗粒的中心处的流体速度
   //         当 forceSubModel implForceDEM 为 true 时候，该 cds_ 和 fluidVel_ 传递给 DEM 求解器， 
   //         DEM 求解器使用颗粒中心处的流体速度与阻力系数一起计算颗粒受到的阻力
-  //! @note fluidVel_[index][0 ~ 2]
+  //! \note fluidVel_[index][0 ~ 2]
   double** fluidVel_;
 
-  //! @brief 在一个耦合时间间隔中，小颗粒所受的阻力的累计，将在下个耦合步中，传递给流场
-  //! @note fAcc_[index][0 ~ 2] ??????????
+  //! \brief 在一个耦合时间间隔中，小颗粒所受的阻力的累计，将在下个耦合步中，传递给流场
+  //! \note fAcc_[index][0 ~ 2] ??????????
   double** fAcc_;
 
-  //! @brief 颗粒对流体的隐式作用力
-  //! @note impForces_[index][0 ~ 2]
+  //! \brief 颗粒对流体的隐式作用力
+  //! \note impForces_[index][0 ~ 2]
   double** impForces_;
 
-  //! @brief 颗粒对流体的显式作用力
-  //! @note expForces_[index][0 ~ 2]
+  //! \brief 颗粒对流体的显式作用力
+  //! \note expForces_[index][0 ~ 2]
   double** expForces_;
 
-  //! @brief 流体对颗粒的总作用力，如果不设置 cds_，则
-  //! @note DEMForces_[index][0 ~ 2]
+  //! \brief 流体对颗粒的总作用力，如果不设置 cds_，则
+  //! \note DEMForces_[index][0 ~ 2]
   double** DEMForces_;
 
-  //! @brief 空隙率
-  //! @note voidfractions_[index][subcell]
+  //! \brief 空隙率
+  //! \note voidfractions_[index][subcell]
   double** voidfractions_;
 
-  //! @brief 颗粒覆盖的所有网格的编号
-  //! @note cellIds_[index][subcell]
+  //! \brief 颗粒覆盖的所有网格的编号
+  //! \note cellIds_[index][subcell]
   double** cellIds_;
 
-  //! @brief 颗粒对所覆盖网格的影响系数
+  //! \brief 颗粒对所覆盖网格的影响系数
   //         如果使用 divided 空隙率模型，则对颗粒覆盖的某个网格 subcell，
   //         只要有一个颗粒标志点在网格中，particleWeights_[index][subcell] += 1.0 / 29.0
-  //! @note particleWeights_[index][subcell]
+  //! \note particleWeights_[index][subcell]
   double** particleWeights_;
 
-  //! @brief 颗粒对所覆盖网格的覆盖体积
+  //! \brief 颗粒对所覆盖网格的覆盖体积
   //         如果使用 divided 空隙率模型，则对颗粒覆盖的某个网格 subcell，
   //         只要有一个颗粒标志点在网格中，particleVolumes_[index][subcell] += (1.0 / 29.0) * 颗粒体积
-  //! @note particleVolumes_[index][subcell]
+  //! \note particleVolumes_[index][subcell]
   double** particleVolumes_;
 #endif // CFDEM_CLOUD_USE_TENSOR
 };

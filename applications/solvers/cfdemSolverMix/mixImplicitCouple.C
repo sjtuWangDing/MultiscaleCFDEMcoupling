@@ -40,7 +40,7 @@ defineTypeNameAndDebug(mixImplicitCouple, 0);
 
 addToRunTimeSelectionTable(momCoupleModel, mixImplicitCouple, dictionary);
 
-// @brief Constructors
+// \brief Constructors
 mixImplicitCouple::mixImplicitCouple(const dictionary& dict, cfdemCloud& sm):
   momCoupleModel(dict, sm),
   propsDict_(dict.subDict(typeName + "Props")),
@@ -91,10 +91,10 @@ mixImplicitCouple::mixImplicitCouple(const dictionary& dict, cfdemCloud& sm):
   Info << "implicit momentum exchange field calculate if alphaP larger than : " <<  maxAlpha_ << endl;
 }
 
-// @brief Destructor
+// \brief Destructor
 mixImplicitCouple::~mixImplicitCouple() {}
 
-// @brief 计算动量交换场
+// \brief 计算动量交换场
 tmp<volScalarField> mixImplicitCouple::impMomSource() const {
   // tst 定义参见 dataExchangeModel.H
   scalar tsf = particleCloud_.dataExchangeM().timeStepFraction();

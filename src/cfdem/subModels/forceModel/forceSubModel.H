@@ -40,7 +40,7 @@ Class
 namespace Foam {
 
 /*!
-  * @brief forceSwitch
+  * \brief forceSwitch
   *
   * treatForceExplicit
   *    true - 在CFD的动量方程中，耦合力都为显式力
@@ -49,7 +49,7 @@ namespace Foam {
   * treatForceDEM
   *    true - 仅在 DEM 中考虑耦合力，即仅考虑流体对颗粒的作用，不考虑颗粒对流体的反作用
   *           在 resolved 方法中，比如 cfdemSolverIB，ArchimedesIB force 会直接设置 treatForceDEM 为 true
-  *           因为颗粒对流体的作用力是通过虚拟域方法得到 ？？？？？？？？？？？？？？？？？
+  *           因为颗粒对流体的作用力是通过虚拟域方法得到
   *    false - 即 CFD 和 DEM 都考虑耦合力 (default)
   *
   * implForceDEM
@@ -70,7 +70,7 @@ enum ESwitch {
 };
 
 /*!
- * @brief The force sub model is designed to hold the settings a force model can have.
+ * \brief The force sub model is designed to hold the settings a force model can have.
  *        For now it handles the treatForceExplicit, treatForceDEM and implForceDEM option.
  */
 class forceSubModel {
@@ -125,10 +125,10 @@ public:
     unsigned int value_;
   };
 
-  //! @brief Constructor
+  //! \brief Constructor
   forceSubModel(cfdemCloud& cloud, forceModel& forceModel);
 
-  //! @brief Destructor
+  //! \brief Destructor
   ~forceSubModel();
 
   /* --------------------------------- virtual functions --------------------------------- */
@@ -136,11 +136,11 @@ public:
   /* --------------------------------- member functions ---------------------------------- */
 
   /*!
-   * @param index                  <[in] 颗粒索引
-   * @param dragTot                <[in] 索引为 index 的颗粒受到的总阻力
-   * @param dragEx                 <[in] 索引为 index 的颗粒受到的显式阻力
-   * @param Ufluid = vector::zero  <[in] 索引为 index 的颗粒中心处流体速度(可以指定是否使用插值模型计算)
-   * @param scalar Cd = 0          <[in] 颗粒阻力系数
+   * \param index                  <[in] 颗粒索引
+   * \param dragTot                <[in] 索引为 index 的颗粒受到的总阻力
+   * \param dragEx                 <[in] 索引为 index 的颗粒受到的显式阻力
+   * \param Ufluid = vector::zero  <[in] 索引为 index 的颗粒中心处流体速度(可以指定是否使用插值模型计算)
+   * \param scalar Cd = 0          <[in] 颗粒阻力系数
    */
   void partToArray(const label& index,
                    const Foam::vector& dragTot,
@@ -160,7 +160,7 @@ protected:
 
   Switches switches_;
 
-  //! @brief 用户自定义动力粘度，该粘度仅用于计算颗粒所受阻力
+  //! \brief 用户自定义动力粘度，该粘度仅用于计算颗粒所受阻力
   volScalarField nu_;
 };
 

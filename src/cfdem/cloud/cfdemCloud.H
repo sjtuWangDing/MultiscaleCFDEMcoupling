@@ -82,10 +82,10 @@ class cfdemCloud {
 
 public:
 
-  //! @brief Construct from mesh and a list of particles
+  //! \brief Construct from mesh and a list of particles
   cfdemCloud(const fvMesh& mesh);
 
-  //! @brief Destructor
+  //! \brief Destructor
   virtual ~cfdemCloud();
 
   /*!
@@ -144,7 +144,7 @@ protected:
 
   const fvMesh& mesh_;
 
-  //! @note 在当前类中一定要最先声明 couplingPropertiesDict_ 和 liggghtsCommandsDict_
+  //! \note 在当前类中一定要最先声明 couplingPropertiesDict_ 和 liggghtsCommandsDict_
   IOdictionary couplingPropertiesDict_;
 
   IOdictionary liggghtsCommandsDict_;
@@ -153,7 +153,7 @@ protected:
 
   ParticleCloud pCloud_;
 
-  //! @note forceModel, liggghtsCommandModel, momCoupleModel using std::vector as container
+  //! \note forceModel, liggghtsCommandModel, momCoupleModel using std::vector as container
   std::vector<std::shared_ptr<liggghtsCommandModel>> liggghtsCommandModels_;
 
   std::vector<std::shared_ptr<forceModel>> forceModels_;
@@ -185,35 +185,35 @@ protected:
   bool arraysReallocated_;
 
   /*!
-   * @brief 是否隐式计算颗粒所受到的阻力
+   * \brief 是否隐式计算颗粒所受到的阻力
    *        true - 在每个耦合时间步，流体的速度和阻力系数都被传递到 DEM 中，从而在每个 DEM 时间步中，
    *               使用上一个耦合时间步中的阻力系数和流体速度，与当前颗粒速度一起计算颗粒受到的阻力
    *        false - 在每个耦合时间步中，流体对颗粒的阻力被传递到 DEM 中，并且在接下来的 DEM 时间步中，
    *                这个力保持不变，直到下个耦合时间步
-   * @note default false
+   * \note default false
    */
   bool impDEMdrag_;
 
   /*!
-   * @brief 在每个 DEM 时间步中，都将颗粒受到的力累计起来，然后在耦合时间步中传递给 CFD 计算，
+   * \brief 在每个 DEM 时间步中，都将颗粒受到的力累计起来，然后在耦合时间步中传递给 CFD 计算，
    *        只有当 impDEMdrag_ = true 时才为真
-   * @note default false
+   * \note default false
    */
   bool impDEMdragAcc_;
 
-  //! @brief 显式、隐式分裂系数
+  //! \brief 显式、隐式分裂系数
   scalar impExpSplitFactor_;
 
   // volScalarField ddtVoidfraction_;
 
-  //! @brief Variable used to de-activate mirroring across periodic boundary conditions.
+  //! \brief Variable used to de-activate mirroring across periodic boundary conditions.
   Switch checkPeriodicCells_;
 
   /*!
-   * @brief De-activation and tolerance variables, if set to (for a specific direction),
+   * \brief De-activation and tolerance variables, if set to (for a specific direction),
    *        the periodic check will NOT be done. Important for probing ambient points.
    *        Only read-in in case checkPeriodicCells is active.
-   * @note default = (1, 1, 1), i.e., periodic checks will be done
+   * \note default = (1, 1, 1), i.e., periodic checks will be done
    */
   vector wallPeriodicityCheckRange_;
 
@@ -233,7 +233,7 @@ protected:
 //   const incompressible::RASModel& turbulence_;
 // #endif
 
-  //! @brief Multiphase Turbulence (e.g., slip-induced turbulence)
+  //! \brief Multiphase Turbulence (e.g., slip-induced turbulence)
   // volScalarField turbulenceMultiphase_;
 };
 

@@ -48,23 +48,23 @@ class mixDilute: public averagingModel {
 
 public:
 
-  // @brief Runtime type information
+  // \brief Runtime type information
   TypeName("mixDilute");
 
-  // @brief Constructors
+  // \brief Constructors
   mixDilute(const dictionary& dict, cfdemCloud& sm);
 
-  // @brief Destructor
+  // \brief Destructor
   ~mixDilute();
 
-  // @brief 设置局部平均标量场
-  // @param field                      <[in, out] 需要被局部平均化场
-  // @param value                      <[in] 用于局部平均化的颗粒(lagrange)变量
-  // @param weight                     <[in] 用于局部平均化的权重系数(lagrange)
-  // @param weightField                <[in, out] 权重系数平均化场
-  // @param& mask
-  // @param& weight2                   <[in] 指定第二权重系数
-  // @param weightWithWeight2 = false  <[in] 是否使用第二权重系数
+  // \brief 设置局部平均标量场
+  // \param field                      <[in, out] 需要被局部平均化场
+  // \param value                      <[in] 用于局部平均化的颗粒(lagrange)变量
+  // \param weight                     <[in] 用于局部平均化的权重系数(lagrange)
+  // \param weightField                <[in, out] 权重系数平均化场
+  // \param& mask
+  // \param& weight2                   <[in] 指定第二权重系数
+  // \param weightWithWeight2 = false  <[in] 是否使用第二权重系数
   virtual void setScalarAverage(volScalarField& field,
                                 double**& value,
                                 double**& weight,
@@ -73,14 +73,14 @@ public:
                                 double** const& weight2,
                                 bool weightWithWeight2 = false) const;
 
-  // @brief 设置局部平均矢量场
-  // @param field                      <[in, out] 需要被局部平均化场
-  // @param value                      <[in] 用于局部平均化的颗粒(lagrange)变量
-  // @param weight                     <[in] 用于局部平均化的权重系数(lagrange)
-  // @param weightField                <[in, out] 权重系数平均化场
-  // @param& mask
-  // @param& weight2                   <[in] 指定第二权重系数
-  // @param weightWithWeight2 = false  <[in] 是否使用第二权重系数
+  // \brief 设置局部平均矢量场
+  // \param field                      <[in, out] 需要被局部平均化场
+  // \param value                      <[in] 用于局部平均化的颗粒(lagrange)变量
+  // \param weight                     <[in] 用于局部平均化的权重系数(lagrange)
+  // \param weightField                <[in, out] 权重系数平均化场
+  // \param& mask
+  // \param& weight2                   <[in] 指定第二权重系数
+  // \param weightWithWeight2 = false  <[in] 是否使用第二权重系数
   virtual void setVectorAverage(volVectorField& field,
                                 double**& value,
                                 double**& weight,

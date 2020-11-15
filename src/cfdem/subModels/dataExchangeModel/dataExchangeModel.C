@@ -45,7 +45,7 @@ cfdemDefineDestroyNewFunctionMap(dataExchangeModel)
 cfdmeDefineBaseTypeNew(
   autoPtr, dataExchangeModel, (cfdemCloud& cloud, const dictionary& dict), cloud, dict, (cloud))
 
-//! @brief Constructor
+//! \brief Constructor
 dataExchangeModel::dataExchangeModel(cfdemCloud& cloud):
   cloud_(cloud),
   // 在初始化 dataExchangeModel 的时候，记录下当前的流体时间步为 time index
@@ -58,7 +58,7 @@ dataExchangeModel::dataExchangeModel(cfdemCloud& cloud):
   DEMts_(-1.0) {
 }
 
-//! @brief Destructor
+//! \brief Destructor
 dataExchangeModel::~dataExchangeModel() {}
 
 } // namespace Foam

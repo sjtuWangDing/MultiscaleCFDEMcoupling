@@ -29,44 +29,37 @@ Description
   and OpenFOAM(R). Note: this code is not part of OpenFOAM(R) (see DISCLAIMER).
 
 Class
-  runLiggghts
+  ShirgaonkarIB
 \*---------------------------------------------------------------------------*/
 
-#include "runLiggghts.H"
+#include "ShirgaonkarIB.H"
 
 namespace Foam {
 
-cfdemDefineTypeName(runLiggghts)
+cfdemDefineTypeName(Archimedes)
 
-cfdemAddToNewFunctionMap(liggghtsCommandModel, runLiggghts)
+cfdemAddToNewFunctionMap(forceModel, Archimedes)
 
 //! \brief Constructor
-runLiggghts::runLiggghts(cfdemCloud& cloud):
-  liggghtsCommandModel(cloud), subPropsDict_(cloud.liggghtsCommandsDict()) {
-  std::string dictName = typeName_ + "Props";
-  if (cloud.liggghtsCommandsDict().found(dictName)) {
-    subPropsDict_ = cloud.liggghtsCommandsDict().subDict(dictName);
-    verbose_ = subPropsDict_.lookupOrDefault<Switch>("verbose", false);
-  }
-  checkTimeMode(subPropsDict_);
-  checkTimeSettings(subPropsDict_);
-  command_ = createCommand(baseCommand_);
+ArchimedesIB::ArchimedesIB(cfdemCloud& cloud):
+  forceModel(cloud),
+  subPropsDict_(cloud.couplingPropertiesDict().subDict(typeName_ + "Props")),
+  voidFractionFieldName_(subPropsDict_.lookupOrDefault("voidfractionFieldName", "voidfractionNext")),
+  gravityFieldName_(subPropsDict_.lookupOrDefault("gravityFieldName", "g")),
+  voidFraction_(cloud.mesh().lookupObject<volScalarField>(voidFractionFieldName_)),
+#if defined(version21)
+  g_(cloud.mesh().lookupObject<uniformDimensionedVectorField>(gravityFieldName_))
+#elif defined(version16ext) || defined(version15)
+  g_(dimensionedVector(cloud.mesh().lookupObject<IOdictionary>("environmentalProperties").lookup(environmentalProperties)).value())
+#endif
+{
+
 }
 
-//! \brief Destructor
-runLiggghts::~runLiggghts() {}
+ArchimedesIB::~ArchimedesIB() {}
 
-std::string runLiggghts::getCommand(int index) const {
-  return command_;
-}
-
-std::string runLiggghts::createCommand(const std::string& cmd, int interval) {
-  return cmd + " " + std::to_string(interval);
-}
-
-bool runLiggghts::runCommand(int couplingStep) {
-  command_ = createCommand(baseCommand_, cloud_.couplingInterval());
-  return runThisCommand(couplingStep);
+void ArchimedesIB::setForce() {
+  
 }
 
 } // namespace Foam

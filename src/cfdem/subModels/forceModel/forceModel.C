@@ -46,7 +46,7 @@ cfdmeDefineBaseTypeNewWithArg(std::unique_ptr, forceModel,
                               (cfdemCloud& cloud, const dictionary& dict, const std::string& modelName),
                               cloud, dict, modelName, (cloud))
 
-//! @brief Constructor
+//! \brief Constructor
 forceModel::forceModel(cfdemCloud& cloud):
   cloud_(cloud),
   forceSubModel_(cloud, *this),
@@ -74,7 +74,7 @@ forceModel::forceModel(cfdemCloud& cloud):
     dimensionedVector("zero", dimensionSet(1, 1, -2, 0, 0), vector(0, 0, 0))  // [N] == [kg * m / s^2]
   ) {}
 
-//! @brief Destructor
+//! \brief Destructor
 forceModel::~forceModel() {}
 
 } // namespace Foam
