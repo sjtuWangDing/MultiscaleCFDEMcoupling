@@ -25,11 +25,30 @@ License
   Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA
 
 Description
-  This code is designed to realize coupled CFD-DEM simulations using LIGGGHTS
-  and OpenFOAM(R). Note: this code is not part of OpenFOAM(R) (see DISCLAIMER).
+  The force model performs the calculation of forces (e.g. fluid-particle
+  interaction forces) acting on each DEM particle. The ShirgaonkarIB model
+  calculates the drag force (viscous and pressure force) acting on each
+  particle in a resolved manner (see Shirgaonkar et al. (2009): “A new
+  mathematical formulation and fast algorithm for fully resolved simulation
+  of self-propulsion”, Journal of Comp. Physics). This model is only suited
+  for resolved CFD-DEM simulations where the particle is represented by
+  immersed boundary method.
 
-Class
-  ShirgaonkarIB
+Syntax
+  forceModels
+  (
+    ShirgaonkarIB
+  );
+  ShirgaonkarIBProps
+  {
+    velFieldName "U";
+    pressureFieldName "p";
+    verbose true;
+    treatForceExplicit true;
+  };
+
+Restrictions
+  Only for immersed boundary solvers.
 \*---------------------------------------------------------------------------*/
 
 #ifndef __SHIRGAONKAR_IB_H__
@@ -58,6 +77,16 @@ private:
 
   //! \note subPropsDict_ should be declared in front of other members
   dictionary subPropsDict_;
+
+  //! \brief name of the finite volume fluid velocity field
+  std::string velFieldName_;
+
+  //! \brief name of the finite volume pressure field
+  std::string pressureFieldName_;
+
+  const volVectorField& U_;
+
+  const volScalarField& p_;
 };
 
 } // namespace Foam

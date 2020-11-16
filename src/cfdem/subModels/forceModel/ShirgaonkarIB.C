@@ -32,33 +32,34 @@ Class
   ShirgaonkarIB
 \*---------------------------------------------------------------------------*/
 
-#include "ShirgaonkarIB.H"
+#include "subModels/forceModel/ShirgaonkarIB.H"
 
 namespace Foam {
 
-cfdemDefineTypeName(Archimedes)
+cfdemDefineTypeName(ShirgaonkarIB)
 
-cfdemAddToNewFunctionMap(forceModel, Archimedes)
+cfdemAddToNewFunctionMap(forceModel, ShirgaonkarIB)
 
-//! \brief Constructor
-ArchimedesIB::ArchimedesIB(cfdemCloud& cloud):
+/*!
+ * \brief Constructor
+ * \note The initialization list should be in the same order as the variable declaration
+ */
+ShirgaonkarIB::ShirgaonkarIB(cfdemCloud& cloud):
   forceModel(cloud),
   subPropsDict_(cloud.couplingPropertiesDict().subDict(typeName_ + "Props")),
-  voidFractionFieldName_(subPropsDict_.lookupOrDefault("voidfractionFieldName", "voidfractionNext")),
-  gravityFieldName_(subPropsDict_.lookupOrDefault("gravityFieldName", "g")),
-  voidFraction_(cloud.mesh().lookupObject<volScalarField>(voidFractionFieldName_)),
-#if defined(version21)
-  g_(cloud.mesh().lookupObject<uniformDimensionedVectorField>(gravityFieldName_))
-#elif defined(version16ext) || defined(version15)
-  g_(dimensionedVector(cloud.mesh().lookupObject<IOdictionary>("environmentalProperties").lookup(environmentalProperties)).value())
-#endif
-{
+  velFieldName_(subPropsDict_.lookupOrDefault<Foam::word>("velFieldName", "U").c_str()),
+  pressureFieldName_(subPropsDict_.lookupOrDefault<Foam::word>("pressureFieldName", "p").c_str()),
+  U_(cloud.mesh().lookupObject<volVectorField>(velFieldName_)),
+  p_(cloud.mesh().lookupObject<volScalarField>(pressureFieldName_)) {
 
+  // read switches in force sub model
+  forceSubModel_.readSwitches(subPropsDict_);
+  
 }
 
-ArchimedesIB::~ArchimedesIB() {}
+ShirgaonkarIB::~ShirgaonkarIB() {}
 
-void ArchimedesIB::setForce() {
+void ShirgaonkarIB::setForce() {
   
 }
 

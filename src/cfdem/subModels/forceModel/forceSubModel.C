@@ -105,11 +105,23 @@ void forceSubModel::partToArray(const label& index,
   }
 }
 
-void forceSubModel::readSwitches() {
-  for (int i = 0; i < Switches::Num; ++i) {
-    Info << "Foam::forceSubModel::readSwitches(): looking for " << Switches::NameList[i] << "...";
-    
+void forceSubModel::readSwitches(const dictionary& subPropsDict) {
+  // 遍历每一个 switch
+  for (int i = 0; i < Switches::kNum; ++i) {
+    Info << "Foam::forceSubModel::readSwitches(): looking for " << Switches::kNameList[i] << "...";
+    if (subPropsDict.found(Switches::kNameList[i])) {
+      bool res = Switch(subPropsDict.lookup(Switches::kNameList[i]));
+      Info << " found in dict, using " << (res ? "true" : "false") << endl;
+      // 设置当前的 switch
+      if (res) {
+        switches_.setTrue(static_cast<ESwitch>(i));
+      }
+    } else {
+      // 如果在 dict 中没有找到，则使用默认值 false
+      Info << " not found in dict, using false" << endl;
+    }
   }
+  // TODO: 检查 switch 是否存在冲突
 }
 
 } // namespace Foam

@@ -32,7 +32,7 @@ Description
   especially suited for resolved CFD-DEM simulations where the particle
   is represented by immersed boundary method.
 
-Examples
+Syntax
   forceModels
   (
     ArchimedesIB
@@ -42,24 +42,34 @@ Examples
     gravityFieldName "g";
     voidfractionFieldName "voidfractionNext";
     treatForceExplicit true;
+    verbose true;
   };
+
+Restrictions
+  Only for immersed boundary solvers.
 \*---------------------------------------------------------------------------*/
 
 #include "subModels/forceModel/ArchimedesIB.H"
 
 namespace Foam {
 
-cfdemDefineTypeName(Archimedes)
+cfdemDefineTypeName(ArchimedesIB)
 
-cfdemAddToNewFunctionMap(forceModel, Archimedes)
+cfdemAddToNewFunctionMap(forceModel, ArchimedesIB)
 
-//! \brief Constructor
+/*!
+ * \brief Constructor
+ * \note The initialization list should be in the same order as the variable declaration
+ */
 ArchimedesIB::ArchimedesIB(cfdemCloud& cloud):
   forceModel(cloud),
   subPropsDict_(cloud.couplingPropertiesDict().subDict(typeName_ + "Props")),
-  voidFractionFieldName_(subPropsDict_.lookupOrDefault("voidfractionFieldName", "voidfractionNext")),
-  gravityFieldName_(subPropsDict_.lookupOrDefault("gravityFieldName", "g")),
-  voidFraction_(cloud.mesh().lookupObject<volScalarField>(voidFractionFieldName_)),
+  voidFractionFieldName_(
+    subPropsDict_.lookupOrDefault<Foam::word>("voidfractionFieldName", "voidfractionNext").c_str()),
+  gravityFieldName_(
+    subPropsDict_.lookupOrDefault<Foam::word>("gravityFieldName", "g").c_str()),
+  voidFraction_(
+    cloud.mesh().lookupObject<volScalarField>(voidFractionFieldName_)),
 #if defined(version21)
   g_(cloud.mesh().lookupObject<uniformDimensionedVectorField>(gravityFieldName_))
 #elif defined(version16ext) || defined(version15)

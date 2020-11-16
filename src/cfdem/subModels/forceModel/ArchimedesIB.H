@@ -32,7 +32,7 @@ Description
   especially suited for resolved CFD-DEM simulations where the particle
   is represented by immersed boundary method.
 
-Examples
+Syntax
   forceModels
   (
     ArchimedesIB
@@ -42,7 +42,11 @@ Examples
     gravityFieldName "g";
     voidfractionFieldName "voidfractionNext";
     treatForceExplicit true;
+    verbose true;
   };
+
+Restrictions
+  Only for immersed boundary solvers.
 \*---------------------------------------------------------------------------*/
 
 #ifndef __ARCHIMEDES_IB_H__
@@ -72,9 +76,10 @@ private:
   //! \note subPropsDict_ should be declared in front of other members
   dictionary subPropsDict_;
 
-  //! \brief name of the finite volume gravity field
+  //! \brief name of the finite volume voidfraction field
   std::string voidFractionFieldName_;
 
+  //! \brief name of the finite volume gravity field
   std::string gravityFieldName_;
 
   const volScalarField& voidFraction_;

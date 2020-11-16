@@ -78,8 +78,8 @@ public:
   /* --------------------------------- base class and functions -------------------------- */
   class Switches {
   public:
-    static constexpr int Num = 4;
-    static constexpr const char* NameList[] = {
+    static constexpr int kNum = 4;
+    static constexpr const char* kNameList[] = {
       "treatForceExplicit",
       "treatForceDEM",
       "implForceDEM",
@@ -148,7 +148,7 @@ public:
                    const Foam::vector& Ufluid = Foam::vector::zero,
                    scalar Cd = scalar(0)) const;
 
-  void readSwitches();
+  void readSwitches(const dictionary& subPropsDict);
 
   /* --------------------------------- public interfaces --------------------------------- */
 
