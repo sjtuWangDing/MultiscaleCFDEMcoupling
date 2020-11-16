@@ -62,7 +62,7 @@ namespace Foam {
  *    true - 调试信息输出到屏幕
  *    false - 调试信息不输出到屏幕 (default)
  *
- * kScalarViscosity
+ * kScalarViscosity (not used)
  *    true - 使用用户自定义动力粘度 nu 进行阻力计算
  *    false - 使用 transport dict 指定的动力粘度
  */
@@ -70,8 +70,7 @@ enum ESwitch {
   kTreatForceExplicit = 0,
   kTreatForceDEM,
   kImplForceDEM,
-  kVerbose,
-  kScalarViscosity,
+  kVerbose
 };
 
 /*!
@@ -97,13 +96,12 @@ public:
   /* --------------------------------- base class and functions -------------------------- */
   class Switches {
   public:
-    static constexpr int kNum = 5;
+    static constexpr int kNum = 4;
     static constexpr const char* kNameList[] = {
       "treatForceExplicit",
       "treatForceDEM",
       "implForceDEM",
-      "verbose",
-      "scalarViscosity"
+      "verbose"
     };
     Switches(): value_(0) {}
     void setTrue(ESwitch value) {
@@ -120,9 +118,6 @@ public:
         case kVerbose:
           value_ |= (1 << kVerbose);
           break;
-        case kScalarViscosity:
-          value_ |= (1 << kScalarViscosity);
-          break;
         default:
           FatalError << "Error: illegal switch enum: " << value << " in forceSubModel"
             << abort(FatalError);
@@ -138,8 +133,6 @@ public:
           return value_ & (1 << kImplForceDEM);
         case kVerbose:
           return value_ & (1 << kVerbose);
-        case kScalarViscosity:
-          return value_ & (1 << kScalarViscosity);
         default:
           FatalError << "Error: illegal switch enum: " << value << " in forceSubModel"
             << abort(FatalError);
@@ -156,8 +149,6 @@ public:
   //! \brief Destructor
   ~forceSubModel();
 
-  /* --------------------------------- virtual functions --------------------------------- */
-
   /* --------------------------------- member functions ---------------------------------- */
 
   /*!
@@ -167,11 +158,17 @@ public:
    * \param Ufluid = vector::zero  <[in] 索引为 index 的颗粒中心处流体速度(可以指定是否使用插值模型计算)
    * \param scalar Cd = 0          <[in] 颗粒阻力系数
    */
-  void partToArray(const label& index,
+  void partToArray(const int& index,
                    const Foam::vector& dragTot,
                    const Foam::vector& dragEx,
                    const Foam::vector& Ufluid = Foam::vector::zero,
                    scalar Cd = scalar(0)) const;
+
+  /*!
+   * \param index                  <[in] 颗粒索引
+   * \param torque = vector::zero  <[in] 索引为 index 的颗粒受到的力矩
+   */
+  void addTorque(int index, const Foam::vector& torque = Foam::vector::zero) const;
 
   /*! \brief read switches from force model dictionary */
   void readSwitches();
@@ -184,31 +181,34 @@ public:
 
   /*!
    * \brief 计算 IB drag，用于计算 ShirgaonkarIBModel and mixShirgaonkarIBModel
+   *        dimensionSet(1, -2, -2, 0, 0)
    * \param U 速度场
    * \param p 压力场
    * \return IB drag
    */
-//   inline const volVectorField& IBDrag(const volVectorField& U, const volScalarField& p) const {
-// #ifdef compre
-//     return muField() * fvc::laplacian(U) - fvc::grad(p);
-// #else
-//     return rhoField() * (nuField() * fvc::laplacian(U) - fvc::grad(p));
-// #endif
-//   }
+  const volVectorField& IBDrag(const volVectorField& U, const volScalarField& p) const;
 
 //   /* --------------------------------- public interfaces --------------------------------- */
 
   inline const volScalarField& rhoField() const { return rho_; }
-//   inline const volScalarField& nuField() const {
-// #ifdef compre
-// #else
-// #endif
-//   }
+  inline const volScalarField& nuField() const {
+#ifdef compre
+    nu_ = cloud_.turbulence().mu() / rho_;
+#else
+    return cloud_.turbulence().nu();
+#endif
+  }
+  inline const volScalarField& muField() const {
+#ifdef compre
+    return cloud_.turbulence().mu();
+#else
+    return cloud_.turbulence().nu() * rho_;
+#endif
+  }
   inline bool treatForceExplicit() const { return switches_.isTrue(kTreatForceExplicit); }
   inline bool treatForceDEM() const { return switches_.isTrue(kTreatForceDEM); }
   inline bool implForceDEM() const { return switches_.isTrue(kImplForceDEM); }
   inline bool verbose() const { return switches_.isTrue(kVerbose); }
-  inline bool scalarViscosity() const { return switches_.isTrue(kScalarViscosity); }
 
 protected:
 
@@ -224,9 +224,6 @@ protected:
 
   //! \brief 密度
   const volScalarField rho_;
-
-  //! \brief 用户自定义动力粘度，该粘度仅用于计算颗粒所受阻力
-  volScalarField nu_;
 };
 
 } // namespace Foam

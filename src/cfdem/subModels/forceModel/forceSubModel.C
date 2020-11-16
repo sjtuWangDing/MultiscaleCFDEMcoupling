@@ -45,18 +45,7 @@ forceSubModel::forceSubModel(cfdemCloud& cloud,
   forceModel_(forceModel),
   subPropsDict_(subPropsDict),
   switches_(),
-  rho_(cloud.mesh().lookupObject<volScalarField>(densityFieldName_)),
-  nu_(
-    IOobject(
-      "scalarViscosity",
-      cloud.mesh().time().timeName(),
-      cloud.mesh(),
-      IOobject::NO_READ,
-      IOobject::NO_WRITE
-    ),
-    cloud.mesh(),
-    dimensionedScalar("nu0", dimensionSet(0, 2, -1, 0, 0), 1.)
-  ) {}
+  rho_(cloud.mesh().lookupObject<volScalarField>(densityFieldName_)) {}
 
 //! \brief Destructor
 forceSubModel::~forceSubModel() {}
@@ -68,7 +57,7 @@ forceSubModel::~forceSubModel() {}
  * \param Ufluid = vector::zero  <[in] 索引为 index 的颗粒中心处流体速度(可以指定是否使用插值模型计算)
  * \param scalar Cd = 0          <[in] 颗粒阻力系数
  */
-void forceSubModel::partToArray(const label& index,
+void forceSubModel::partToArray(const int& index,
                                 const Foam::vector& dragTot,
                                 const Foam::vector& dragEx,
                                 const Foam::vector& Ufluid,
@@ -80,15 +69,15 @@ void forceSubModel::partToArray(const label& index,
       #pragma unroll
       for (int j = 0; j < 3; ++j) {
         // 将耦合力累加到 expFoces_
-        forceModel_.expForces()[index][j] += dragTot[j];
+        cloud_.expForces()[index][j] += dragTot[j];
       }
     } else {
       // 耦合力视为隐式力
       #pragma unroll
       for (int j = 0; j < 3; ++j) {
         // 将耦合力累加到 impForces_ 和 expFoces_
-        forceModel_.impForces()[index][j] += dragTot[j] - dragEx[j];  // 隐式力 = dragTot[j] - dragEx[j]
-        forceModel_.expForces()[index][j] += dragEx[j];
+        cloud_.impForces()[index][j] += dragTot[j] - dragEx[j];  // 隐式力 = dragTot[j] - dragEx[j]
+        cloud_.expForces()[index][j] += dragEx[j];
       }
     }
   }
@@ -97,15 +86,26 @@ void forceSubModel::partToArray(const label& index,
   if (switches_.isTrue(kImplForceDEM)) {
     #pragma unroll
     for (int j = 0; j < 3; j++) {
-      forceModel_.fluidVel()[index][j] = Ufluid[j];
+      cloud_.fluidVel()[index][j] = Ufluid[j];
     }
-    forceModel_.cds()[index] = Cd;
+    cloud_.cds()[index] = Cd;
   } else {
     // 直接将总阻力传递给 DEMForces_[index]
+    // usually used for ArchimedesIB and ShirgaonkarIB force model
     #pragma unroll
     for (int j = 0; j < 3; j++) {
-      forceModel_.DEMForces()[index][j] = dragTot[j];
+      cloud_.DEMForces()[index][j] = dragTot[j];
     }
+  }
+}
+
+/*!
+ * \param index                  <[in] 颗粒索引
+ * \param torque = vector::zero  <[in] 索引为 index 的颗粒受到的力矩
+ */
+void forceSubModel::addTorque(int index, const Foam::vector& torque/* = Foam::vector::zero */) const {
+  for (int i = 0; i < 3; ++i) {
+    cloud_.DEMTorques()[index][i] += torque[i];
   }
 }
 
@@ -150,6 +150,21 @@ void forceSubModel::checkSwitches(EForceType forceType) const {
     default:
       FatalError << "Error: illegal force type: " << forceType << abort(FatalError);
   }
+}
+
+/*!
+ * \brief 计算 IB drag，用于计算 ShirgaonkarIBModel and mixShirgaonkarIBModel
+ *        dimensionSet(1, -2, -2, 0, 0)
+ * \param U 速度场
+ * \param p 压力场
+ * \return IB drag
+ */
+const volVectorField& forceSubModel::IBDrag(const volVectorField& U, const volScalarField& p) const {
+#ifdef compre
+  return muField() * fvc::laplacian(U) - fvc::grad(p);
+#else
+  return rhoField() * (nuField() * fvc::laplacian(U) - fvc::grad(p));
+#endif
 }
 
 } // namespace Foam

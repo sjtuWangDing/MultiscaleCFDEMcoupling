@@ -256,14 +256,12 @@ class Tensor<1, Device, DType>: public TRValue<Tensor<1, Device, DType>,
   inline index_t size(int idx) const {
     return shape_[idx];
   }
-  inline DType& operator[] (int idx) {
+  inline DType& operator[] (int idx) const {
     CHECK(idx >= 0 && idx < static_cast<int>(mSize()));
     return dptr_[idx];
   }
-  inline const DType operator[] (int idx) const {
-    return const_cast<Tensor<1, Device, DType>*>(this)->operator[](idx);
-  }
 };
+using CITensor1 = ::base::Tensor<1, cpu, int>;
 using CDTensor1 = ::base::Tensor<1, cpu, double>;
 using CDTensor2 = ::base::Tensor<2>;
 

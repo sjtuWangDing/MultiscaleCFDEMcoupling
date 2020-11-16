@@ -87,6 +87,8 @@ private:
   const volVectorField& U_;
 
   const volScalarField& p_;
+
+  bool useTorque_;
 };
 
 } // namespace Foam

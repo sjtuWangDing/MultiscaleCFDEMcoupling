@@ -37,10 +37,7 @@ Class
 
 #include "error.H"
 #include "base/tensor/tensor.H"
-
-#ifndef CFDEM_CLOUD_USE_TENSOR
-#define CFDEM_CLOUD_USE_TENSOR 1
-#endif
+#include "cloud/cfdemBase.H"
 
 namespace Foam {
 
@@ -54,37 +51,24 @@ public:
   // interfaces - getter
   inline int numberOfParticles() const { return numberOfParticles_; }
   inline bool numberOfParticlesChanged() const { return numberOfParticlesChanged_; }
-#if CFDEM_CLOUD_USE_TENSOR
-  inline base::CDTensor1& radii() { return radii_; }
-  inline base::CDTensor1& volumes() { return volumes_; }
-  inline base::CDTensor1& cds() { return cds_; }
-  inline base::CDTensor2& positions() { return positions_; }
-  inline base::CDTensor2& velocities() { return velocities_; }
-  inline base::CDTensor2& fluidVel() { return fluidVel_; }
-  inline base::CDTensor2& fAcc() { return fAcc_; }
-  inline base::CDTensor2& impForces() { return impForces_; }
-  inline base::CDTensor2& expForces() { return expForces_; }
-  inline base::CDTensor2& DEMForces() { return DEMForces_; }
-  inline base::CDTensor2& voidfractions() { return voidfractions_; }
-  inline base::CDTensor2& cellIds() { return cellIds_; }
-  inline base::CDTensor2& particleWeights() { return particleWeights_; }
-  inline base::CDTensor2& particleVolumes() { return particleVolumes_; }
-#else
-  inline double** radii() const { return radii_; }
-  inline double** volumes() const { return volumes_; }
-  inline double** cds() const { return cds_; }
-  inline double** positions() const { return positions_; }
-  inline double** velocities() const { return velocities_; }
-  inline double** fluidVel() const { return fluidVel_; }
-  inline double** fAcc() const { return fAcc_; }
-  inline double** impForces() const { return impForces_; }
-  inline double** expForces() const { return expForces_; }
-  inline double** DEMForces() const { return DEMForces_; }
-  inline double** voidfractions() const { return voidfractions_; }
-  inline double** cellIds() const { return cellIds_; }
-  inline double** particleWeights() const { return particleWeights_; }
-  inline double** particleVolumes() const { return particleVolumes_; }
-#endif
+  inline const base::CDTensor1& radii() const { return radii_; }
+  inline const base::CDTensor1& volumes() const { return volumes_; }
+  inline const base::CDTensor1& cds() const { return cds_; }
+
+  inline const base::CITensor1& particleOverMeshNumber() const { return particleOverMeshNumber_; }
+
+  inline const base::CDTensor2& positions() const { return positions_; }
+  inline const base::CDTensor2& velocities() const { return velocities_; }
+  inline const base::CDTensor2& fluidVel() const { return fluidVel_; }
+  inline const base::CDTensor2& fAcc() const { return fAcc_; }
+  inline const base::CDTensor2& impForces() const { return impForces_; }
+  inline const base::CDTensor2& expForces() const { return expForces_; }
+  inline const base::CDTensor2& DEMForces() const { return DEMForces_; }
+  inline const base::CDTensor2& DEMTorques() const { return DEMTorques_; }
+  inline const base::CDTensor2& voidfractions() const { return voidfractions_; }
+  inline const base::CDTensor2& cellIDs() const { return cellIDs_; }
+  inline const base::CDTensor2& particleWeights() const { return particleWeights_; }
+  inline const base::CDTensor2& particleVolumes() const { return particleVolumes_; }
 
   // interface - setter
   inline void setNumberOfParticles(int number) {
@@ -94,7 +78,7 @@ public:
     numberOfParticles_ = number;
   }
 
-protected:
+private:
 
   //! \brief 颗粒总数
   int numberOfParticles_;
@@ -102,10 +86,12 @@ protected:
   //! \brief 颗粒总数是否发生变化
   bool numberOfParticlesChanged_;
 
-#if CFDEM_CLOUD_USE_TENSOR
+#if CFDEM_USE_TENSOR
   base::CDTensor1 radii_;
   base::CDTensor1 volumes_;
   base::CDTensor1 cds_;
+  base::CITensor1 particleOverMeshNumber_;
+
   base::CDTensor2 positions_;
   base::CDTensor2 velocities_;
   base::CDTensor2 fluidVel_;
@@ -113,8 +99,9 @@ protected:
   base::CDTensor2 impForces_;
   base::CDTensor2 expForces_;
   base::CDTensor2 DEMForces_;
+  base::CDTensor2 DEMTorques_;
   base::CDTensor2 voidfractions_;
-  base::CDTensor2 cellIds_;
+  base::CDTensor2 cellIDs_;
   base::CDTensor2 particleWeights_;
   base::CDTensor2 particleVolumes_;
 #else
@@ -167,8 +154,8 @@ protected:
   double** voidfractions_;
 
   //! \brief 颗粒覆盖的所有网格的编号
-  //! \note cellIds_[index][subcell]
-  double** cellIds_;
+  //! \note cellIDs_[index][subcell]
+  double** cellIDs_;
 
   //! \brief 颗粒对所覆盖网格的影响系数
   //         如果使用 divided 空隙率模型，则对颗粒覆盖的某个网格 subcell，

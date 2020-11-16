@@ -50,7 +50,7 @@ ParticleCloud::ParticleCloud(int numberOfParticle/* = -1 */):
   expForces_(),
   DEMForces_(),
   voidfractions_(),
-  cellIds_(),
+  cellIDs_(),
   particleWeights_(),
   particleVolumes_() {}
 

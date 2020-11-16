@@ -46,6 +46,7 @@ Class
 
 #include "base/tensor/tensor.H"
 #include "cloud/OFVersion.H" // choose version
+#include "cloud/cfdemBase.H"
 #include "cloud/couplingProperties.H"
 #include "cloud/particleCloud.H"
 
@@ -134,7 +135,6 @@ public:
   inline const incompressible::RASModel& turbulence() const;
 #endif
 
-
   inline bool writeTimePassed() const { return writeTimePassed_; }
 
   // interface of CouplingProperties
@@ -156,6 +156,33 @@ public:
 
   // interface of particleCloud
   inline int numberOfParticles() const { return pCloud_.numberOfParticles(); }
+  inline bool numberOfParticlesChanged() const { return pCloud_.numberOfParticlesChanged(); }
+
+  inline const base::CDTensor1& radii() const { return pCloud_.radii(); }
+  inline const base::CDTensor1& volumes() const { return pCloud_.volumes(); }
+  inline const base::CDTensor1& cds()const { return pCloud_.cds(); }
+
+  inline const base::CITensor1& particleOverMeshNumber()const { return pCloud_.particleOverMeshNumber(); }
+
+  inline const base::CDTensor2& positions() const { return pCloud_.positions(); }
+  inline const base::CDTensor2& velocities() const { return pCloud_.velocities(); }
+  inline const base::CDTensor2& fluidVel() const { return pCloud_.fluidVel(); }
+  inline const base::CDTensor2& fAcc() const { return pCloud_.fAcc(); }
+  inline const base::CDTensor2& impForces() const { return pCloud_.impForces(); }
+  inline const base::CDTensor2& expForces() const { return pCloud_.expForces(); }
+  inline const base::CDTensor2& DEMForces() const { return pCloud_.DEMForces(); }
+  inline const base::CDTensor2& DEMTorques() const { return pCloud_.DEMTorques(); }
+  inline const base::CDTensor2& voidfractions() const { return pCloud_.voidfractions(); }
+  inline const base::CDTensor2& cellIDs() const { return pCloud_.cellIDs(); }
+  inline const base::CDTensor2& particleWeights() const { return pCloud_.particleWeights(); }
+  inline const base::CDTensor2& particleVolumes() const { return pCloud_.particleVolumes(); }
+
+  inline Foam::vector getPosition(int index) const {
+    Foam::vector pos = Foam::vector::zero;
+    #pragma unroll
+    for (int i = 0; i < 3; ++i) { pos[i] = positions()[index][i]; }
+    return pos;
+  }
 
 protected:
 

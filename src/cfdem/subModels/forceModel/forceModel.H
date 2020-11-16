@@ -87,11 +87,11 @@ public:
 
   /* --------------------------------- public interfaces --------------------------------- */
 
-  inline base::CDTensor2& impForces() { return cloud_.pCloud().impForces(); }
-  inline base::CDTensor2& expForces() { return cloud_.pCloud().expForces(); }
-  inline base::CDTensor2& DEMForces() { return cloud_.pCloud().DEMForces(); }
-  inline base::CDTensor2& fluidVel() { return cloud_.pCloud().fluidVel(); }
-  inline base::CDTensor1& cds() { return cloud_.pCloud().cds(); }
+  // inline const base::CDTensor2& impForces() const { return cloud_.pCloud().impForces(); }
+  // inline const base::CDTensor2& expForces() const { return cloud_.pCloud().expForces(); }
+  // inline const base::CDTensor2& DEMForces() const { return cloud_.pCloud().DEMForces(); }
+  // inline const base::CDTensor2& fluidVel() const { return cloud_.pCloud().fluidVel(); }
+  // inline const base::CDTensor1& cds() const { return cloud_.pCloud().cds(); }
 
 protected:
 
