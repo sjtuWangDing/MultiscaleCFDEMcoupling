@@ -76,7 +76,7 @@ ArchimedesIB::ArchimedesIB(cfdemCloud& cloud):
   g_(dimensionedVector(cloud.mesh().lookupObject<IOdictionary>("environmentalProperties").lookup(environmentalProperties)).value())
 #endif
 {
-
+  createForceSubModels(subPropsDict_, kResolved);
 }
 
 ArchimedesIB::~ArchimedesIB() {}

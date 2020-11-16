@@ -78,6 +78,13 @@ public:
 
   /* --------------------------------- member functions ---------------------------------- */
 
+  /*!
+   * \brief create forceSubModel_
+   * \param subPropsDict the dictionary of current force model
+   * \param forceType force type
+   */
+  void createForceSubModels(const dictionary& subPropsDict, EForceType forceType);
+
   /* --------------------------------- public interfaces --------------------------------- */
 
   inline base::CDTensor2& impForces() { return cloud_.pCloud().impForces(); }
@@ -91,7 +98,7 @@ protected:
   cfdemCloud& cloud_;
 
   //! \brief 当前 force model 的 forceSubModel
-  forceSubModel forceSubModel_;
+  std::shared_ptr<forceSubModel> forceSubModel_;
 
   //! \brief 是否激活探针
   bool useProbe_;

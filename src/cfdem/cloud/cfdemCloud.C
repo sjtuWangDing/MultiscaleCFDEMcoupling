@@ -66,7 +66,33 @@ cfdemCloud::cfdemCloud(const fvMesh& mesh):
   pCloud_(0),
   dataExchangeModel_(dataExchangeModel::New(*this, couplingPropertiesDict_)),
   averagingModel_(averagingModel::New(*this, couplingPropertiesDict_)),
-  voidFractionModel_(voidFractionModel::New(*this, couplingPropertiesDict_)) {
+  voidFractionModel_(voidFractionModel::New(*this, couplingPropertiesDict_)),
+#if defined(version24Dev)
+  turbulence_(mesh.lookupObject<turbulenceModel>(turbulenceModelType())),
+#elif defined(version21) || defined(version16ext)
+#ifdef compre
+  turbulence_(mesh.lookupObject<compressible::turbulenceModel>(turbulenceModelType())),
+#else
+  turbulence_(mesh.lookupObject<incompressible::turbulenceModel>(turbulenceModelType())),
+#endif
+#elif defined(version15)
+  turbulence_(mesh.lookupObject<incompressible::RASModel>(turbulenceModelType())),
+#endif
+  turbulenceMultiphase_(
+    IOobject(
+      "turbulenceMultiphase",
+      mesh.time().timeName(),
+      mesh,
+      IOobject::NO_READ,
+      IOobject::AUTO_WRITE
+    ),
+    mesh,
+#ifdef compre
+    dimensionedScalar("zero", dimensionSet(1, -1, -1, 0, 0), 0)  // kg/m/s
+#else
+    dimensionedScalar("zero", dimensionSet(0, 2, -1, 0, 0), 0)  // m²/s
+#endif
+  ) {
 
   Info << "\nEnding of Constructing cfdemCloud Base Class Object......\n" << endl;
   Info << "\nEntry of cfdemCloud::cfdemCloud(const fvMesh&)......\n" << endl;
@@ -116,36 +142,7 @@ bool cfdemCloud::evolve(volScalarField& VoidF,
     }
   }
   Info << "Foam::cfdemCloud::evolve() - done\n" << endl;
-}
-
-const std::vector<std::shared_ptr<liggghtsCommandModel>>& cfdemCloud::liggghtsCommandModels() const {
-  return liggghtsCommandModels_;
-}
-const std::vector<std::shared_ptr<forceModel>>& cfdemCloud::forceModels() const {
-  return forceModels_;
-}
-const std::vector<std::shared_ptr<momCoupleModel>>& cfdemCloud::momCoupleModels() const {
-  return momCoupleModels_;
-}
-std::shared_ptr<forceModel> cfdemCloud::forceM(int index) const {
-  if (index < 0 || index >= forceModels_.size()) {
-    FatalError << "forceM(): " << "index " << index << " out of boundary" << abort(FatalError);
-  }
-  return forceModels_[index];
-}
-// Foam::autoPtr<T> 中定义了 inline operator const T&() const;
-const dataExchangeModel& cfdemCloud::dataExchangeM() const { return dataExchangeModel_; }
-const averagingModel& cfdemCloud::averagingM() const { return averagingModel_; }
-const voidFractionModel& cfdemCloud::voidFractionM() const { return voidFractionModel_; }
-
-dataExchangeModel& cfdemCloud::dataExchangeM() {
-  return const_cast<dataExchangeModel&>(static_cast<const dataExchangeModel&>(dataExchangeModel_));
-}
-averagingModel& cfdemCloud::averagingM() {
-  return const_cast<averagingModel&>(static_cast<const averagingModel&>(averagingModel_));
-}
-voidFractionModel& cfdemCloud::voidFractionM() {
-  return const_cast<voidFractionModel&>(static_cast<const voidFractionModel&>(voidFractionModel_));
+  return true;
 }
 
 } // namespace Foam

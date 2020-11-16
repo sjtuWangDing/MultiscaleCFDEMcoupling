@@ -43,8 +43,8 @@ cfdemAddToNewFunctionMap(dataExchangeModel, twoWayMPI)
 
 twoWayMPI::twoWayMPI(cfdemCloud& cloud):
   dataExchangeModel(cloud),
-  subPropsDict_(cloud.couplingPropertiesDict().subDict(typeName_ + "Props")),
-  lmp_(nullptr) {
+  lmp_(nullptr),
+  subPropsDict_(cloud.couplingPropertiesDict().subDict(typeName_ + "Props")) {
 
   Info << "Starting up LIGGGHTS for first time execution."<<endl;
   MPI_Comm_dup(MPI_COMM_WORLD, &lgs_comm_);

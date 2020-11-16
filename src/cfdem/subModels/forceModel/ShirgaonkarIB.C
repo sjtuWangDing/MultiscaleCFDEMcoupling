@@ -51,16 +51,14 @@ ShirgaonkarIB::ShirgaonkarIB(cfdemCloud& cloud):
   pressureFieldName_(subPropsDict_.lookupOrDefault<Foam::word>("pressureFieldName", "p").c_str()),
   U_(cloud.mesh().lookupObject<volVectorField>(velFieldName_)),
   p_(cloud.mesh().lookupObject<volScalarField>(pressureFieldName_)) {
-
-  // read switches in force sub model
-  forceSubModel_.readSwitches(subPropsDict_);
-  
+  createForceSubModels(subPropsDict_, kResolved);
 }
 
 ShirgaonkarIB::~ShirgaonkarIB() {}
 
 void ShirgaonkarIB::setForce() {
-  
+  Info << "Setting ShirgaonkarIB force..." << endl;
+
 }
 
 } // namespace Foam

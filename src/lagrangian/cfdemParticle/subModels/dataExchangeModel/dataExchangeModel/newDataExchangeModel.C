@@ -55,9 +55,6 @@ autoPtr<dataExchangeModel> dataExchangeModel::New
     Info<< "Selecting dataExchangeModel "
          << dataExchangeModelType << endl;
 
-    USLEEP(0.9)
-    Pout << "xxxxxxxxxxxxx" << endl;
-
     dictionaryConstructorTable::iterator cstrIter =
         dictionaryConstructorTablePtr_->find(dataExchangeModelType);
 

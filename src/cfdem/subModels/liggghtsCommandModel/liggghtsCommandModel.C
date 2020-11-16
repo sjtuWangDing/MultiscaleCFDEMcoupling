@@ -49,8 +49,10 @@ cfdmeDefineBaseTypeNewWithArg(std::unique_ptr, liggghtsCommandModel,
 
 //! \brief Constructor
 liggghtsCommandModel::liggghtsCommandModel(cfdemCloud& cloud):
-  cloud_(cloud), command_("notDefined"), commandLines_(1), nextRun_(-1), lastRun_(-1), verbose_(false),
-  runFirst_(false), runLast_(false), runEveryCouplingStep_(false), runEveryWriteStep_(false) {}
+  cloud_(cloud), command_("notDefined"), commandLines_(1),
+  verbose_(false), runFirst_(false), runLast_(false),
+  runEveryCouplingStep_(false), runEveryWriteStep_(false),
+  nextRun_(-1), lastRun_(-1) {}
 
 //! \brief Destructor
 liggghtsCommandModel::~liggghtsCommandModel() {}

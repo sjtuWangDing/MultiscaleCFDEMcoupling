@@ -49,7 +49,7 @@ cfdmeDefineBaseTypeNewWithArg(std::unique_ptr, forceModel,
 //! \brief Constructor
 forceModel::forceModel(cfdemCloud& cloud):
   cloud_(cloud),
-  forceSubModel_(cloud, *this),
+  forceSubModel_(nullptr),
   useProbe_(false),
   impParticleForces_(
     IOobject(
@@ -76,5 +76,21 @@ forceModel::forceModel(cfdemCloud& cloud):
 
 //! \brief Destructor
 forceModel::~forceModel() {}
+
+/*!
+ * \brief create forceSubModel_
+ * \param subPropsDict the dictionary of current force model
+ * \param forceType force type
+ */
+void forceModel::createForceSubModels(const dictionary& subPropsDict, EForceType forceType) {
+  // create force sub model
+  forceSubModel_ = std::make_shared<forceSubModel>(cloud_, *this, subPropsDict);
+
+  // read switches in force sub model
+  forceSubModel_->readSwitches();
+
+  // check switches
+  forceSubModel_->checkSwitches(forceType);
+}
 
 } // namespace Foam

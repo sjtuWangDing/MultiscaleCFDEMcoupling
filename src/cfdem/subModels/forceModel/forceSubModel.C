@@ -38,10 +38,14 @@ Class
 namespace Foam {
 
 //! \brief Constructor
-forceSubModel::forceSubModel(cfdemCloud& cloud, forceModel& forceModel):
+forceSubModel::forceSubModel(cfdemCloud& cloud,
+                             forceModel& forceModel,
+                             const dictionary& subPropsDict):
   cloud_(cloud),
   forceModel_(forceModel),
+  subPropsDict_(subPropsDict),
   switches_(),
+  rho_(cloud.mesh().lookupObject<volScalarField>(densityFieldName_)),
   nu_(
     IOobject(
       "scalarViscosity",
@@ -69,9 +73,9 @@ void forceSubModel::partToArray(const label& index,
                                 const Foam::vector& dragEx,
                                 const Foam::vector& Ufluid,
                                 scalar Cd) const {
-  if (false == switches_.isTrue(treatForceDEM)) {
+  if (false == switches_.isTrue(kTreatForceDEM)) {
     // CFD 与 DEM 求解器都考虑耦合力
-    if (switches_.isTrue(treatForceExplicit)) {
+    if (switches_.isTrue(kTreatForceExplicit)) {
       // 耦合力视为显式力
       #pragma unroll
       for (int j = 0; j < 3; ++j) {
@@ -90,7 +94,7 @@ void forceSubModel::partToArray(const label& index,
   }
   // implForceDEM - true:
   // 颗粒中心处的流体速度和阻力系数都被传递到 DEM 中，从而在每个 DEM 时间步中，使用阻力系数和流体速度，与当前颗粒速度一起计算颗粒受到的阻力
-  if (switches_.isTrue(implForceDEM)) {
+  if (switches_.isTrue(kImplForceDEM)) {
     #pragma unroll
     for (int j = 0; j < 3; j++) {
       forceModel_.fluidVel()[index][j] = Ufluid[j];
@@ -105,12 +109,13 @@ void forceSubModel::partToArray(const label& index,
   }
 }
 
-void forceSubModel::readSwitches(const dictionary& subPropsDict) {
+/*! \brief read switches from force model dictionary */
+void forceSubModel::readSwitches() {
   // 遍历每一个 switch
   for (int i = 0; i < Switches::kNum; ++i) {
     Info << "Foam::forceSubModel::readSwitches(): looking for " << Switches::kNameList[i] << "...";
-    if (subPropsDict.found(Switches::kNameList[i])) {
-      bool res = Switch(subPropsDict.lookup(Switches::kNameList[i]));
+    if (subPropsDict_.found(Switches::kNameList[i])) {
+      bool res = Switch(subPropsDict_.lookup(Switches::kNameList[i]));
       Info << " found in dict, using " << (res ? "true" : "false") << endl;
       // 设置当前的 switch
       if (res) {
@@ -122,6 +127,29 @@ void forceSubModel::readSwitches(const dictionary& subPropsDict) {
     }
   }
   // TODO: 检查 switch 是否存在冲突
+}
+
+/*!
+ * \brief check switches for different type of force
+ * \param forceType force type, Eg: kUnResolved
+ */
+void forceSubModel::checkSwitches(EForceType forceType) const {
+  switch(forceType) {
+    case kUnResolved:
+      break;
+    case kSemiResolved:
+      break;
+    case kResolved:
+      // for resolved force, kTreatForceDEM == true and kImplForceDEM == false
+      if (false == switches_.isTrue(kTreatForceDEM) || true == switches_.isTrue(kImplForceDEM)) {
+        FatalError << "Error: illegal force switches for kResolved force type" << abort(FatalError);
+      }
+      break;
+    case kMix:
+      break;
+    default:
+      FatalError << "Error: illegal force type: " << forceType << abort(FatalError);
+  }
 }
 
 } // namespace Foam

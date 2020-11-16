@@ -40,65 +40,88 @@ Class
 namespace Foam {
 
 /*!
-  * \brief forceSwitch
-  *
-  * treatForceExplicit
-  *    true - 在CFD的动量方程中，耦合力都为显式力
-  *    false - 在CFD的动量方程中，耦合力都为半隐式力 (default)
-  *
-  * treatForceDEM
-  *    true - 仅在 DEM 中考虑耦合力，即仅考虑流体对颗粒的作用，不考虑颗粒对流体的反作用
-  *           在 resolved 方法中，比如 cfdemSolverIB，ArchimedesIB force 会直接设置 treatForceDEM 为 true
-  *           因为颗粒对流体的作用力是通过虚拟域方法得到
-  *    false - 即 CFD 和 DEM 都考虑耦合力 (default)
-  *
-  * implForceDEM
-  *    true - 在每个耦合时间步，流体的速度和阻力系数都被传递到 DEM 中，从而在每个 DEM 时间步中，
-  *           使用上一个耦合时间步中的阻力系数和流体速度，与当前颗粒速度一起计算颗粒受到的阻力
-  *    false - 在每个耦合时间步中，流体对颗粒的阻力被传递到 DEM 中，并且在接下来
-  *            的 DEM 时间步中，这个力保持不变，直到下个耦合时间步 (default)
-  *
-  * verbose
-  *    true - 调试信息输出到屏幕
-  *    false - 调试信息不输出到屏幕 (default)
-  */
+ * \brief forceSwitch
+ *
+ * kTreatForceExplicit
+ *    true - 在CFD的动量方程中，耦合力都为显式力
+ *    false - 在CFD的动量方程中，耦合力都为半隐式力 (default)
+ *
+ * kTreatForceDEM
+ *    true - 仅在 DEM 中考虑耦合力，即仅考虑流体对颗粒的作用，不考虑颗粒对流体的反作用
+ *           在 resolved 方法中，比如 cfdemSolverIB，ArchimedesIB force and ShirgaonkarIB
+ *           会直接设置 treatForceDEM 为 true，因为颗粒对流体的作用力是通过虚拟域方法得到
+ *    false - 即 CFD 和 DEM 都考虑耦合力 (default)
+ *
+ * kImplForceDEM
+ *    true - 在每个耦合时间步，流体的速度和阻力系数都被传递到 DEM 中，从而在每个 DEM 时间步中，
+ *           使用上一个耦合时间步中的阻力系数和流体速度，与当前颗粒速度一起计算颗粒受到的阻力
+ *    false - 在每个耦合时间步中，流体对颗粒的阻力被传递到 DEM 中，并且在接下来
+ *            的 DEM 时间步中，这个力保持不变，直到下个耦合时间步 (default)
+ *
+ * kVerbose
+ *    true - 调试信息输出到屏幕
+ *    false - 调试信息不输出到屏幕 (default)
+ *
+ * kScalarViscosity
+ *    true - 使用用户自定义动力粘度 nu 进行阻力计算
+ *    false - 使用 transport dict 指定的动力粘度
+ */
 enum ESwitch {
-  treatForceExplicit = 0,
-  treatForceDEM,
-  implForceDEM,
-  verbose
+  kTreatForceExplicit = 0,
+  kTreatForceDEM,
+  kImplForceDEM,
+  kVerbose,
+  kScalarViscosity,
+};
+
+/*!
+ * \brief force type
+ * kUnResolved - force used for unresolved method
+ * kSemiResolved - force used for semi-resolved method
+ * kResolved - force used for resolved method
+ * kMix - force used for mix method
+ */
+enum EForceType {
+  kUnResolved = 0,
+  kSemiResolved,
+  kResolved,
+  kMix
 };
 
 /*!
  * \brief The force sub model is designed to hold the settings a force model can have.
- *        For now it handles the treatForceExplicit, treatForceDEM and implForceDEM option.
+ *        For now it handles the KTreatForceExplicit, kTreatForceDEM, kImplForceDEM and kVerbose option.
  */
 class forceSubModel {
 public:
   /* --------------------------------- base class and functions -------------------------- */
   class Switches {
   public:
-    static constexpr int kNum = 4;
+    static constexpr int kNum = 5;
     static constexpr const char* kNameList[] = {
       "treatForceExplicit",
       "treatForceDEM",
       "implForceDEM",
-      "verbose"
+      "verbose",
+      "scalarViscosity"
     };
     Switches(): value_(0) {}
     void setTrue(ESwitch value) {
       switch(value) {
-        case treatForceExplicit:
-          value_ |= (1 << treatForceExplicit);
+        case kTreatForceExplicit:
+          value_ |= (1 << kTreatForceExplicit);
           break;
-        case treatForceDEM:
-          value_ |= (1 << treatForceDEM);
+        case kTreatForceDEM:
+          value_ |= (1 << kTreatForceDEM);
           break;
-        case implForceDEM:
-          value_ |= (1 << implForceDEM);
+        case kImplForceDEM:
+          value_ |= (1 << kImplForceDEM);
           break;
-        case verbose:
-          value_ |= (1 << verbose);
+        case kVerbose:
+          value_ |= (1 << kVerbose);
+          break;
+        case kScalarViscosity:
+          value_ |= (1 << kScalarViscosity);
           break;
         default:
           FatalError << "Error: illegal switch enum: " << value << " in forceSubModel"
@@ -107,14 +130,16 @@ public:
     }
     bool isTrue(ESwitch value) const {
       switch(value) {
-        case treatForceExplicit:
-          return value_ & (1 << treatForceExplicit);
-        case treatForceDEM:
-          return value_ & (1 << treatForceDEM);
-        case implForceDEM:
-          return value_ & (1 << implForceDEM);
-        case verbose:
-          return value_ & (1 << verbose);
+        case kTreatForceExplicit:
+          return value_ & (1 << kTreatForceExplicit);
+        case kTreatForceDEM:
+          return value_ & (1 << kTreatForceDEM);
+        case kImplForceDEM:
+          return value_ & (1 << kImplForceDEM);
+        case kVerbose:
+          return value_ & (1 << kVerbose);
+        case kScalarViscosity:
+          return value_ & (1 << kScalarViscosity);
         default:
           FatalError << "Error: illegal switch enum: " << value << " in forceSubModel"
             << abort(FatalError);
@@ -126,7 +151,7 @@ public:
   };
 
   //! \brief Constructor
-  forceSubModel(cfdemCloud& cloud, forceModel& forceModel);
+  forceSubModel(cfdemCloud& cloud, forceModel& forceModel, const dictionary& subPropsDict);
 
   //! \brief Destructor
   ~forceSubModel();
@@ -148,9 +173,42 @@ public:
                    const Foam::vector& Ufluid = Foam::vector::zero,
                    scalar Cd = scalar(0)) const;
 
-  void readSwitches(const dictionary& subPropsDict);
+  /*! \brief read switches from force model dictionary */
+  void readSwitches();
 
-  /* --------------------------------- public interfaces --------------------------------- */
+  /*!
+   * \brief check switches for different type of force
+   * \param forceType force type, Eg: kUnResolved
+   */
+  void checkSwitches(EForceType forceType) const;
+
+  /*!
+   * \brief 计算 IB drag，用于计算 ShirgaonkarIBModel and mixShirgaonkarIBModel
+   * \param U 速度场
+   * \param p 压力场
+   * \return IB drag
+   */
+//   inline const volVectorField& IBDrag(const volVectorField& U, const volScalarField& p) const {
+// #ifdef compre
+//     return muField() * fvc::laplacian(U) - fvc::grad(p);
+// #else
+//     return rhoField() * (nuField() * fvc::laplacian(U) - fvc::grad(p));
+// #endif
+//   }
+
+//   /* --------------------------------- public interfaces --------------------------------- */
+
+  inline const volScalarField& rhoField() const { return rho_; }
+//   inline const volScalarField& nuField() const {
+// #ifdef compre
+// #else
+// #endif
+//   }
+  inline bool treatForceExplicit() const { return switches_.isTrue(kTreatForceExplicit); }
+  inline bool treatForceDEM() const { return switches_.isTrue(kTreatForceDEM); }
+  inline bool implForceDEM() const { return switches_.isTrue(kImplForceDEM); }
+  inline bool verbose() const { return switches_.isTrue(kVerbose); }
+  inline bool scalarViscosity() const { return switches_.isTrue(kScalarViscosity); }
 
 protected:
 
@@ -158,7 +216,14 @@ protected:
 
   forceModel& forceModel_;
 
+  const dictionary subPropsDict_;
+
   Switches switches_;
+
+  const std::string densityFieldName_;
+
+  //! \brief 密度
+  const volScalarField rho_;
 
   //! \brief 用户自定义动力粘度，该粘度仅用于计算颗粒所受阻力
   volScalarField nu_;

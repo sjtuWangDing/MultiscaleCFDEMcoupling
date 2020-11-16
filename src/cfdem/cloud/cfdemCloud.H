@@ -64,19 +64,19 @@ Class
 namespace Foam {
 
 // forward declarations
+class liggghtsCommandModel;
+class momCoupleModel;
 class forceModel;
-class locateModel;
+class averagingModel;
 class voidFractionModel;
 class dataExchangeModel;
-class IOModel;
-class probeModel;
-class registryModel;
-class averagingModel;
-class clockModel;
-class smoothingModel;
-class momCoupleModel;
-class meshMotionModel;
-class liggghtsCommandModel;
+// class locateModel;
+// class IOModel;
+// class probeModel;
+// class registryModel;
+// class clockModel;
+// class smoothingModel;
+// class meshMotionModel;
 
 class cfdemCloud {
 
@@ -87,6 +87,8 @@ public:
 
   //! \brief Destructor
   virtual ~cfdemCloud();
+
+  /* --------------------------------- virtual functions --------------------------------- */
 
   /*!
    * \brief 更新函数
@@ -99,6 +101,8 @@ public:
                       volVectorField& Us,
                       volVectorField& U);
 
+  /* --------------------------------- public interfaces --------------------------------- */
+
   // interface of cfdemCloud
   inline const fvMesh& mesh() const { return mesh_; }
   inline ParticleCloud& pCloud() { return pCloud_; }
@@ -106,17 +110,30 @@ public:
   inline const IOdictionary& couplingPropertiesDict() const { return couplingPropertiesDict_; }
   inline const IOdictionary& liggghtsCommandsDict() const { return liggghtsCommandsDict_; }
 
-  const std::vector<std::shared_ptr<liggghtsCommandModel>>& liggghtsCommandModels() const;
-  const std::vector<std::shared_ptr<forceModel>>& forceModels() const;
-  const std::vector<std::shared_ptr<momCoupleModel>>& momCoupleModels() const;
+  inline const std::vector<std::shared_ptr<liggghtsCommandModel>>& liggghtsCommandModels() const;
+  inline const std::vector<std::shared_ptr<forceModel>>& forceModels() const;
+  inline const std::vector<std::shared_ptr<momCoupleModel>>& momCoupleModels() const;
 
-  std::shared_ptr<forceModel> forceM(int index) const;
-  const dataExchangeModel& dataExchangeM() const;
-  const averagingModel& averagingM() const;
-  const voidFractionModel& voidFractionM() const;
-  dataExchangeModel& dataExchangeM();
-  averagingModel& averagingM();
-  voidFractionModel& voidFractionM();
+  inline std::shared_ptr<forceModel> forceM(int index) const;
+  inline const dataExchangeModel& dataExchangeM() const;
+  inline const averagingModel& averagingM() const;
+  inline const voidFractionModel& voidFractionM() const;
+  inline dataExchangeModel& dataExchangeM();
+  inline averagingModel& averagingM();
+  inline voidFractionModel& voidFractionM();
+
+#if defined(version24Dev)
+  inline const turbulenceModel& turbulence() const;
+#elif defined(version21) || defined(version16ext)
+#ifdef compre
+  inline const compressible::turbulenceModel& turbulence() const;
+#else
+  inline const incompressible::turbulenceModel& turbulence() const;
+#endif
+#elif defined(version15)
+  inline const incompressible::RASModel& turbulence() const;
+#endif
+
 
   inline bool writeTimePassed() const { return writeTimePassed_; }
 
@@ -166,19 +183,34 @@ protected:
 
   autoPtr<voidFractionModel> voidFractionModel_;
 
-  autoPtr<locateModel> locateModel_;
+  // autoPtr<locateModel> locateModel_;
 
-  autoPtr<IOModel> IOModel_;
+  // autoPtr<IOModel> IOModel_;
 
-  autoPtr<probeModel> probeModel_;
+  // autoPtr<probeModel> probeModel_;
 
-  autoPtr<registryModel> registryModel_;
+  // autoPtr<registryModel> registryModel_;
 
-  autoPtr<clockModel> clockModel_;
+  // autoPtr<clockModel> clockModel_;
 
-  autoPtr<smoothingModel> smoothingModel_;
+  // autoPtr<smoothingModel> smoothingModel_;
 
-  autoPtr<meshMotionModel> meshMotionModel_;
+  // autoPtr<meshMotionModel> meshMotionModel_;
+
+#if defined(version24Dev)
+  const turbulenceModel& turbulence_;
+#elif defined(version21) || defined(version16ext)
+#ifdef compre
+  const compressible::turbulenceModel& turbulence_;
+#else
+  const incompressible::turbulenceModel& turbulence_;
+#endif
+#elif defined(version15)
+  const incompressible::RASModel& turbulence_;
+#endif
+
+  //! \brief Multiphase Turbulence (e.g., slip-induced turbulence)
+  volScalarField turbulenceMultiphase_;
 
   bool writeTimePassed_;
 
@@ -220,23 +252,10 @@ protected:
   scalar wallPeriodicityCheckTolerance_;
 
   bool meshHasUpdated_;
-
-// #if defined(version24Dev)
-//   const turbulenceModel& turbulence_;
-// #elif defined(version21) || defined(version16ext)
-//   #ifdef compre
-//     const compressible::turbulenceModel& turbulence_;
-//   #else
-//     const incompressible::turbulenceModel& turbulence_;
-//   #endif
-// #elif defined(version15)
-//   const incompressible::RASModel& turbulence_;
-// #endif
-
-  //! \brief Multiphase Turbulence (e.g., slip-induced turbulence)
-  // volScalarField turbulenceMultiphase_;
 };
 
 } // namespace Foam
+
+#include "cloud/cfdemCloudI.H"
 
 #endif // __CFDEM_CLOUD_H__

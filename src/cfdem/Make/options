@@ -1,5 +1,5 @@
-sinclude $(GENERAL_RULES)/mplib$(WM_MPLIB)
-include $(CFDEM_ADD_LIBS_DIR)/$(CFDEM_ADD_LIBS_NAME)
+sinclude /home/dw/OpenFOAM/OpenFOAM-5.x/wmake/rules/General/mplibSYSTEMOPENMPI
+include etc/libs/libs_5.x
 
 $(shell if [ ! -e "$(CFDEM_LIB_DIR)" ]; then mkdir -p "$(CFDEM_LIB_DIR)"; fi)
 $(shell ln -sf $(CFDEM_LIGGGHTS_LIB_PATH)/lib$(CFDEM_LIGGGHTS_LIB_NAME).so $(CFDEM_LIB_DIR)/)
@@ -8,6 +8,9 @@ GIT_VERSION := $(shell git describe --dirty --always --tags)
 PFLAGS+= -DGITVERSION=\"$(GIT_VERSION)\"
 PFLAGS+= -DDEBUGFLAG=\"$(WM_COMPILE_OPTION)\"
 PFLAGS+= -DCFDEMWMPROJECTVERSION="$(CFDEM_WM_PROJECT_VERSION)"
+
+PFLAGS += -Wno-old-style-cast
+PFLAGS += -Wno-unknown-pragmas
 
 EXE_INC = \
      $(PFLAGS) \

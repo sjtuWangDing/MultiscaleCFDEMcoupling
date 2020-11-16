@@ -88,17 +88,17 @@ protected:
 
   cfdemCloud& cloud_;
 
-  /*!
-   * \brief 覆盖 cellI 网格的所有颗粒对其影响系数的总和
-   * \note UsWeightField_[cellI]
-   */
-  volScalarField UsWeightField_;
-
   //! \brief 上个时间步中局部平均颗粒速度场
   volVectorField UsPrev_;
 
   //! \brief 下个时间步中局部平均颗粒速度场
   volVectorField UsNext_;
+
+  /*!
+   * \brief 覆盖 cellI 网格的所有颗粒对其影响系数的总和
+   * \note UsWeightField_[cellI]
+   */
+  volScalarField UsWeightField_;
 };
 
 } // namespace Foam
