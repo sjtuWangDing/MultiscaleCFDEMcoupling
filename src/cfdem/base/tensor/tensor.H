@@ -261,8 +261,10 @@ class Tensor<1, Device, DType>: public TRValue<Tensor<1, Device, DType>,
     return dptr_[idx];
   }
 };
+
 using CITensor1 = ::base::Tensor<1, cpu, int>;
 using CDTensor1 = ::base::Tensor<1, cpu, double>;
+using CITensor2 = ::base::Tensor<2, cpu, int>;
 using CDTensor2 = ::base::Tensor<2>;
 
 //------------------------

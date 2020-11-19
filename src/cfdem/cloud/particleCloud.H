@@ -51,12 +51,11 @@ public:
   // interfaces - getter
   inline int numberOfParticles() const { return numberOfParticles_; }
   inline bool numberOfParticlesChanged() const { return numberOfParticlesChanged_; }
+  inline const base::CITensor1& particleOverMeshNumber() const { return particleOverMeshNumber_; }
   inline const base::CDTensor1& radii() const { return radii_; }
   inline const base::CDTensor1& volumes() const { return volumes_; }
   inline const base::CDTensor1& cds() const { return cds_; }
-
-  inline const base::CITensor1& particleOverMeshNumber() const { return particleOverMeshNumber_; }
-
+  inline const base::CITensor2& cellIDs() const { return cellIDs_; }
   inline const base::CDTensor2& positions() const { return positions_; }
   inline const base::CDTensor2& velocities() const { return velocities_; }
   inline const base::CDTensor2& fluidVel() const { return fluidVel_; }
@@ -66,7 +65,6 @@ public:
   inline const base::CDTensor2& DEMForces() const { return DEMForces_; }
   inline const base::CDTensor2& DEMTorques() const { return DEMTorques_; }
   inline const base::CDTensor2& voidfractions() const { return voidfractions_; }
-  inline const base::CDTensor2& cellIDs() const { return cellIDs_; }
   inline const base::CDTensor2& particleWeights() const { return particleWeights_; }
   inline const base::CDTensor2& particleVolumes() const { return particleVolumes_; }
 
@@ -87,11 +85,15 @@ private:
   bool numberOfParticlesChanged_;
 
 #if CFDEM_USE_TENSOR
+  // cpu int tensor 1D
+  base::CITensor1 particleOverMeshNumber_;
+  // cpu double tensor 1D
   base::CDTensor1 radii_;
   base::CDTensor1 volumes_;
   base::CDTensor1 cds_;
-  base::CITensor1 particleOverMeshNumber_;
-
+  // cpu int tensor 2D
+  base::CITensor2 cellIDs_;
+  // cpu double tensor 2D
   base::CDTensor2 positions_;
   base::CDTensor2 velocities_;
   base::CDTensor2 fluidVel_;
@@ -101,7 +103,6 @@ private:
   base::CDTensor2 DEMForces_;
   base::CDTensor2 DEMTorques_;
   base::CDTensor2 voidfractions_;
-  base::CDTensor2 cellIDs_;
   base::CDTensor2 particleWeights_;
   base::CDTensor2 particleVolumes_;
 #else

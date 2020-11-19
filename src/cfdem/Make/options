@@ -11,6 +11,7 @@ PFLAGS+= -DCFDEMWMPROJECTVERSION="$(CFDEM_WM_PROJECT_VERSION)"
 
 PFLAGS += -Wno-old-style-cast
 PFLAGS += -Wno-unknown-pragmas
+PFLAGS += -Wunused-variable
 
 EXE_INC = \
      $(PFLAGS) \

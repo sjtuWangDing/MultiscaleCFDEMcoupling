@@ -67,6 +67,16 @@ public:
 
   /* --------------------------------- virtual functions --------------------------------- */
 
+  /*!
+   * \brief use search engine to get cell id of particle center
+   * \param numberOfParticles 颗粒数量
+   * \param cellIDs 颗粒覆盖网格的编号
+   */
+  virtual void findCell(int numberOfParticles,
+                        const ::base::CITensor2& cellIDs) const = 0;
+
+  virtual label findSingleCell(const Foam::vector& position, label oldCellID) const = 0;
+
   /* --------------------------------- member functions ---------------------------------- */
 
   /* --------------------------------- public interfaces --------------------------------- */

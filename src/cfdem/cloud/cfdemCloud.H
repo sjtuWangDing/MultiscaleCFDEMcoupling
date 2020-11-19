@@ -91,6 +91,8 @@ public:
 
   /* --------------------------------- virtual functions --------------------------------- */
 
+public:
+
   /*!
    * \brief 更新函数
    * \note used for cfdemSolverPiso
@@ -102,19 +104,49 @@ public:
                       volVectorField& Us,
                       volVectorField& U);
 
-  /* --------------------------------- public interfaces --------------------------------- */
+  /* --------------------------------- member functions ---------------------------------- */
 
-  // interface of cfdemCloud
+public:
+
+  void periodicCallback(const Foam::vector& particlePos,
+                        const boundBox& box) const {
+    int rangeX = static_cast<int>(periodicCheckRange()[0]);
+    int rangeY = static_cast<int>(periodicCheckRange()[1]);
+    int rangeZ = static_cast<int>(periodicCheckRange()[2]);
+    Foam::vector bMax = box.max();
+    Foam::vector bMin = box.min();
+    Foam::vector periodicPos(Foam::vector::zero);
+    for (int xDir = -rangeX; xDir <= rangeX; ++xDir) {
+      periodicPos[0] = particlePos[0] + xDir * (bMax[0] - bMin[0]);
+      for (int yDir = -rangeY; yDir <= rangeY; ++yDir) {
+        periodicPos[1] = particlePos[1] + yDir * (bMax[1] - bMin[1]);
+        for (int zDir = -rangeZ; zDir <= rangeZ; ++zDir) {
+          periodicPos[2] = particlePos[2] + zDir * (bMax[2] - bMin[2]);
+        }
+      }
+    }
+  }
+
+protected:
+
+  /*!
+   * \brief check if simulation is fully periodic
+   * \return true if simulation is fully periodic
+   */
+  bool checkPeriodicity();
+
+  /* --------------------------------- public interfaces --------------------------------- */
+public:
+
+  // interface - getter
   inline const fvMesh& mesh() const { return mesh_; }
   inline ParticleCloud& pCloud() { return pCloud_; }
   inline const CouplingProperties& cProps() const { return cProps_; }
   inline const IOdictionary& couplingPropertiesDict() const { return couplingPropertiesDict_; }
   inline const IOdictionary& liggghtsCommandsDict() const { return liggghtsCommandsDict_; }
-
   inline const std::vector<std::shared_ptr<liggghtsCommandModel>>& liggghtsCommandModels() const;
   inline const std::vector<std::shared_ptr<forceModel>>& forceModels() const;
   inline const std::vector<std::shared_ptr<momCoupleModel>>& momCoupleModels() const;
-
   inline std::shared_ptr<forceModel> forceM(int index) const;
   inline const dataExchangeModel& dataExchangeM() const;
   inline const averagingModel& averagingM() const;
@@ -122,7 +154,6 @@ public:
   inline dataExchangeModel& dataExchangeM();
   inline averagingModel& averagingM();
   inline voidFractionModel& voidFractionM();
-
 #if defined(version24Dev)
   inline const turbulenceModel& turbulence() const;
 #elif defined(version21) || defined(version16ext)
@@ -134,36 +165,34 @@ public:
 #elif defined(version15)
   inline const incompressible::RASModel& turbulence() const;
 #endif
-
   inline bool writeTimePassed() const { return writeTimePassed_; }
+  inline bool meshHasUpdated() const { return meshHasUpdated_; }
 
-  // interface of CouplingProperties
+  // interface - setter
+  inline void setMeshHasUpdated(bool meshHasUpdated) { meshHasUpdated_ = meshHasUpdated; }
+
+  /* ------------------------- interface of CouplingProperties --------------------------- */
+
+  inline const std::vector<std::string>& forceModelList() const { return cProps_.forceModelList(); }
+  inline const std::vector<std::string>& momCoupleModelList() const { return cProps_.momCoupleModelList(); }
+  inline const std::vector<std::string>& liggghtsCommandModelList() const { return cProps_.liggghtsCommandModelList(); }
   inline bool verbose() const { return cProps_.verbose(); }
-  inline const word& modelType() const { return cProps_.modelType(); }
-  inline const wordList& forceModelList() const { return cProps_.forceModelList(); }
-  inline const wordList& momCoupleModelList() const { return cProps_.momCoupleModelList(); }
-  inline const wordList& liggghtsCommandModelList() const { return cProps_.liggghtsCommandModelList(); }
-  inline const word& turbulenceModelType() const { return cProps_.turbulenceModelType(); }
-  inline const word& useDDTvoidfraction() const { return cProps_.useDDTvoidfraction(); }
-  inline scalar impExpSplitFactor() const { return cProps_.impExpSplitFactor(); }
   inline bool solveFlow() const { return cProps_.solveFlow(); }
-  inline bool treatVoidCellsAsExplicitForce() const { return cProps_.treatVoidCellsAsExplicitForce(); }
-  inline bool debug() const { return cProps_.debug(); }
-  inline bool ignore() const { return cProps_.ignore(); }
-  inline bool allowAdjustTimeStep() const { return cProps_.allowAdjustTimeStep(); }
+  inline const std::string& modelType() const { return cProps_.modelType(); }
+  inline const std::string& turbulenceModelType() const { return cProps_.turbulenceModelType(); }
   inline bool allowCFDsubTimeStep() const { return cProps_.allowCFDsubTimeStep(); }
-  inline label couplingInterval() const { return cProps_.couplingInterval(); }
+  inline int couplingInterval() const { return cProps_.couplingInterval(); }
+  inline bool checkPeriodicCells() const { return cProps_.checkPeriodicCells(); }
+  inline const Foam::vector& periodicCheckRange() const { return cProps_.periodicCheckRange(); }
 
-  // interface of particleCloud
+  /* ------------------------- interface of particleCloud ------------------------------- */
   inline int numberOfParticles() const { return pCloud_.numberOfParticles(); }
   inline bool numberOfParticlesChanged() const { return pCloud_.numberOfParticlesChanged(); }
-
+  inline const base::CITensor1& particleOverMeshNumber()const { return pCloud_.particleOverMeshNumber(); }
   inline const base::CDTensor1& radii() const { return pCloud_.radii(); }
   inline const base::CDTensor1& volumes() const { return pCloud_.volumes(); }
   inline const base::CDTensor1& cds()const { return pCloud_.cds(); }
-
-  inline const base::CITensor1& particleOverMeshNumber()const { return pCloud_.particleOverMeshNumber(); }
-
+  inline const base::CITensor2& cellIDs() const { return pCloud_.cellIDs(); }
   inline const base::CDTensor2& positions() const { return pCloud_.positions(); }
   inline const base::CDTensor2& velocities() const { return pCloud_.velocities(); }
   inline const base::CDTensor2& fluidVel() const { return pCloud_.fluidVel(); }
@@ -173,16 +202,23 @@ public:
   inline const base::CDTensor2& DEMForces() const { return pCloud_.DEMForces(); }
   inline const base::CDTensor2& DEMTorques() const { return pCloud_.DEMTorques(); }
   inline const base::CDTensor2& voidfractions() const { return pCloud_.voidfractions(); }
-  inline const base::CDTensor2& cellIDs() const { return pCloud_.cellIDs(); }
   inline const base::CDTensor2& particleWeights() const { return pCloud_.particleWeights(); }
   inline const base::CDTensor2& particleVolumes() const { return pCloud_.particleVolumes(); }
-
   inline Foam::vector getPosition(int index) const {
+    CHECK_EQ(numberOfParticles(), static_cast<int>(positions().size(0)))
+      << "Number of particle is not match";
     Foam::vector pos = Foam::vector::zero;
     #pragma unroll
     for (int i = 0; i < 3; ++i) { pos[i] = positions()[index][i]; }
     return pos;
   }
+  inline double getRadius(int index) {
+    CHECK_EQ(numberOfParticles(), static_cast<int>(radii().size(0)))
+      << "Number of particle is not match";
+    return radii()[index];
+  }
+
+  /* --------------------------------- class variables ----------------------------------- */
 
 protected:
 
@@ -241,6 +277,12 @@ protected:
 
   bool writeTimePassed_;
 
+  /*!
+   * \brief 判断 mesh 是否被更新过
+   * \note 在求解器中使用 dynamic mesh，如果 mesh 更新，则 mesh.update() 返回 true，否则返回 false
+   */
+  bool meshHasUpdated_;
+
   bool arraysReallocated_;
 
   /*!
@@ -277,8 +319,6 @@ protected:
   vector wallPeriodicityCheckRange_;
 
   scalar wallPeriodicityCheckTolerance_;
-
-  bool meshHasUpdated_;
 };
 
 } // namespace Foam

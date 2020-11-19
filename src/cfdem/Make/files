@@ -24,5 +24,7 @@ $(subModels)/forceModel/ArchimedesIB.C
 $(subModels)/forceModel/ShirgaonkarIB.C
 
 $(subModels)/locateModel/locateModel.C
+$(subModels)/locateModel/engineSearch.C
+$(subModels)/locateModel/engineSearchIB.C
 
 LIB = $(CFDEM_LIB_DIR)/lib$(CFDEM_LIB_NAME)-1.0

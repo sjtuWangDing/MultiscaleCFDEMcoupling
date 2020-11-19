@@ -121,7 +121,7 @@ struct gpu {
 
 #define CHECK(x)                                                                                                   \
   if (!(x))                                                                                                        \
-    base::LogMessageFatal(__FILE__, __LINE__).stream() << "Check failed: " << #x
+    base::LogMessageFatal(__FILE__, __LINE__).stream() << "Check (" << #x << ") faild! "
 #define CHECK_GT(x, y) CHECK((x) > (y))
 #define CHECK_LE(x, y) CHECK((x) <= (y))
 #define CHECK_GE(x, y) CHECK((x) >= (y))

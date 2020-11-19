@@ -97,14 +97,20 @@ cfdemCloud::cfdemCloud(const fvMesh& mesh):
   Info << "\nEnding of Constructing cfdemCloud Base Class Object......\n" << endl;
   Info << "\nEntry of cfdemCloud::cfdemCloud(const fvMesh&)......\n" << endl;
 
-  for (int i = 0; i < liggghtsCommandModelList().size(); ++i) {
+  // read liggghts command model and create
+  for (const auto& name: liggghtsCommandModelList()) {
     // liggghtsCommandModel::New() 函数返回的是 std::unique_ptr
-    liggghtsCommandModels_.emplace_back(
-      liggghtsCommandModel::New(*this, liggghtsCommandsDict_, liggghtsCommandModelList()[i]));
+    liggghtsCommandModels_.emplace_back(liggghtsCommandModel::New(*this, liggghtsCommandsDict_, name));
   }
-
-  for (int i = 0; i < forceModelList().size(); ++i) {
-    forceModels_.emplace_back(forceModel::New(*this, couplingPropertiesDict_, forceModelList()[i]));
+  // read force model and create
+  for (const auto& name: forceModelList()) {
+    forceModels_.emplace_back(forceModel::New(*this, couplingPropertiesDict_, name));
+  }
+  // check periodic
+  if (checkPeriodicCells() != checkPeriodicity()) {
+    FatalError << "checkPeriodicity(): " << (checkPeriodicity() ? true : false)
+      << ", but from dictionary read checkPeriodicCells: " << (checkPeriodicCells() ? true : false)
+      << abort(FatalError);
   }
 }
 
@@ -119,30 +125,55 @@ bool cfdemCloud::evolve(volScalarField& VoidF,
                         volVectorField& Us,
                         volVectorField& U) {
   Info << "\nFoam::cfdemCloud::evolve(), used for cfdemSolverPiso......\n" << endl;
-  if (!ignore()) {
-    if (!writeTimePassed_ && mesh_.time().outputTime()) {
-      writeTimePassed_ = true;
-    }
-    if (dataExchangeM().doCoupleNow()) {
-      Info << "evolve coupling..." << endl;
-      // couple() 函数执行 liggghts 脚本，并获取新的颗粒数量
-      pCloud_.setNumberOfParticles(dataExchangeM().couple());
-      Info << "get number of particles: " << pCloud_.numberOfParticles()<< " at coupling step: "
-        << dataExchangeM().couplingStep() << endl;
+  if (!writeTimePassed_ && mesh_.time().outputTime()) {
+    writeTimePassed_ = true;
+  }
+  if (dataExchangeM().doCoupleNow()) {
+    Info << "evolve coupling..." << endl;
+    // couple() 函数执行 liggghts 脚本，并获取新的颗粒数量
+    pCloud_.setNumberOfParticles(dataExchangeM().couple());
+    Info << "get number of particles: " << pCloud_.numberOfParticles()<< " at coupling step: "
+      << dataExchangeM().couplingStep() << endl;
 
-      // 重置局部平均颗粒速度
-      averagingM().resetUs();
-      // 重置颗粒速度影响因数场
-      averagingM().resetUsWeightField();
-      // 重置小颗粒空隙率场
-      voidFractionM().resetVoidFraction();
-      // 重置隐式力场
-      // 重置显式力场
-      // 重置动量交换场
-    }
+    // 重置局部平均颗粒速度
+    averagingM().resetUs();
+    // 重置颗粒速度影响因数场
+    averagingM().resetUsWeightField();
+    // 重置小颗粒空隙率场
+    voidFractionM().resetVoidFraction();
+    // 重置隐式力场
+    // 重置显式力场
+    // 重置动量交换场
   }
   Info << "Foam::cfdemCloud::evolve() - done\n" << endl;
   return true;
+}
+
+/*!
+ * \brief check if simulation is fully periodic
+ * \return true if simulation is fully periodic
+ */
+bool cfdemCloud::checkPeriodicity() {
+  const polyBoundaryMesh& patches = mesh_.boundaryMesh();
+  int nPatchesCyclic = 0;    // 周期边界数量
+  int nPatchesNonCyclic = 0; // 非周期边界数量
+  for (const polyPatch& patch : patches) {
+    // 统计 nPatchesCyclic 和 nPatchesNonCyclic
+#if defined(versionExt32)
+    if (isA<cyclicPolyPatch>(patch)) {
+      nPatchesCyclic += 1;
+    } else if (!isA<processorPolyPatch>(patch)) {
+      nPatchesNonCyclic += 1;
+    }
+#else
+    if (isA<cyclicPolyPatch>(patch) || isA<cyclicAMIPolyPatch>(patch)) {
+      nPatchesCyclic += 1;
+    } else if (!isA<processorPolyPatch>(patch)) {
+      nPatchesNonCyclic += 1;
+    }
+#endif
+  }
+  return nPatchesNonCyclic == 0;
 }
 
 } // namespace Foam

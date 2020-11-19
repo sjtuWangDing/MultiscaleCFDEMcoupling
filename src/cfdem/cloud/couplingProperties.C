@@ -41,29 +41,56 @@ namespace Foam {
 
 CouplingProperties::CouplingProperties(const fvMesh& mesh,
                                        const IOdictionary& couplingPropertiesDict,
-                                       const IOdictionary& liggghtsCommandsDict):
-  mesh_(mesh),
-  couplingPropertiesDict_(couplingPropertiesDict),
-  liggghtsCommandsDict_(liggghtsCommandsDict),
-  verbose_(couplingPropertiesDict.lookupOrDefault<Switch>("verbose", false)),
-  modelType_(couplingPropertiesDict.lookupOrDefault<word>("modelType", "none")),
-  forceModelList_(couplingPropertiesDict.lookup("forceModels")),
-  momCoupleModelList_(couplingPropertiesDict.lookup("momCoupleModels")),
-  liggghtsCommandModelList_(couplingPropertiesDict.lookup("liggghtsCommandModels")),
-  turbulenceModelType_(couplingPropertiesDict.lookupOrDefault<word>("turbulenceModelType", "none")),
-  useDDTvoidfraction_(couplingPropertiesDict.lookupOrDefault<word>("useDDTvoidfraction", "off")),
-  impExpSplitFactor_(1.0),
-  solveFlow_(couplingPropertiesDict.lookupOrDefault<Switch>("solveFlow", true)),
-  treatVoidCellsAsExplicitForce_(
-    couplingPropertiesDict.lookupOrDefault<Switch>("treatVoidCellsAsExplicitForce", false)),
-  debug_(couplingPropertiesDict.lookupOrDefault<Switch>("debug", false)),
-  ignore_(couplingPropertiesDict.lookupOrDefault<Switch>("ignore", false)),
-  allowAdjustTimeStep_(couplingPropertiesDict.lookupOrDefault<Switch>("allowAdjustTimeStep", false)),
-  allowCFDsubTimeStep_(couplingPropertiesDict.lookupOrDefault<Switch>("allowCFDsubTimeStep", true)),
-  couplingInterval_(couplingPropertiesDict.lookupOrDefault<label>("couplingInterval", 0)) {
-
+                                       const IOdictionary& liggghtsCommandsDict)
+    : mesh_(mesh),
+      couplingPropertiesDict_(couplingPropertiesDict),
+      liggghtsCommandsDict_(liggghtsCommandsDict),
+      verbose_(
+        couplingPropertiesDict.lookupOrDefault<bool>("verbose", false)),
+      solveFlow_(
+        couplingPropertiesDict.lookupOrDefault<bool>("solveFlow", true)),
+      modelType_(
+        couplingPropertiesDict.lookupOrDefault<Foam::word>("modelType", "none").c_str()),
+      turbulenceModelType_(
+        couplingPropertiesDict.lookupOrDefault<Foam::word>("turbulenceModelType", "none").c_str()),
+      allowCFDsubTimeStep_(
+        couplingPropertiesDict.lookupOrDefault<bool>("allowCFDsubTimeStep", false)),
+      couplingInterval_(
+        couplingPropertiesDict.lookupOrDefault<int>("couplingInterval", 0)),
+      checkPeriodicCells_(
+        couplingPropertiesDict.lookupOrDefault<bool>("checkPeriodicCells", false)),
+      periodicCheckRange_(Foam::vector(1, 1, 1))
+      // useDDTvoidfraction_(
+      //   couplingPropertiesDict.lookupOrDefault<Foam::word>("useDDTvoidfraction", "off")),
+      // impExpSplitFactor_(1.0),
+      // treatVoidCellsAsExplicitForce_(
+      //   couplingPropertiesDict.lookupOrDefault<Switch>("treatVoidCellsAsExplicitForce", false)),
+      // debug_(couplingPropertiesDict.lookupOrDefault<Switch>("debug", false)),
+      // allowAdjustTimeStep_(couplingPropertiesDict.lookupOrDefault<Switch>("allowAdjustTimeStep", false)),
+{
   Info << "CFDEM coupling version: " << CFDEM_VERSION <<  endl;
   Info << "LIGGGHTS version: " << LIGGGHTS_VERSION <<  endl;
+
+  if (couplingPropertiesDict_.found("forceModels")) {
+    Foam::wordList fList = couplingPropertiesDict_.lookup("forceModels");
+    for (Foam::wordList::iterator it = fList.begin(); it != fList.end(); ++it) {
+      forceModelList_.emplace_back(it->c_str());
+    }
+  }
+
+  if (couplingPropertiesDict_.found("momCoupleModels")) {
+    Foam::wordList mList = couplingPropertiesDict_.lookup("momCoupleModels");
+    for (Foam::wordList::iterator it = mList.begin(); it != mList.end(); ++it) {
+      momCoupleModelList_.emplace_back(it->c_str());
+    }
+  }
+
+  if (couplingPropertiesDict_.found("liggghtsCommandModels")) {
+    Foam::wordList lForce = couplingPropertiesDict_.lookup("liggghtsCommandModels");
+    for (Foam::wordList::iterator it = lForce.begin(); it != lForce.end(); ++it) {
+      liggghtsCommandModelList_.emplace_back(it->c_str());
+    }
+  }
 
 #if __MIXCLOUD__
 

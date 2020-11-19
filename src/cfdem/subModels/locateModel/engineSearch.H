@@ -25,19 +25,56 @@ License
   Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA
 
 Description
-  This code is designed to realize coupled CFD-DEM simulations using LIGGGHTS
-  and OpenFOAM(R). Note: this code is not part of OpenFOAM(R) (see DISCLAIMER).
+  The locateModel “engine” locates the CFD cell and cellID corresponding
+  to a given position. 
+
+Syntax
+  locateModel engine;
+  engineProps
+  {
+    treeSearch switch1;
+  }
 
 Class
-  Foam::ParticleCloud
+  engineSearch
 \*---------------------------------------------------------------------------*/
 
-#include "particleCloud.H"
+#include "subModels/locateModel/locateModel.H"
+#include "meshSearch.H"
 
 namespace Foam {
 
-ParticleCloud::ParticleCloud(int numberOfParticle/* = -1 */):
-  numberOfParticles_(numberOfParticle),
-  numberOfParticlesChanged_(false) {}
+class engineSearch: public locateModel {
+
+public:
+
+  //! \brief Runtime type information
+  cfdemTypeName("engine")
+
+  //! \brief Constructor
+  engineSearch(cfdemCloud& cloud, const std::string& derivedTypeName);
+
+  //! \brief Destructor
+  ~engineSearch();
+
+  /*!
+   * \brief use search engine to get cell id of particle center
+   * \param numberOfParticles 颗粒数量
+   * \param cellIDs   <[in] 颗粒覆盖网格的编号
+   */
+  void findCell(int numberOfParticles,
+                const ::base::CITensor2& cellIDs) const;
+
+  label findSingleCell(const Foam::vector& position, label oldCellID) const;
+
+protected:
+
+  dictionary subPropsDict_;
+
+  //! \brief 是否开启 octree 搜索，default - true
+  bool treeSearch_;
+
+  Foam::meshSearch searchEngine_;
+};
 
 } // namespace Foam

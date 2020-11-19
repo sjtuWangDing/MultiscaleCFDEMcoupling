@@ -52,23 +52,25 @@ public:
                      const IOdictionary& liggghtsCommandsDict);
 
   // interfaces - getter
+  inline const std::vector<std::string>& forceModelList() const { return forceModelList_; }
+  inline const std::vector<std::string>& momCoupleModelList() const { return momCoupleModelList_; }
+  inline const std::vector<std::string>& liggghtsCommandModelList() const { return liggghtsCommandModelList_; }
   inline bool verbose() const { return verbose_; }
-  inline const word& modelType() const { return modelType_; }
-  inline const wordList& forceModelList() const { return forceModelList_; }
-  inline const wordList& momCoupleModelList() const { return momCoupleModelList_; }
-  inline const wordList& liggghtsCommandModelList() const { return liggghtsCommandModelList_; }
-  inline const word& turbulenceModelType() const { return turbulenceModelType_; }
-  inline const word& useDDTvoidfraction() const { return useDDTvoidfraction_; }
-  inline scalar impExpSplitFactor() const { return impExpSplitFactor_; }
   inline bool solveFlow() const { return solveFlow_; }
-  inline bool treatVoidCellsAsExplicitForce() const { return treatVoidCellsAsExplicitForce_; }
-  inline bool debug() const { return debug_; }
-  inline bool ignore() const { return ignore_; }
-  inline bool allowAdjustTimeStep() const { return allowAdjustTimeStep_; }
+  inline const std::string& modelType() const { return modelType_; }
+  inline const std::string& turbulenceModelType() const { return turbulenceModelType_; }
   inline bool allowCFDsubTimeStep() const { return allowCFDsubTimeStep_; }
-  inline label couplingInterval() const { return couplingInterval_; }
+  inline int couplingInterval() const { return couplingInterval_; }
+  inline bool checkPeriodicCells() const { return checkPeriodicCells_; }
+  inline const Foam::vector& periodicCheckRange() const { return periodicCheckRange_; }
+  // inline scalar impExpSplitFactor() const { return impExpSplitFactor_; }
+  // inline bool treatVoidCellsAsExplicitForce() const { return treatVoidCellsAsExplicitForce_; }
+  // inline bool debug() const { return debug_; }
+  // inline bool ignore() const { return ignore_; }
+  // inline bool allowAdjustTimeStep() const { return allowAdjustTimeStep_; }
 
 protected:
+
   const fvMesh& mesh_;
 
   //! \note 在当前类中一定要最先声明 couplingPropertiesDict_ 和 liggghtsCommandsDict_
@@ -76,46 +78,51 @@ protected:
 
   const IOdictionary& liggghtsCommandsDict_;
 
+  //! \brief dict 中指定的所有 force model 的名称
+  std::vector<std::string> forceModelList_;
+
+  //! \brief dict 中指定的所有 mom couple model 的名称
+  std::vector<std::string> momCoupleModelList_;
+
+  //! \brief dict 中指定的所有 liggghts command model 的名称
+  std::vector<std::string> liggghtsCommandModelList_;
+
   //! \brief 是否打印多余调试信息
   bool verbose_;
 
-  //! \brief 模型类型(A, B, Bfull, none)
-  const word modelType_;
-
-  //! \brief dict 中指定的所有 force model 的名称
-  const wordList forceModelList_;
-
-  //! \brief dict 中指定的所有 mom couple model 的名称
-  const wordList momCoupleModelList_;
-
-  //! \brief dict 中指定的所有 liggghts command model 的名称
-  const wordList liggghtsCommandModelList_;
-
-  //! \brief dict 中指定的湍流模型的名称
-  const word turbulenceModelType_;
-
-  //! \brief Choose "a" or "b" or "off"
-  const word useDDTvoidfraction_;
-
-  //! \brief 显式、隐式分裂系数
-  scalar impExpSplitFactor_;
-
-  //! \brief 是否需要求解流体
+  //! \brief 是否需要求解流体，在求解器代码中使用，如果为 false，则会跳过流体方程的计算
   bool solveFlow_;
 
-  //! \brief Treat the coupling force in cells with no Us data explicitly.
-  bool treatVoidCellsAsExplicitForce_;
+  //! \brief 模型类型(A, B, Bfull, none)
+  std::string modelType_;
 
-  bool debug_;
+  //! \brief dict 中指定的湍流模型的名称
+  std::string turbulenceModelType_;
 
-  bool ignore_;
-
-  bool allowAdjustTimeStep_;
-
+  //! \brief 是否允许 CFD 时间步长小于耦合间隔（通常设置为 false，则 CFD 时间步长 == 耦合时间步长）
   bool allowCFDsubTimeStep_;
 
   //! \brief 耦合间隔，单位：DEM 时间步，couplingInterval_ * DEMts_ 就是耦合间隔的秒数
-  label couplingInterval_;
+  int couplingInterval_;
+
+  //! \brief used to de-activate mirroring across periodic boundary conditions.
+  bool checkPeriodicCells_;
+
+  //! \brief default = (1,1,1), periodic checks will be done according to periodicCheckRange_
+  const Foam::vector periodicCheckRange_;
+
+  // //! \brief Choose "a" or "b" or "off"
+  // std::string useDDTvoidfraction_;
+
+  // //! \brief 显式、隐式分裂系数
+  // scalar impExpSplitFactor_;
+
+  // //! \brief Treat the coupling force in cells with no Us data explicitly.
+  // bool treatVoidCellsAsExplicitForce_;
+
+  // bool debug_;
+
+  // bool allowAdjustTimeStep_;
 
 #if __MIXCLOUD__
 
