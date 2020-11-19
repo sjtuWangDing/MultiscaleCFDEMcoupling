@@ -17,6 +17,8 @@ $(subModels)/liggghtsCommandModel/runLiggghts.C
 $(subModels)/averagingModel/averagingModel.C
 
 $(subModels)/voidFractionModel/voidFractionModel.C
+$(subModels)/voidFractionModel/noVoidFraction.C
+$(subModels)/voidFractionModel/IBVoidFraction.C
 
 $(subModels)/forceModel/forceModel.C
 $(subModels)/forceModel/forceSubModel.C

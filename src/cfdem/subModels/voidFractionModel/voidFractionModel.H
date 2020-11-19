@@ -25,11 +25,15 @@ License
   Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA
 
 Description
-  This code is designed to realize coupled CFD-DEM simulations using LIGGGHTS
-  and OpenFOAM(R). Note: this code is not part of OpenFOAM(R) (see DISCLAIMER).
+  The voidFractionModel is the base class for models to represent the DEM
+  particle’s volume in the CFD domain via a voidFraction field.
+
+Syntax
+  Defined in couplingProperties dictionary:
+  voidfractionModel model;
 
 Class
-  voidFractionModel
+  voidFractionModel, default is noVoidFraction
 \*---------------------------------------------------------------------------*/
 
 #ifndef __VOID_FRACTION_MODEL_H__
@@ -65,6 +69,8 @@ public:
 
   /* --------------------------------- member functions ---------------------------------- */
 
+public:
+
   //! \brief 重置空隙率
   inline void resetVoidFraction() {
     voidFractionPrev_ == voidFractionNext_;
@@ -77,7 +83,33 @@ public:
     volumeFractionNext_ == dimensionedScalar("one", volumeFractionNext_.dimensions(), 1.);
   }
 
+protected:
+
+  /*!
+   * \brief 判断某一点是否在颗粒中
+   * \param index 颗粒索引
+   * \param point 点的坐标
+   * \param scale 半径因子
+   * \return < 0: 在颗粒中
+   *         > 0: 在颗粒外
+   *         == 0: 在颗粒表面
+   */
+  inline double pointInParticle(int index, const Foam::vector& point, double scale = 1.0) const {
+    double radius = cloud_.getRadius(index);
+    Foam::vector centerPos = cloud_.getPosition(index);
+    return Foam::magSqr(point - centerPos) / (scale * scale * radius * radius) - 1;
+  }
+
   /* --------------------------------- public interfaces --------------------------------- */
+
+public:
+
+  inline const volScalarField& voidFractionPrev() const { return voidFractionPrev_; }
+  inline const volScalarField& voidFractionNext() const { return voidFractionNext_; }
+  inline const volScalarField& volumeFractionPrev() const { return volumeFractionPrev_; }
+  inline const volScalarField& volumeFractionNext() const { return volumeFractionNext_; }
+
+  /* --------------------------------- class variables ----------------------------------- */
 
 protected:
 
@@ -89,9 +121,9 @@ protected:
   volScalarField voidFractionNext_;
 
   //! \brief 大颗粒体积分数
-  mutable volScalarField volumeFractionPrev_;
+  volScalarField volumeFractionPrev_;
 
-  mutable volScalarField volumeFractionNext_;
+  volScalarField volumeFractionNext_;
 };
 
 } // namespace Foam

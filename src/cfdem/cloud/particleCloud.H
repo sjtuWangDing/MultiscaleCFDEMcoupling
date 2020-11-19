@@ -64,7 +64,7 @@ public:
   inline const base::CDTensor2& expForces() const { return expForces_; }
   inline const base::CDTensor2& DEMForces() const { return DEMForces_; }
   inline const base::CDTensor2& DEMTorques() const { return DEMTorques_; }
-  inline const base::CDTensor2& voidfractions() const { return voidfractions_; }
+  inline const base::CDTensor2& voidFractions() const { return voidFractions_; }
   inline const base::CDTensor2& particleWeights() const { return particleWeights_; }
   inline const base::CDTensor2& particleVolumes() const { return particleVolumes_; }
 
@@ -102,7 +102,7 @@ private:
   base::CDTensor2 expForces_;
   base::CDTensor2 DEMForces_;
   base::CDTensor2 DEMTorques_;
-  base::CDTensor2 voidfractions_;
+  base::CDTensor2 voidFractions_;
   base::CDTensor2 particleWeights_;
   base::CDTensor2 particleVolumes_;
 #else
@@ -151,8 +151,8 @@ private:
   double** DEMForces_;
 
   //! \brief 空隙率
-  //! \note voidfractions_[index][subcell]
-  double** voidfractions_;
+  //! \note voidFractions_[index][subcell]
+  double** voidFractions_;
 
   //! \brief 颗粒覆盖的所有网格的编号
   //! \note cellIDs_[index][subcell]

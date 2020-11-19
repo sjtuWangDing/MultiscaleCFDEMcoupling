@@ -93,61 +93,59 @@ void engineSearchIB::findCell(int numberOfParticles,
     Foam::vector periodicPos = particleCenterPos;
     // 颗粒半径
     double radius = cloud_.getRadius(index);
-    if (radius > Foam::SMALL) {
-      bool isInside = isInsideRectangularDomain(periodicPos, coef_ * radius);
-      if (!isInside && cloud_.checkPeriodicCells()) {
-        FatalError << "Error: not support periodic check!" << abort(FatalError);
-        // int rangeX = static_cast<int>(cloud_.periodicCheckRange()[0]);
-        // int rangeY = static_cast<int>(cloud_.periodicCheckRange()[1]);
-        // int rangeZ = static_cast<int>(cloud_.periodicCheckRange()[2]);
-        // Foam::vector bMax = globalBox.max();
-        // Foam::vector bMin = globalBox.min();
-        // for (int xDir = -rangeX; xDir <= rangeX; ++xDir) {
-        //   periodicPos[0] = particleCenterPos[0] + xDir * (bMax[0] - bMin[0]);
-        //   for (int yDir = -rangeY; yDir <= rangeY; ++yDir) {
-        //     periodicPos[1] = particleCenterPos[1] + yDir * (bMax[1] - bMin[1]);
-        //     for (int zDir = -rangeZ; zDir <= rangeZ; ++zDir) {
-        //       periodicPos[2] = particleCenterPos[2] + zDir * (bMax[2] - bMin[2]);
-        //       isInside = isInsideRectangularDomain(periodicPos, coef_ * radius);
-        //       if (isInside) { break; }
-        //     }
-        //     if (isInside) { break; }
-        //   }
-        //   if (isInside) { break; }
-        // } // end of check periodic
-      }
-      if (isInside) {
-        label oldCellID = cellIDs[index][0];
-        // findSingleCell is defined in engineSearch and return the found cell id.
-        cellIDs[index][0] = findSingleCell(periodicPos, oldCellID);
-        // not found with periodicPos
-        if (cellIDs[index][0] < 0) {
-          label altStartID = -1;
-          for (size_t i = 0; i < satellitePoints_.size(); ++i) {
-            Foam::vector pos = getSatellitePointPos(index, static_cast<int>(i));
-            isInside = isInsideRectangularDomain(pos, Foam::SMALL);
-            // 如果当前 satellite point is in rectangular domain
-            if (isInside) {
-              altStartID = findSingleCell(pos, oldCellID);
-            }
+    bool isInside = isInsideRectangularDomain(periodicPos, coef_ * radius);
+    if (!isInside && cloud_.checkPeriodicCells()) {
+      FatalError << "Error: not support periodic check!" << abort(FatalError);
+      // int rangeX = static_cast<int>(cloud_.periodicCheckRange()[0]);
+      // int rangeY = static_cast<int>(cloud_.periodicCheckRange()[1]);
+      // int rangeZ = static_cast<int>(cloud_.periodicCheckRange()[2]);
+      // Foam::vector bMax = globalBox.max();
+      // Foam::vector bMin = globalBox.min();
+      // for (int xDir = -rangeX; xDir <= rangeX; ++xDir) {
+      //   periodicPos[0] = particleCenterPos[0] + xDir * (bMax[0] - bMin[0]);
+      //   for (int yDir = -rangeY; yDir <= rangeY; ++yDir) {
+      //     periodicPos[1] = particleCenterPos[1] + yDir * (bMax[1] - bMin[1]);
+      //     for (int zDir = -rangeZ; zDir <= rangeZ; ++zDir) {
+      //       periodicPos[2] = particleCenterPos[2] + zDir * (bMax[2] - bMin[2]);
+      //       isInside = isInsideRectangularDomain(periodicPos, coef_ * radius);
+      //       if (isInside) { break; }
+      //     }
+      //     if (isInside) { break; }
+      //   }
+      //   if (isInside) { break; }
+      // } // end of check periodic
+    }
+    if (isInside) {
+      label oldCellID = cellIDs[index][0];
+      // findSingleCell is defined in engineSearch and return the found cell id.
+      cellIDs[index][0] = findSingleCell(periodicPos, oldCellID);
+      // not found with periodicPos
+      if (cellIDs[index][0] < 0) {
+        label altStartID = -1;
+        for (size_t i = 0; i < satellitePoints_.size(); ++i) {
+          Foam::vector pos = getSatellitePointPos(index, static_cast<int>(i));
+          isInside = isInsideRectangularDomain(pos, Foam::SMALL);
+          // 如果当前 satellite point is in rectangular domain
+          if (isInside) {
+            altStartID = findSingleCell(pos, oldCellID);
+          }
 
-            if (cloud_.checkPeriodicCells()) {
-              FatalError << "Error: not support periodic check!" << abort(FatalError);
-            }
+          if (cloud_.checkPeriodicCells()) {
+            FatalError << "Error: not support periodic check!" << abort(FatalError);
+          }
 
-            if (altStartID >= 0) {
-              // found cell id
-              cellIDs[index][0] = altStartID;
-              break;
-            }
+          if (altStartID >= 0) {
+            // found cell id
+            cellIDs[index][0] = altStartID;
+            break;
           }
         }
-      } else {
-        cellIDs[index][0] = -1;
-        Pout << "Found particle " << index << " not in the CFD domian, this could means that the particle and fluid has no coupling." << endl;
       }
+    } else {
+      cellIDs[index][0] = -1;
+      Pout << "Found particle " << index << " not in the CFD domian, this could means that the particle and fluid has no coupling." << endl;
     }
-  }
+  } // end loop of particle
 }
 
 /*!

@@ -49,6 +49,7 @@ Class
 #include "cloud/cfdemBase.H"
 #include "cloud/couplingProperties.H"
 #include "cloud/particleCloud.H"
+#include "cloud/Particle.H"
 
 #if defined(version21) || defined(version16ext)
   #include "turbulenceModel.H"
@@ -201,7 +202,7 @@ public:
   inline const base::CDTensor2& expForces() const { return pCloud_.expForces(); }
   inline const base::CDTensor2& DEMForces() const { return pCloud_.DEMForces(); }
   inline const base::CDTensor2& DEMTorques() const { return pCloud_.DEMTorques(); }
-  inline const base::CDTensor2& voidfractions() const { return pCloud_.voidfractions(); }
+  inline const base::CDTensor2& voidFractions() const { return pCloud_.voidFractions(); }
   inline const base::CDTensor2& particleWeights() const { return pCloud_.particleWeights(); }
   inline const base::CDTensor2& particleVolumes() const { return pCloud_.particleVolumes(); }
   inline Foam::vector getPosition(int index) const {
@@ -215,6 +216,8 @@ public:
   inline double getRadius(int index) {
     CHECK_EQ(numberOfParticles(), static_cast<int>(radii().size(0)))
       << "Number of particle is not match";
+    CHECK_GT(radii()[index], Foam::SMALL)
+      << "Radius of particle " << index << " is < " << "Foam::SMALL";
     return radii()[index];
   }
 

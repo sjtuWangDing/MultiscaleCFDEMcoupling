@@ -19,6 +19,8 @@ FoamFile
     object          couplingProperties;
 }
 
+solveFlow false;
+
 verbose true;
 
 usedForSolverPiso false;
