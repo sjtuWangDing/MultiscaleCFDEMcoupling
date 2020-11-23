@@ -2,6 +2,14 @@
 ## SETTINGS FOR 5.x                                            ##
 #################################################################
 
+# Specify additional include and library paths, as well as libraries for the compilation
+CFDEM_ADD_INC = \
+CFDEM_ADD_LIB_PATHS = \
+CFDEM_ADD_LIBS = \
+
+# additional static libraries to be linked to lagrangian library
+CFDEM_ADD_STATICLIBS = \
+
 #----------------------------------------------------------------
 # incompressible turbulence model settings
 #----------------------------------------------------------------

@@ -38,6 +38,8 @@ namespace Foam {
 
 cfdemDefineTypeName(voidFractionModel)
 
+cfdemDefineNewFunctionMap(voidFractionModel)
+
 cfdemDefineConstructNewFunctionMap(voidFractionModel)
 
 cfdemDefineDestroyNewFunctionMap(voidFractionModel)

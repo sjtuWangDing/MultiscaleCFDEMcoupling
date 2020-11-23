@@ -6,8 +6,6 @@ $(cloud)/cfdemCloud.C
 $(cloud)/couplingProperties.C
 $(cloud)/particleCloud.C
 
-$(subModels)/demoModel/demoModel.C
-
 $(subModels)/dataExchangeModel/dataExchangeModel.C
 $(subModels)/dataExchangeModel/twoWayMPI.C
 

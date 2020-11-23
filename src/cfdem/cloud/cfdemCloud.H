@@ -72,7 +72,7 @@ class forceModel;
 class averagingModel;
 class voidFractionModel;
 class dataExchangeModel;
-// class locateModel;
+class locateModel;
 // class IOModel;
 // class probeModel;
 // class registryModel;
@@ -97,36 +97,24 @@ public:
   /*!
    * \brief 更新函数
    * \note used for cfdemSolverPiso
-   * \param VoidF  <[in, out] 小颗粒空隙率场
-   * \param Us     <[in, out] 局部平均小颗粒速度场
-   * \param U      <[in] 流体速度场
+   * \param voidFraction  <[in, out] 小颗粒空隙率场
+   * \param Us            <[in, out] 局部平均小颗粒速度场
+   * \param U             <[in] 流体速度场
    */
-  virtual bool evolve(volScalarField& VoidF,
+  virtual bool evolve(volScalarField& voidFraction,
                       volVectorField& Us,
                       volVectorField& U);
 
+  /*!
+   * \brief 更新函数
+   * \note used for cfdemSolverIB
+   * \param volumeFraction  <[in, out] 大颗粒体积分数
+   * \param interFace       <[in, out] 界面场，用于 dynamic mesh
+   */
+  virtual bool evolve(volScalarField& volumeFraction,
+                      volScalarField& interFace);
+
   /* --------------------------------- member functions ---------------------------------- */
-
-public:
-
-  void periodicCallback(const Foam::vector& particlePos,
-                        const boundBox& box) const {
-    int rangeX = static_cast<int>(periodicCheckRange()[0]);
-    int rangeY = static_cast<int>(periodicCheckRange()[1]);
-    int rangeZ = static_cast<int>(periodicCheckRange()[2]);
-    Foam::vector bMax = box.max();
-    Foam::vector bMin = box.min();
-    Foam::vector periodicPos(Foam::vector::zero);
-    for (int xDir = -rangeX; xDir <= rangeX; ++xDir) {
-      periodicPos[0] = particlePos[0] + xDir * (bMax[0] - bMin[0]);
-      for (int yDir = -rangeY; yDir <= rangeY; ++yDir) {
-        periodicPos[1] = particlePos[1] + yDir * (bMax[1] - bMin[1]);
-        for (int zDir = -rangeZ; zDir <= rangeZ; ++zDir) {
-          periodicPos[2] = particlePos[2] + zDir * (bMax[2] - bMin[2]);
-        }
-      }
-    }
-  }
 
 protected:
 
@@ -187,6 +175,7 @@ public:
   inline const Foam::vector& periodicCheckRange() const { return cProps_.periodicCheckRange(); }
 
   /* ------------------------- interface of particleCloud ------------------------------- */
+
   inline int numberOfParticles() const { return pCloud_.numberOfParticles(); }
   inline bool numberOfParticlesChanged() const { return pCloud_.numberOfParticlesChanged(); }
   inline const base::CITensor1& particleOverMeshNumber()const { return pCloud_.particleOverMeshNumber(); }
@@ -249,7 +238,7 @@ protected:
 
   autoPtr<voidFractionModel> voidFractionModel_;
 
-  // autoPtr<locateModel> locateModel_;
+  autoPtr<locateModel> locateModel_;
 
   // autoPtr<IOModel> IOModel_;
 

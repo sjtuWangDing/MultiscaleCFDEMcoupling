@@ -45,12 +45,9 @@ IBVoidFraction::~IBVoidFraction() {}
  * \param index 颗粒索引
  */
 void IBVoidFraction::setVolumeFractionForSingleParticle(const int index) const {
-  if (index < 0 || index >= cloud_.numberOfParticles()) {
-    FatalError << __func__ << ": index " << index << "out of boundary [0, " << cloud_.numberOfParticles() - 1 << "]"
-      << abort(FatalError);
-  }
   // 获取颗粒半径，中心坐标，颗粒中心所在网格编号
-  // Foam::vector centerPos = cloud_.getPosition(index);
+  double radius = cloud_.getRadius(index);
+  Foam::vector centerPos = cloud_.getPosition(index);
 }
 
 /*!

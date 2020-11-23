@@ -39,60 +39,62 @@ Class
 #include "subModels/averagingModel/averagingModel.H"
 #include "subModels/voidFractionModel/voidFractionModel.H"
 #include "subModels/forceModel/forceModel.H"
+#include "subModels/locateModel/locateModel.H"
 
 namespace Foam {
 
-cfdemCloud::cfdemCloud(const fvMesh& mesh):
-  mesh_(mesh),
-  couplingPropertiesDict_(
-    IOobject(
-      "couplingProperties", // coupling properties file name
-      mesh.time().constant(),
-      mesh,
-      IOobject::MUST_READ,
-      IOobject::NO_WRITE
-    )
-  ),
-  liggghtsCommandsDict_(
-    IOobject(
-      "liggghtsCommands", // liggghts commands file name
-      mesh.time().constant(),
-      mesh,
-      IOobject::MUST_READ,
-      IOobject::NO_WRITE
-    )
-  ),
-  cProps_(mesh, couplingPropertiesDict_, liggghtsCommandsDict_),
-  pCloud_(0),
-  dataExchangeModel_(dataExchangeModel::New(*this, couplingPropertiesDict_)),
-  averagingModel_(averagingModel::New(*this, couplingPropertiesDict_)),
-  voidFractionModel_(voidFractionModel::New(*this, couplingPropertiesDict_)),
+cfdemCloud::cfdemCloud(const fvMesh& mesh)
+  : mesh_(mesh),
+    couplingPropertiesDict_(
+      IOobject(
+        "couplingProperties", // coupling properties file name
+        mesh.time().constant(),
+        mesh,
+        IOobject::MUST_READ,
+        IOobject::NO_WRITE
+      )
+    ),
+    liggghtsCommandsDict_(
+      IOobject(
+        "liggghtsCommands", // liggghts commands file name
+        mesh.time().constant(),
+        mesh,
+        IOobject::MUST_READ,
+        IOobject::NO_WRITE
+      )
+    ),
+    cProps_(mesh, couplingPropertiesDict_, liggghtsCommandsDict_),
+    pCloud_(0),
+    dataExchangeModel_(dataExchangeModel::New(*this, couplingPropertiesDict_)),
+    averagingModel_(averagingModel::New(*this, couplingPropertiesDict_)),
+    voidFractionModel_(voidFractionModel::New(*this, couplingPropertiesDict_)),
+    locateModel_(locateModel::New(*this, couplingPropertiesDict_)),
 #if defined(version24Dev)
-  turbulence_(mesh.lookupObject<turbulenceModel>(turbulenceModelType())),
+    turbulence_(mesh.lookupObject<turbulenceModel>(turbulenceModelType())),
 #elif defined(version21) || defined(version16ext)
 #ifdef compre
-  turbulence_(mesh.lookupObject<compressible::turbulenceModel>(turbulenceModelType())),
+    turbulence_(mesh.lookupObject<compressible::turbulenceModel>(turbulenceModelType())),
 #else
-  turbulence_(mesh.lookupObject<incompressible::turbulenceModel>(turbulenceModelType())),
+    turbulence_(mesh.lookupObject<incompressible::turbulenceModel>(turbulenceModelType())),
 #endif
 #elif defined(version15)
-  turbulence_(mesh.lookupObject<incompressible::RASModel>(turbulenceModelType())),
+    turbulence_(mesh.lookupObject<incompressible::RASModel>(turbulenceModelType())),
 #endif
-  turbulenceMultiphase_(
-    IOobject(
-      "turbulenceMultiphase",
-      mesh.time().timeName(),
+    turbulenceMultiphase_(
+      IOobject(
+        "turbulenceMultiphase",
+        mesh.time().timeName(),
+        mesh,
+        IOobject::NO_READ,
+        IOobject::AUTO_WRITE
+      ),
       mesh,
-      IOobject::NO_READ,
-      IOobject::AUTO_WRITE
-    ),
-    mesh,
 #ifdef compre
-    dimensionedScalar("zero", dimensionSet(1, -1, -1, 0, 0), 0)  // kg/m/s
+      dimensionedScalar("zero", dimensionSet(1, -1, -1, 0, 0), 0)  // kg/m/s
 #else
-    dimensionedScalar("zero", dimensionSet(0, 2, -1, 0, 0), 0)  // m²/s
+      dimensionedScalar("zero", dimensionSet(0, 2, -1, 0, 0), 0)  // m²/s
 #endif
-  ) {
+    ) {
 
   Info << "\nEnding of Constructing cfdemCloud Base Class Object......\n" << endl;
   Info << "\nEntry of cfdemCloud::cfdemCloud(const fvMesh&)......\n" << endl;
@@ -113,6 +115,8 @@ cfdemCloud::cfdemCloud(const fvMesh& mesh):
       << abort(FatalError);
   }
 }
+
+cfdemCloud::~cfdemCloud() {}
 
 /*!
  * \brief 更新函数
@@ -147,6 +151,17 @@ bool cfdemCloud::evolve(volScalarField& VoidF,
   }
   Info << "Foam::cfdemCloud::evolve() - done\n" << endl;
   return true;
+}
+
+/*!
+ * \brief 更新函数
+ * \note used for cfdemSolverIB
+ * \param volumeFraction  <[in, out] 大颗粒体积分数
+ * \param interFace       <[in, out] 界面场，用于 dynamic mesh
+ */
+bool cfdemCloud::evolve(volScalarField& volumeFraction,
+                        volScalarField& interFace) {
+  Info << "Foam::cfdemCloud::evolve(), used for cfdemSolverIB..." << endl;
 }
 
 /*!

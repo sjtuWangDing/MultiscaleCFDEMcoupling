@@ -37,6 +37,15 @@ Class
 
 namespace Foam {
 
+const int forceSubModel::Switches::kNum = 4;
+
+const char* forceSubModel::Switches::kNameList[] = {
+  "treatForceExplicit",
+  "treatForceDEM",
+  "implForceDEM",
+  "verbose"
+};
+
 //! \brief Constructor
 forceSubModel::forceSubModel(cfdemCloud& cloud,
                              forceModel& forceModel,

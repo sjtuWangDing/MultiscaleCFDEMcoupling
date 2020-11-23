@@ -109,6 +109,13 @@ License
     };
 
 /*!
+ * \brief 定义 BaseType 中的静态成员变量 newFunctionMapPtr_
+ * \param BaseType 指定基类
+ */
+#define cfdemDefineNewFunctionMap(BaseType)                                                                        \
+  BaseType::NewFunctionMap* BaseType::newFunctionMapPtr_ = nullptr;
+
+/*!
  * \brief 定义 BaseType 中的静态方法 constructNewFunctionMap()，用于创建对象 map 对象
  * \param BaseType 指定基类
  */

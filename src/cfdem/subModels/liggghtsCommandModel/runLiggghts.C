@@ -48,6 +48,7 @@ runLiggghts::runLiggghts(cfdemCloud& cloud):
     subPropsDict_ = cloud.liggghtsCommandsDict().subDict(dictName);
     verbose_ = subPropsDict_.lookupOrDefault<Switch>("verbose", false);
   }
+  // check some switches: runFirst, runLast, runEveryCouplingStep and runEveryWriteStep
   checkTimeMode(subPropsDict_);
   checkTimeSettings(subPropsDict_);
   command_ = createCommand(baseCommand_);

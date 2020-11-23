@@ -59,6 +59,8 @@ twoWayMPI::twoWayMPI(cfdemCloud& cloud):
   checkTimeStepSize();
 }
 
+twoWayMPI::~twoWayMPI() {}
+
 //! \return 当前耦合时间步中颗粒的数量
 int twoWayMPI::couple() {
   Info << "dataExchangeModel " << typeName() << ": Starting up CFD-DEM couping" << endl;
@@ -84,44 +86,40 @@ int twoWayMPI::couple() {
 //! \brief Allocate and destroy for 2-D double array
 void twoWayMPI::destroy(double**& array) {
 }
+
 void twoWayMPI::destroy(double**& array, int) {
-
 }
+
 void twoWayMPI::allocateArray(double**& array, double initVal, int width, int length) {
-
 }
-void twoWayMPI::allocateArray(double**& array, double initVal, int width, const char* length/* = "nparticles" */) {
 
+void twoWayMPI::allocateArray(double**& array, double initVal, int width, const char* length/* = "nparticles" */) {
 }
 
 //! \brief Allocate and destroy for 2-D int array
 void twoWayMPI::destroy(int**& array) {
-
 }
+
 void twoWayMPI::destroy(int**& array, int) {
-
 }
+
 void twoWayMPI::allocateArray(int**& array, int initVal, int width, int length) {
-
 }
-void twoWayMPI::allocateArray(int**& array, int initVal, int width, const char* length/* = "nparticles" */) {
 
+void twoWayMPI::allocateArray(int**& array, int initVal, int width, const char* length/* = "nparticles" */) {
 }
 
 //! \brief Allocate and destroy for 1-D double array
 void twoWayMPI::destroy(double*& array) {
-
 }
 void twoWayMPI::allocateArray(double*& array, double initVal, int length) {
-
 }
 
 //! \brief Allocate and destroy for 1-D int array
 void twoWayMPI::destroy(int*& array) {
-
 }
-void twoWayMPI::allocateArray(int*& array, int initVal, int length) {
 
+void twoWayMPI::allocateArray(int*& array, int initVal, int length) {
 }
 
 void twoWayMPI::getData(const std::string& dataName,

@@ -96,13 +96,8 @@ public:
   /* --------------------------------- base class and functions -------------------------- */
   class Switches {
   public:
-    static constexpr int kNum = 4;
-    static constexpr const char* kNameList[] = {
-      "treatForceExplicit",
-      "treatForceDEM",
-      "implForceDEM",
-      "verbose"
-    };
+    static const int kNum;
+    static const char* kNameList[];
     Switches(): value_(0) {}
     void setTrue(ESwitch value) {
       switch(value) {

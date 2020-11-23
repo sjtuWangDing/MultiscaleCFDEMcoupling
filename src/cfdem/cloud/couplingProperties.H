@@ -38,7 +38,7 @@ Class
 #include "fvCFD.H"
 
 #ifndef __MIXCLOUD__
-#define __MIXCLOUD__ 1
+#define __MIXCLOUD__ 0
 #endif
 
 namespace Foam {

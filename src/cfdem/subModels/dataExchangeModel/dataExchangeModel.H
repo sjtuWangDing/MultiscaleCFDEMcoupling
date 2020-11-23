@@ -63,27 +63,27 @@ public:
   /* --------------------------------- virtual functions --------------------------------- */
 
   //! \return 当前耦合时间步中颗粒的数量
-  virtual int couple();
+  virtual int couple() = 0;
 
   //! \brief Allocate and destroy for 2-D double array
-  virtual void destroy(double**& array);
-  virtual void destroy(double**& array, int);
-  virtual void allocateArray(double**& array, double initVal, int width, int length);
-  virtual void allocateArray(double**& array, double initVal, int width, const char* length = "nparticles");
+  virtual void destroy(double**& array) {};
+  virtual void destroy(double**& array, int) {};
+  virtual void allocateArray(double**& array, double initVal, int width, int length) {};
+  virtual void allocateArray(double**& array, double initVal, int width, const char* length = "nparticles") {};
 
   //! \brief Allocate and destroy for 2-D int array
-  virtual void destroy(int**& array);
-  virtual void destroy(int**& array, int);
-  virtual void allocateArray(int**& array, int initVal, int width, int length);
-  virtual void allocateArray(int**& array, int initVal, int width, const char* length  = "nparticles");
+  virtual void destroy(int**& array) {};
+  virtual void destroy(int**& array, int) {};
+  virtual void allocateArray(int**& array, int initVal, int width, int length) {};
+  virtual void allocateArray(int**& array, int initVal, int width, const char* length  = "nparticles") {};
 
   //! \brief Allocate and destroy for 1-D double array
-  virtual void destroy(double*& array);
-  virtual void allocateArray(double*& array, double initVal, int length);
+  virtual void destroy(double*& array) {};
+  virtual void allocateArray(double*& array, double initVal, int length) {};
 
   //! \brief Allocate and destroy for 1-D int array
-  virtual void destroy(int*& array);
-  virtual void allocateArray(int*& array, int initVal, int length);
+  virtual void destroy(int*& array) {};
+  virtual void allocateArray(int*& array, int initVal, int length) {};
 
   virtual void getData(const std::string& dataName,
                        const std::string& dataType,

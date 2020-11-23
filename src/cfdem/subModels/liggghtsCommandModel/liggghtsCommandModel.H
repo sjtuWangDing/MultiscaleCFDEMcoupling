@@ -104,15 +104,19 @@ protected:
 
   int commandLines_;
 
-  Switch verbose_;
+  bool verbose_;
 
-  Switch runFirst_;
+  //! \brief run liggghts on at first coupling step (readed from sub properties dict)
+  bool runFirst_;
 
-  Switch runLast_;
+  //! \brief run liggghts on at last coupling step (readed from sub properties dict)
+  bool runLast_;
 
-  Switch runEveryCouplingStep_;
+  //! \brief run liggghts every coupling step (readed from sub properties dict)
+  bool runEveryCouplingStep_;
 
-  Switch runEveryWriteStep_;
+  //! \brief run liggghts every write step (readed from sub properties dict)
+  bool runEveryWriteStep_;
 
   CmdRunTime cmdRunTime_;
 

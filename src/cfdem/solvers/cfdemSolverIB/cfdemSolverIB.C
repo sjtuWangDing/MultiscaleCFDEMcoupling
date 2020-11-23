@@ -35,3 +35,9 @@ Description
   movement information, gained from LIGGGHTS, are incorporated.
 \*---------------------------------------------------------------------------*/
 
+#include "fvCFD.H"
+#include "cloud/cfdemCloud.H"
+
+int main() {
+  return 0;
+}

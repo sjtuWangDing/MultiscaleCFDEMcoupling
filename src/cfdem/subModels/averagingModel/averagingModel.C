@@ -38,9 +38,14 @@ namespace Foam {
 
 cfdemDefineTypeName(averagingModel)
 
+cfdemDefineNewFunctionMap(averagingModel)
+
 cfdemDefineConstructNewFunctionMap(averagingModel)
 
 cfdemDefineDestroyNewFunctionMap(averagingModel)
+
+cfdmeDefineBaseTypeNew(
+  Foam::autoPtr, averagingModel, (cfdemCloud& cloud, const dictionary& dict), cloud, dict, (cloud))
 
 //! \brief Constructor
 averagingModel::averagingModel(cfdemCloud& cloud):

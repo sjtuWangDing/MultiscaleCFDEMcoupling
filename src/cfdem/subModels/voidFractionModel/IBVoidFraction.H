@@ -84,7 +84,7 @@ protected:
    * \brief 设置单个颗粒的体积分数场
    * \param index 颗粒索引
    */
-  void setVolumeFractionForSingleParticle(const int index) const;
+  void setVolumeFractionForSingleParticle(int index) const;
 
   /*!
    * \brief 计算距离系数
