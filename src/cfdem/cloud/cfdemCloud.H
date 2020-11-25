@@ -57,12 +57,6 @@ Class
   #include "RASModel.H"
 #endif
 
-#ifndef USLEEP
-#define USLEEP(times) \
-  usleep((int)(times * 1000000)); \
-  MPI_Barrier(MPI_COMM_WORLD);
-#endif
-
 namespace Foam {
 
 // forward declarations
@@ -84,13 +78,21 @@ class cfdemCloud {
 
 public:
 
-  //! \brief Construct from mesh and a list of particles
+  //! \brief Constructed from mesh
   cfdemCloud(const fvMesh& mesh);
 
   //! \brief Destructor
   virtual ~cfdemCloud();
 
+  static void Barrier(int times = 0.1) {
+    usleep(times * 1000000);
+    MPI_Barrier(MPI_COMM_WORLD);
+  }
+
   /* --------------------------------- virtual functions --------------------------------- */
+
+
+  /* --------------------------------- member functions ---------------------------------- */
 
 public:
 
@@ -101,20 +103,9 @@ public:
    * \param Us            <[in, out] 局部平均小颗粒速度场
    * \param U             <[in] 流体速度场
    */
-  virtual bool evolve(volScalarField& voidFraction,
-                      volVectorField& Us,
-                      volVectorField& U);
-
-  /*!
-   * \brief 更新函数
-   * \note used for cfdemSolverIB
-   * \param volumeFraction  <[in, out] 大颗粒体积分数
-   * \param interFace       <[in, out] 界面场，用于 dynamic mesh
-   */
-  virtual bool evolve(volScalarField& volumeFraction,
-                      volScalarField& interFace);
-
-  /* --------------------------------- member functions ---------------------------------- */
+  bool evolve(volScalarField& voidFraction,
+              volVectorField& Us,
+              volVectorField& U);
 
 protected:
 
@@ -122,7 +113,7 @@ protected:
    * \brief check if simulation is fully periodic
    * \return true if simulation is fully periodic
    */
-  bool checkPeriodicity();
+  bool checkSimulationFullyPeriodic();
 
   /* --------------------------------- public interfaces --------------------------------- */
 public:
@@ -155,10 +146,6 @@ public:
   inline const incompressible::RASModel& turbulence() const;
 #endif
   inline bool writeTimePassed() const { return writeTimePassed_; }
-  inline bool meshHasUpdated() const { return meshHasUpdated_; }
-
-  // interface - setter
-  inline void setMeshHasUpdated(bool meshHasUpdated) { meshHasUpdated_ = meshHasUpdated; }
 
   /* ------------------------- interface of CouplingProperties --------------------------- */
 
@@ -268,12 +255,6 @@ protected:
   volScalarField turbulenceMultiphase_;
 
   bool writeTimePassed_;
-
-  /*!
-   * \brief 判断 mesh 是否被更新过
-   * \note 在求解器中使用 dynamic mesh，如果 mesh 更新，则 mesh.update() 返回 true，否则返回 false
-   */
-  bool meshHasUpdated_;
 
   bool arraysReallocated_;
 

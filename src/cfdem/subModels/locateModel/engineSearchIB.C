@@ -25,6 +25,7 @@ License
   Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA
 \*---------------------------------------------------------------------------*/
 
+#include "cloud/cfdemCloudIB.H"
 #include "subModels/locateModel/engineSearchIB.H"
 #include "mathematicalConstants.H"
 
@@ -69,7 +70,7 @@ engineSearchIB::~engineSearchIB() {}
 /*!
  * \brief use search engine to get cell id of particle center
  * \param numberOfParticles 颗粒数量
- * \param cellIDs   <[in] 颗粒覆盖网格的编号
+ * \param cellIDs 颗粒覆盖网格的编号
  */
 void engineSearchIB::findCell(int numberOfParticles,
                               const ::base::CITensor2& cellIDs) const {
@@ -78,7 +79,7 @@ void engineSearchIB::findCell(int numberOfParticles,
 
   // const boundBox& globalBox = cloud_.mesh().bounds();
   // 在使用 dynamic mesh 的时候，如果网格更新，则重新设置 boundBox
-  if (cloud_.meshHasUpdated()) {
+  if (dynamic_cast<cfdemCloudIB&>(cloud_).meshHasUpdated()) {
     const_cast<engineSearchIB*>(this)->searchEngine_.correct();
     const_cast<engineSearchIB*>(this)->boundBoxPtr_.reset(new boundBox(cloud_.mesh().points(), false));
     if (verbose_) {

@@ -1,0 +1,69 @@
+/*---------------------------------------------------------------------------*\
+| =========                 |                                                 |
+| \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox           |
+|  \\    /   O peration     | Version:  1.4                                   |
+|   \\  /    A nd           | Web:      http://www.openfoam.org               |
+|    \\/     M anipulation  |                                                 |
+\*---------------------------------------------------------------------------*/
+
+FoamFile
+{
+    version         2.0;
+    format          ascii;
+
+    root            "";
+    case            "";
+    instance        "";
+    local           "";
+
+    class           dictionary;
+    object          couplingProperties;
+}
+
+/* ---------------------------- sub-models & settings ---------------------------- */
+
+modelType none;
+
+couplingInterval 10;
+
+voidFractionModel IB;
+
+locateModel engineIB;
+
+dataExchangeModel twoWayMPI;
+
+forceModels
+(
+    ShirgaonkarIB,
+    ArchimedesIB
+);
+
+/* ---------------------------- sub-model properties ------------------------- */
+
+ShirgaonkarIBProps
+{
+    velFieldName "U";
+    pressureFieldName "p";
+}
+
+ArchimedesIBProps
+{
+    gravityFieldName "g";
+    voidfractionFieldName "voidfractionNext";
+}
+
+twoWayMPIProps
+{
+    liggghtsPath "../DEM/in.liggghts_run";
+}
+
+IBProps
+{
+}
+
+engineIBProps
+{
+    treeSearch true;
+    zSplit 8;
+    xySplit 16;
+}

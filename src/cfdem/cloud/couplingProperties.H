@@ -46,12 +46,13 @@ namespace Foam {
 class CouplingProperties {
 
 public:
-
+  //! \brief Constructor
   CouplingProperties(const fvMesh& mesh,
                      const IOdictionary& couplingPropertiesDict,
                      const IOdictionary& liggghtsCommandsDict);
 
-  // interfaces - getter
+  /* --------------------------------- interface used for cfdemCloud -------------------------------------- */
+
   inline const std::vector<std::string>& forceModelList() const { return forceModelList_; }
   inline const std::vector<std::string>& momCoupleModelList() const { return momCoupleModelList_; }
   inline const std::vector<std::string>& liggghtsCommandModelList() const { return liggghtsCommandModelList_; }
@@ -68,6 +69,15 @@ public:
   // inline bool debug() const { return debug_; }
   // inline bool ignore() const { return ignore_; }
   // inline bool allowAdjustTimeStep() const { return allowAdjustTimeStep_; }
+
+  /* --------------------------------- interface used for cfdemCloudIB ------------------------------------ */
+
+  inline double refineMeshSkin() const { return refineMeshSkin_; }
+  inline int refineMeshKeepInterval() const { return refineMeshKeepInterval_; }
+
+  /* --------------------------------- interface used for cfdemCloudMix ----------------------------------- */
+
+  /* --------------------------------- class variables ---------------------------------------------------- */
 
 protected:
 
@@ -123,6 +133,18 @@ protected:
   // bool debug_;
 
   // bool allowAdjustTimeStep_;
+
+  /*!
+   * \brief 重构网格的颗粒直径因数，在颗粒 refineMeshSkin_ * diameter 中的网格设置 interFace 用于 refine meshs
+   * \note used for cfdemCloudIB or cfdemCloudMix
+   */
+  double refineMeshSkin_;
+
+  /*!
+   * \brief 重构网格保留时间间隔(以流体时间步为单位)
+   * \note 如果设置为 100, 即重构网格会保留 100 个时间步，默认值为 0
+   */
+  int refineMeshKeepInterval_;
 
 #if __MIXCLOUD__
 

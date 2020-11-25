@@ -92,6 +92,16 @@ CouplingProperties::CouplingProperties(const fvMesh& mesh,
     }
   }
 
+  refineMeshSkin_ = couplingPropertiesDict_.lookupOrDefault<double>("refineMeshSkin", 1.8);
+  if (refineMeshSkin_ < 1.0) {
+    FatalError << "refineMeshSkin should be >= 1.0 but get " << refineMeshSkin_ << abort(FatalError);
+  }
+
+  refineMeshKeepInterval_ = couplingPropertiesDict_.lookupOrDefault<int>("refineMeshKeepInterval", 0);
+  if (refineMeshKeepInterval_ < 0) {
+    FatalError << "refineMeshKeepInterval should be >= 0 but get " << refineMeshKeepInterval_ << abort(FatalError);
+  }
+
 #if __MIXCLOUD__
 
   fineParticleRatio_ = couplingPropertiesDict_.lookupOrDefault<double>("fineParticleRatio", 3.0);

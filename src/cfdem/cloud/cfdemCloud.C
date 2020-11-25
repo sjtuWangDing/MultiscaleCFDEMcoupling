@@ -109,8 +109,8 @@ cfdemCloud::cfdemCloud(const fvMesh& mesh)
     forceModels_.emplace_back(forceModel::New(*this, couplingPropertiesDict_, name));
   }
   // check periodic
-  if (checkPeriodicCells() != checkPeriodicity()) {
-    FatalError << "checkPeriodicity(): " << (checkPeriodicity() ? true : false)
+  if (checkPeriodicCells() != checkSimulationFullyPeriodic()) {
+    FatalError << "checkSimulationFullyPeriodic(): " << (checkSimulationFullyPeriodic() ? true : false)
       << ", but from dictionary read checkPeriodicCells: " << (checkPeriodicCells() ? true : false)
       << abort(FatalError);
   }
@@ -154,21 +154,10 @@ bool cfdemCloud::evolve(volScalarField& VoidF,
 }
 
 /*!
- * \brief 更新函数
- * \note used for cfdemSolverIB
- * \param volumeFraction  <[in, out] 大颗粒体积分数
- * \param interFace       <[in, out] 界面场，用于 dynamic mesh
- */
-bool cfdemCloud::evolve(volScalarField& volumeFraction,
-                        volScalarField& interFace) {
-  Info << "Foam::cfdemCloud::evolve(), used for cfdemSolverIB..." << endl;
-}
-
-/*!
  * \brief check if simulation is fully periodic
  * \return true if simulation is fully periodic
  */
-bool cfdemCloud::checkPeriodicity() {
+bool cfdemCloud::checkSimulationFullyPeriodic() {
   const polyBoundaryMesh& patches = mesh_.boundaryMesh();
   int nPatchesCyclic = 0;    // 周期边界数量
   int nPatchesNonCyclic = 0; // 非周期边界数量

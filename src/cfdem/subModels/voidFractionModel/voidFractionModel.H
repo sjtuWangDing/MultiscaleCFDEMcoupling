@@ -83,14 +83,12 @@ public:
     volumeFractionNext_ == dimensionedScalar("one", volumeFractionNext_.dimensions(), 1.);
   }
 
-protected:
-
   /*!
    * \brief 判断某一点是否在颗粒中
    * \param index 颗粒索引
    * \param point 点的坐标
    * \param scale 半径因子
-   * \return < 0: 在颗粒中
+   * \return < 0: 在颗粒中，范围为 [-1, 0)
    *         > 0: 在颗粒外
    *         == 0: 在颗粒表面
    */

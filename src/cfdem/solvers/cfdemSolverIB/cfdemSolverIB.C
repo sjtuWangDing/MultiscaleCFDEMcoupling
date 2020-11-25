@@ -35,9 +35,48 @@ Description
   movement information, gained from LIGGGHTS, are incorporated.
 \*---------------------------------------------------------------------------*/
 
-#include "fvCFD.H"
-#include "cloud/cfdemCloud.H"
+#include "cloud/cfdemCloudIB.H"
+#include "cloud/OFVersion.H"
 
-int main() {
+#include "fvCFD.H"
+#include "dynamicFvMesh.H"
+
+#if defined(version30)
+  #include "turbulentTransportModel.H"
+  #include "pisoControl.H"
+#else
+  #include "turbulenceModel.H"
+#endif
+
+int main(int argc, char* argv[]) {
+  #include "setRootCase.H"
+  #include "createTime.H"
+  #include "createDynamicFvMesh.H"
+
+#if defined(version30)
+  pisoControl piso(mesh);
+  #include "createTimeControls.H"
+#endif
+
+  #include "./createFields.H"
+  // create cfdemCloud
+  Foam::cfdemCloudIB particleCloud(mesh);
+
+  Info << "Starting time loop" << endl;
+  while(runTime.loop()) {
+    Info << "Time = " << runTime.timeName() << endl << endl;
+    // 设置动态加密网格
+    particleCloud.setInterface(interface, refineMeshKeepStep);
+    interface.correctBoundaryConditions();
+    refineMeshKeepStep.correctBoundaryConditions();
+
+    // 如果 mesh.update() 返回 true，则表明 mesh 被更新了
+    particleCloud.setMeshHasUpdated(mesh.update());
+    cfdemCloud::Barrier();
+    Info << "set interface for mesh update - done\n" << endl;
+
+    particleCloud.evolve(volumeFraction, interface);
+  } // end of runtime loop
+  Info << "cfdemCloudIB - done\n" << endl;
   return 0;
 }
