@@ -60,7 +60,7 @@ public:
   inline bool solveFlow() const { return solveFlow_; }
   inline const std::string& modelType() const { return modelType_; }
   inline const std::string& turbulenceModelType() const { return turbulenceModelType_; }
-  inline bool allowCFDsubTimeStep() const { return allowCFDsubTimeStep_; }
+  inline bool allowUseSubCFDTimeStep() const { return allowUseSubCFDTimeStep_; }
   inline int couplingInterval() const { return couplingInterval_; }
   inline bool checkPeriodicCells() const { return checkPeriodicCells_; }
   inline const Foam::vector& periodicCheckRange() const { return periodicCheckRange_; }
@@ -109,8 +109,8 @@ protected:
   //! \brief dict 中指定的湍流模型的名称
   std::string turbulenceModelType_;
 
-  //! \brief 是否允许 CFD 时间步长小于耦合间隔（通常设置为 false，则 CFD 时间步长 == 耦合时间步长）
-  bool allowCFDsubTimeStep_;
+  //! \brief 是否允许耦合间隔中存在多个 CFD 时间步长（通常设置为 false，则 CFD 时间步长 == 耦合时间步长）
+  bool allowUseSubCFDTimeStep_;
 
   //! \brief 耦合间隔，单位：DEM 时间步，couplingInterval_ * DEMts_ 就是耦合间隔的秒数
   int couplingInterval_;

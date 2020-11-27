@@ -33,6 +33,7 @@ Class
 
 #include <mutex> // std::call_once
 #include "cloud/cfdemCloudIB.H"
+#include "subModels/dataExchangeModel/dataExchangeModel.H"
 
 namespace Foam {
 
@@ -49,11 +50,16 @@ cfdemCloudIB::~cfdemCloudIB() {}
  * \brief 更新函数
  * \note used for cfdemSolverIB
  * \param volumeFraction  <[in, out] 大颗粒体积分数
- * \param interFace       <[in, out] 界面场，用于 dynamic mesh
+ * \param interface       <[in, out] 界面场，用于 dynamic mesh
  */
-bool cfdemCloudIB::evolve(volScalarField& volumeFraction,
-                          volScalarField& interFace) {
-  Info << __func__ << "used for cfdemSolverIB..." << endl;
+void cfdemCloudIB::evolve(volScalarField& volumeFraction,
+                          volScalarField& interface) {
+  Info << __func__ << ", used for cfdemSolverIB..." << endl;
+  // 检查当前流体时间步是否同时也是耦合时间步
+  if (dataExchangeM().checkRunTimeStep()) {
+    // 创建 counter 用于记录 coupling time step
+    auto pCounter = std::make_shared<dataExchangeModel::CouplingStepCounter>(dataExchangeM());
+  }
   Info << __func__ << " - done\n" << endl;
 }
 

@@ -53,8 +53,8 @@ CouplingProperties::CouplingProperties(const fvMesh& mesh,
         couplingPropertiesDict.lookupOrDefault<Foam::word>("modelType", "none").c_str()),
       turbulenceModelType_(
         couplingPropertiesDict.lookupOrDefault<Foam::word>("turbulenceModelType", "none").c_str()),
-      allowCFDsubTimeStep_(
-        couplingPropertiesDict.lookupOrDefault<bool>("allowCFDsubTimeStep", false)),
+      allowUseSubCFDTimeStep_(
+        couplingPropertiesDict.lookupOrDefault<bool>("allowUseSubCFDTimeStep_", false)),
       couplingInterval_(
         couplingPropertiesDict.lookupOrDefault<int>("couplingInterval", 0)),
       checkPeriodicCells_(

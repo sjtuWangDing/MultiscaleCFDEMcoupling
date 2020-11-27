@@ -103,7 +103,7 @@ public:
    * \param Us            <[in, out] 局部平均小颗粒速度场
    * \param U             <[in] 流体速度场
    */
-  bool evolve(volScalarField& voidFraction,
+  void evolve(volScalarField& voidFraction,
               volVectorField& Us,
               volVectorField& U);
 
@@ -155,7 +155,7 @@ public:
   inline bool solveFlow() const { return cProps_.solveFlow(); }
   inline const std::string& modelType() const { return cProps_.modelType(); }
   inline const std::string& turbulenceModelType() const { return cProps_.turbulenceModelType(); }
-  inline bool allowCFDsubTimeStep() const { return cProps_.allowCFDsubTimeStep(); }
+  inline bool allowUseSubCFDTimeStep() const { return cProps_.allowUseSubCFDTimeStep(); }
   inline int couplingInterval() const { return cProps_.couplingInterval(); }
   inline bool checkPeriodicCells() const { return cProps_.checkPeriodicCells(); }
   inline const Foam::vector& periodicCheckRange() const { return cProps_.periodicCheckRange(); }

@@ -65,6 +65,7 @@ int main(int argc, char* argv[]) {
 
   Info << "\nStarting time loop\n" << endl;
   while(runTime.loop()) {
+    Info << "Starting current loop..." << endl;
     Info << "Time = " << runTime.timeName() << endl << endl;
     // 设置动态加密网格
     particleCloud.setInterface(interface, refineMeshKeepStep);

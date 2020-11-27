@@ -56,7 +56,8 @@ public:
    * \param volumeFraction  <[in, out] 大颗粒体积分数
    * \param interFace       <[in, out] 界面场，用于 dynamic mesh
    */
-  bool evolve(volScalarField& volumeFraction, volScalarField& interFace);
+  void evolve(volScalarField& volumeFraction,
+              volScalarField& interface);
 
   //! @brief 确定颗粒周围细化网格的区域(每个方向的尺寸都是颗粒尺寸的两倍)
   void setInterface(volScalarField& interface,

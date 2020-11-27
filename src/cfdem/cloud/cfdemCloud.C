@@ -120,31 +120,31 @@ cfdemCloud::~cfdemCloud() {}
  * \param Us     <[in, out] 局部平均小颗粒速度场
  * \param U      <[in] 流体速度场
  */
-bool cfdemCloud::evolve(volScalarField& VoidF,
+void cfdemCloud::evolve(volScalarField& VoidF,
                         volVectorField& Us,
                         volVectorField& U) {
-  Info << "\nFoam::cfdemCloud::evolve(), used for cfdemSolverPiso......\n" << endl;
-  if (!writeTimePassed_ && mesh_.time().outputTime()) {
-    writeTimePassed_ = true;
-  }
-  if (dataExchangeM().doCoupleNow()) {
-    Info << "evolve coupling..." << endl;
-    // couple() 函数执行 liggghts 脚本，并获取新的颗粒数量
-    pCloud_.setNumberOfParticles(dataExchangeM().couple());
-    Info << "get number of particles: " << pCloud_.numberOfParticles()<< " at coupling step: "
-      << dataExchangeM().couplingStep() << endl;
-    // // 重置局部平均颗粒速度
-    // averagingM().resetUs();
-    // // 重置颗粒速度影响因数场
-    // averagingM().resetUsWeightField();
-    // // 重置小颗粒空隙率场
-    // voidFractionM().resetVoidFraction();
-    // // 重置隐式力场
-    // // 重置显式力场
-    // // 重置动量交换场
-  }
-  Info << "Foam::cfdemCloud::evolve() - done\n" << endl;
-  return true;
+  // Info << "\nFoam::cfdemCloud::evolve(), used for cfdemSolverPiso......\n" << endl;
+  // if (!writeTimePassed_ && mesh_.time().outputTime()) {
+  //   writeTimePassed_ = true;
+  // }
+  // if (dataExchangeM().doCoupleNow()) {
+  //   Info << "evolve coupling..." << endl;
+  //   // couple() 函数执行 liggghts 脚本，并获取新的颗粒数量
+  //   pCloud_.setNumberOfParticles(dataExchangeM().couple());
+  //   Info << "get number of particles: " << pCloud_.numberOfParticles()<< " at coupling step: "
+  //     << dataExchangeM().couplingStep() << endl;
+  //   // 重置局部平均颗粒速度
+  //   averagingM().resetUs();
+  //   // 重置颗粒速度影响因数场
+  //   averagingM().resetUsWeightField();
+  //   // 重置小颗粒空隙率场
+  //   voidFractionM().resetVoidFraction();
+  //   // 重置隐式力场
+  //   // 重置显式力场
+  //   // 重置动量交换场
+  // }
+  // Info << "Foam::cfdemCloud::evolve() - done\n" << endl;
+  // return true;
 }
 
 /*!
