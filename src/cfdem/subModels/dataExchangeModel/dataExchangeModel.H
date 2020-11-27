@@ -136,6 +136,7 @@ public:
   //! \brief 检查时间步长是否满足耦合要求
   void checkTimeStepSize() const {
     scalar CFDts = cloud_.mesh().time().deltaT().value(); // 获取 CFD 时间步长
+    Info << "First get CFD time step size: " << CFDts << endl;
 
     // CFD 时间步长 > 耦合时间步长
     if (CFDts > couplingTime() + SMALL) {

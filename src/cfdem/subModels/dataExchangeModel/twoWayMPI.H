@@ -55,6 +55,8 @@ public:
   //! \brief Runtime type information
   cfdemTypeName("twoWayMPI")
 
+  cfdemDefineNewFunctionAdder(dataExchangeModel, twoWayMPI)
+
   //! \brief Constructor
   twoWayMPI(cfdemCloud& cloud);
 

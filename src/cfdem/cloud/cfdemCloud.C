@@ -66,19 +66,18 @@ cfdemCloud::cfdemCloud(const fvMesh& mesh)
     cProps_(mesh, couplingPropertiesDict_, liggghtsCommandsDict_),
     pCloud_(0),
     dataExchangeModel_(dataExchangeModel::New(*this, couplingPropertiesDict_)),
-    averagingModel_(averagingModel::New(*this, couplingPropertiesDict_)),
     voidFractionModel_(voidFractionModel::New(*this, couplingPropertiesDict_)),
     locateModel_(locateModel::New(*this, couplingPropertiesDict_)),
 #if defined(version24Dev)
-    turbulence_(mesh.lookupObject<turbulenceModel>(turbulenceModelType())),
+    turbulence_(mesh.lookupObject<turbulenceModel>(cProps_.turbulenceModelType())),
 #elif defined(version21) || defined(version16ext)
 #ifdef compre
-    turbulence_(mesh.lookupObject<compressible::turbulenceModel>(turbulenceModelType())),
+    turbulence_(mesh.lookupObject<compressible::turbulenceModel>(cProps_.turbulenceModelType())),
 #else
-    turbulence_(mesh.lookupObject<incompressible::turbulenceModel>(turbulenceModelType())),
+    turbulence_(mesh.lookupObject<incompressible::turbulenceModel>(cProps_.turbulenceModelType())),
 #endif
 #elif defined(version15)
-    turbulence_(mesh.lookupObject<incompressible::RASModel>(turbulenceModelType())),
+    turbulence_(mesh.lookupObject<incompressible::RASModel>(cProps_.turbulenceModelType())),
 #endif
     turbulenceMultiphase_(
       IOobject(
@@ -95,16 +94,12 @@ cfdemCloud::cfdemCloud(const fvMesh& mesh)
       dimensionedScalar("zero", dimensionSet(0, 2, -1, 0, 0), 0)  // m²/s
 #endif
     ) {
-
-  Info << "\nEnding of Constructing cfdemCloud Base Class Object......\n" << endl;
-  Info << "\nEntry of cfdemCloud::cfdemCloud(const fvMesh&)......\n" << endl;
-
-  // read liggghts command model and create
+  // create liggghts command model
   for (const auto& name: liggghtsCommandModelList()) {
     // liggghtsCommandModel::New() 函数返回的是 std::unique_ptr
     liggghtsCommandModels_.emplace_back(liggghtsCommandModel::New(*this, liggghtsCommandsDict_, name));
   }
-  // read force model and create
+  // create force model
   for (const auto& name: forceModelList()) {
     forceModels_.emplace_back(forceModel::New(*this, couplingPropertiesDict_, name));
   }
@@ -138,16 +133,15 @@ bool cfdemCloud::evolve(volScalarField& VoidF,
     pCloud_.setNumberOfParticles(dataExchangeM().couple());
     Info << "get number of particles: " << pCloud_.numberOfParticles()<< " at coupling step: "
       << dataExchangeM().couplingStep() << endl;
-
-    // 重置局部平均颗粒速度
-    averagingM().resetUs();
-    // 重置颗粒速度影响因数场
-    averagingM().resetUsWeightField();
-    // 重置小颗粒空隙率场
-    voidFractionM().resetVoidFraction();
-    // 重置隐式力场
-    // 重置显式力场
-    // 重置动量交换场
+    // // 重置局部平均颗粒速度
+    // averagingM().resetUs();
+    // // 重置颗粒速度影响因数场
+    // averagingM().resetUsWeightField();
+    // // 重置小颗粒空隙率场
+    // voidFractionM().resetVoidFraction();
+    // // 重置隐式力场
+    // // 重置显式力场
+    // // 重置动量交换场
   }
   Info << "Foam::cfdemCloud::evolve() - done\n" << endl;
   return true;

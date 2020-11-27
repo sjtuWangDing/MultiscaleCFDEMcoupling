@@ -65,6 +65,8 @@ public:
   //! \brief Runtime type information
   cfdemTypeName("ShirgaonkarIB")
 
+  cfdemDefineNewFunctionAdder(forceModel, ShirgaonkarIB)
+
   //! \brief Constructor
   ShirgaonkarIB(cfdemCloud& cloud);
 

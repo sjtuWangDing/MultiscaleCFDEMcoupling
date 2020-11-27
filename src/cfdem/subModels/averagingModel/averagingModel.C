@@ -44,8 +44,7 @@ cfdemDefineConstructNewFunctionMap(averagingModel)
 
 cfdemDefineDestroyNewFunctionMap(averagingModel)
 
-cfdmeDefineBaseTypeNew(
-  Foam::autoPtr, averagingModel, (cfdemCloud& cloud, const dictionary& dict), cloud, dict, (cloud))
+cfdmeDefineBaseTypeNew(autoPtr, averagingModel, (cfdemCloud& cloud, const dictionary& dict), dict, (cloud))
 
 //! \brief Constructor
 averagingModel::averagingModel(cfdemCloud& cloud):

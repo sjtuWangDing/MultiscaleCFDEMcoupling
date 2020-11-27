@@ -70,8 +70,10 @@ public:
   //! \brief Runtime type information
   cfdemTypeName("engineIB")
 
+  cfdemDefineNewFunctionAdder(locateModel, engineSearchIB)
+
   //! \brief Constructor
-  engineSearchIB(cfdemCloud& cloud);
+  engineSearchIB(cfdemCloud& cloud, const std::string& typeName = cTypeName());
 
   //! \brief Destructor
   ~engineSearchIB();

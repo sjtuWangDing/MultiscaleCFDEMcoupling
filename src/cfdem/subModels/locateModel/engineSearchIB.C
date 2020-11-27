@@ -33,11 +33,11 @@ namespace Foam {
 
 cfdemDefineTypeName(engineSearchIB)
 
-cfdemAddToNewFunctionMap(locateModel, engineSearchIB)
+cfdemCreateNewFunctionAdder(locateModel, engineSearchIB)
 
 //! \brief Constructor
-engineSearchIB::engineSearchIB(cfdemCloud& cloud)
-    : engineSearch(cloud, typeName_), coef_(2.0) {
+engineSearchIB::engineSearchIB(cfdemCloud& cloud, const std::string& derivedTypeName)
+    : engineSearch(cloud, derivedTypeName), coef_(2.0) {
   // read properties from dictionary
   verbose_ = subPropsDict_.lookupOrDefault<bool>("verbose", false);
   zSplit_ = subPropsDict_.lookupOrDefault<int>("zSplit", 8);
@@ -46,6 +46,7 @@ engineSearchIB::engineSearchIB(cfdemCloud& cloud)
     FatalError << "Erorr: (zSplit_ < 2 || xySplit_ < 1) with zSplit_ = " << zSplit_
       << ", and xySplit_ = " << xySplit_ << abort(FatalError);
   }
+  Info << "xySplit: " << xySplit_ << ", zSplit_: " << zSplit_ << endl;
 
   // 计算所有 satellite point 个数
   // z 方向: 180 / zSplit_，即 zSplit_ - 1 层

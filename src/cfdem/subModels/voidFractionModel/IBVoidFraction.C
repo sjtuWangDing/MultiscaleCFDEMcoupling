@@ -31,11 +31,12 @@ namespace Foam {
 
 cfdemDefineTypeName(IBVoidFraction)
 
-cfdemAddToNewFunctionMap(voidFractionModel, IBVoidFraction)
+cfdemCreateNewFunctionAdder(voidFractionModel, IBVoidFraction)
 
 //! \brief Constructor
 IBVoidFraction::IBVoidFraction(cfdemCloud& cloud)
-    : voidFractionModel(cloud) {}
+    : voidFractionModel(cloud) {
+}
 
 //! \brief Destructor
 IBVoidFraction::~IBVoidFraction() {}

@@ -49,12 +49,13 @@ const char* forceSubModel::Switches::kNameList[] = {
 //! \brief Constructor
 forceSubModel::forceSubModel(cfdemCloud& cloud,
                              forceModel& forceModel,
-                             const dictionary& subPropsDict):
-  cloud_(cloud),
-  forceModel_(forceModel),
-  subPropsDict_(subPropsDict),
-  switches_(),
-  rho_(cloud.mesh().lookupObject<volScalarField>(densityFieldName_)) {}
+                             const dictionary& subPropsDict)
+  : cloud_(cloud),
+    forceModel_(forceModel),
+    subPropsDict_(subPropsDict),
+    switches_(),
+    densityFieldName_(subPropsDict.lookupOrDefault<Foam::word>("densityFieldName", "rho").c_str()),
+    rho_(cloud.mesh().lookupObject<volScalarField>(densityFieldName_)) {}
 
 //! \brief Destructor
 forceSubModel::~forceSubModel() {}
@@ -71,28 +72,27 @@ void forceSubModel::partToArray(const int& index,
                                 const Foam::vector& dragEx,
                                 const Foam::vector& Ufluid,
                                 scalar Cd) const {
-  if (false == switches_.isTrue(kTreatForceDEM)) {
+  if (switches_.isTrue(kTreatForceBothCFDAndDEM)) {
     // CFD 与 DEM 求解器都考虑耦合力
-    if (switches_.isTrue(kTreatForceExplicit)) {
-      // 耦合力视为显式力
+    if (switches_.isTrue(kTreadForceExplicitInMomEquation)) {
+      // 耦合力为显式力
       #pragma unroll
       for (int j = 0; j < 3; ++j) {
         // 将耦合力累加到 expFoces_
         cloud_.expForces()[index][j] += dragTot[j];
       }
     } else {
-      // 耦合力视为隐式力
+      // 耦合力为隐式力
       #pragma unroll
       for (int j = 0; j < 3; ++j) {
         // 将耦合力累加到 impForces_ 和 expFoces_
-        cloud_.impForces()[index][j] += dragTot[j] - dragEx[j];  // 隐式力 = dragTot[j] - dragEx[j]
+        cloud_.impForces()[index][j] += dragTot[j] - dragEx[j]; // 隐式力 = dragTot[j] - dragEx[j]
         cloud_.expForces()[index][j] += dragEx[j];
       }
     }
   }
-  // implForceDEM - true:
-  // 颗粒中心处的流体速度和阻力系数都被传递到 DEM 中，从而在每个 DEM 时间步中，使用阻力系数和流体速度，与当前颗粒速度一起计算颗粒受到的阻力
-  if (switches_.isTrue(kImplForceDEM)) {
+  if (switches_.isTrue(kTreatDEMForceImplicit)) {
+    // 颗粒中心处的流体速度和阻力系数都被传递到 DEM 中，从而在每个 DEM 时间步中，使用阻力系数和流体速度，与当前颗粒速度一起计算颗粒受到的阻力
     #pragma unroll
     for (int j = 0; j < 3; j++) {
       cloud_.fluidVel()[index][j] = Ufluid[j];
@@ -118,7 +118,7 @@ void forceSubModel::addTorque(int index, const Foam::vector& torque/* = Foam::ve
   }
 }
 
-/*! \brief read switches from force model dictionary */
+//! \brief read switches from force model dictionary
 void forceSubModel::readSwitches() {
   // 遍历每一个 switch
   for (int i = 0; i < Switches::kNum; ++i) {
@@ -149,8 +149,8 @@ void forceSubModel::checkSwitches(EForceType forceType) const {
     case kSemiResolved:
       break;
     case kResolved:
-      // for resolved force, kTreatForceDEM == true and kImplForceDEM == false
-      if (false == switches_.isTrue(kTreatForceDEM) || true == switches_.isTrue(kImplForceDEM)) {
+      // for resolved force, kTreatForceBothCFDAndDEM == false and kTreatDEMForceImplicit == false
+      if (switches_.isTrue(kTreatForceBothCFDAndDEM) || switches_.isTrue(kTreatDEMForceImplicit)) {
         FatalError << "Error: illegal force switches for kResolved force type" << abort(FatalError);
       }
       break;

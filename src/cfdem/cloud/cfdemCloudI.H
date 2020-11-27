@@ -74,16 +74,10 @@ inline std::shared_ptr<forceModel> cfdemCloud::forceM(int index) const {
 // Foam::autoPtr<T> 中定义了 inline operator const T&() const;
 inline const dataExchangeModel& cfdemCloud::dataExchangeM() const { return dataExchangeModel_; }
 
-inline const averagingModel& cfdemCloud::averagingM() const { return averagingModel_; }
-
 inline const voidFractionModel& cfdemCloud::voidFractionM() const { return voidFractionModel_; }
 
 inline dataExchangeModel& cfdemCloud::dataExchangeM() {
   return const_cast<dataExchangeModel&>(static_cast<const dataExchangeModel&>(dataExchangeModel_));
-}
-
-inline averagingModel& cfdemCloud::averagingM() {
-  return const_cast<averagingModel&>(static_cast<const averagingModel&>(averagingModel_));
 }
 
 inline voidFractionModel& cfdemCloud::voidFractionM() {

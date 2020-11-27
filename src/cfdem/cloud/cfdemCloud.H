@@ -124,15 +124,14 @@ public:
   inline const CouplingProperties& cProps() const { return cProps_; }
   inline const IOdictionary& couplingPropertiesDict() const { return couplingPropertiesDict_; }
   inline const IOdictionary& liggghtsCommandsDict() const { return liggghtsCommandsDict_; }
+
   inline const std::vector<std::shared_ptr<liggghtsCommandModel>>& liggghtsCommandModels() const;
   inline const std::vector<std::shared_ptr<forceModel>>& forceModels() const;
   inline const std::vector<std::shared_ptr<momCoupleModel>>& momCoupleModels() const;
   inline std::shared_ptr<forceModel> forceM(int index) const;
   inline const dataExchangeModel& dataExchangeM() const;
-  inline const averagingModel& averagingM() const;
   inline const voidFractionModel& voidFractionM() const;
   inline dataExchangeModel& dataExchangeM();
-  inline averagingModel& averagingM();
   inline voidFractionModel& voidFractionM();
 #if defined(version24Dev)
   inline const turbulenceModel& turbulence() const;
@@ -221,11 +220,11 @@ protected:
 
   autoPtr<dataExchangeModel> dataExchangeModel_;
 
-  autoPtr<averagingModel> averagingModel_;
-
   autoPtr<voidFractionModel> voidFractionModel_;
 
   autoPtr<locateModel> locateModel_;
+
+  // autoPtr<averagingModel> averagingModel_;
 
   // autoPtr<IOModel> IOModel_;
 

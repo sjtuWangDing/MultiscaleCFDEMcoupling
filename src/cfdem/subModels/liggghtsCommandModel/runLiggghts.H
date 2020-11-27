@@ -46,6 +46,8 @@ public:
   //! \brief Runtime type information
   cfdemTypeName("runLiggghts")
 
+  cfdemDefineNewFunctionAdder(liggghtsCommandModel, runLiggghts)
+
   //! \brief Constructor
   runLiggghts(cfdemCloud& cloud);
 

@@ -57,13 +57,14 @@ License
  * @pre newFunctionMapPtr_: 声明 NewFunctionMap 类型静态指针
  * @pre constructNewFunctionMap: 创建 newFunctionMapPtr_ 的静态方法
  * @pre destroyNewFunctionMap: 析构 newFunctionMapPtr_ 的静态方法
- * @pre AddNewFunctionToMap: 在子类的实现中创建 AddNewFunctionToMap<子类> 的一个实例
- *                           则这个实例在构造方法中，会将 AddNewFunctionToMap<子类>::New 这个静态方法插入到 map 中，
- *                           而这个静态方法就是实际用来创建子类对象的方法
+ * @pre NewFunctionAdder: 在子类的实现中创建 NewFunctionAdder<子类> 的一个实例
+ *                        则这个实例在构造方法中，会将 NewFunctionAdder<子类>::New 这个静态方法插入到 map 中，
+ *                        而这个静态方法就是实际用来创建子类对象的方法
  */
 #define cfdemDeclareRunTimeSelection(AutoPtr, BaseType, argList, parList)                                          \
+    typedef AutoPtr<BaseType> NewFunctionReturnType;                                                               \
                                                                                                                    \
-    typedef AutoPtr<BaseType> (*NewFunctionPtr)argList;                                                            \
+    typedef NewFunctionReturnType (*NewFunctionPtr)argList;                                                        \
                                                                                                                    \
     typedef std::unordered_map<std::string, NewFunctionPtr> NewFunctionMap;                                        \
                                                                                                                    \
@@ -73,37 +74,29 @@ License
                                                                                                                    \
     static void destroyNewFunctionMap();                                                                           \
                                                                                                                    \
-    template<class BaseType##Type>                                                                                 \
-    class AddNewFunctionToMap {                                                                                    \
+    template<typename BaseType##Type>                                                                              \
+    class NewFunctionAdder {                                                                                       \
     public:                                                                                                        \
-      static AutoPtr<BaseType> New argList {                                                                       \
-        if (std::is_convertible<BaseType##Type, BaseType>::value) {                                                \
-          if (std::is_same<std::unique_ptr<BaseType>, AutoPtr<BaseType> >::value) {                                \
-            /* std::unique_ptr */                                                                                  \
-            return std::move(std::unique_ptr<BaseType>(new BaseType##Type parList));                               \
-          } else if (std::is_same<std::shared_ptr<BaseType>, AutoPtr<BaseType> >::value) {                         \
-            /* std::shared_ptr */                                                                                  \
-            return std::make_shared<BaseType##Type> parList;                                                       \
-          }                                                                                                        \
-        } else {                                                                                                   \
+      static AutoPtr<BaseType> NewFunction argList {                                                               \
+        if (false == std::is_base_of<BaseType, BaseType##Type>::value) {                                           \
           std::cerr << "New error: " << BaseType##Type::typeName_                                                  \
             << " is not convertible to " << #BaseType << std::endl;                                                \
           error::safePrintStack(std::cerr);                                                                        \
         }                                                                                                          \
         return AutoPtr<BaseType>(new BaseType##Type parList);                                                      \
       }                                                                                                            \
-      AddNewFunctionToMap(const std::string& typeName = BaseType##Type::typeName_) {                               \
+      NewFunctionAdder(const std::string& typeName = BaseType##Type::typeName_) {                                  \
         constructNewFunctionMap();                                                                                 \
+        std::cout << "Add New function from " << typeName << " to " << #BaseType << "'s map" << std::endl;         \
         if (newFunctionMapPtr_->find(typeName) == newFunctionMapPtr_->end()) {                                     \
-          newFunctionMapPtr_->emplace(typeName, New);                                                              \
+          newFunctionMapPtr_->emplace(typeName, NewFunction);                                                      \
         } else {                                                                                                   \
-          std::cerr << "Duplicate entry: "                                                                         \
-            << typeName << " in runtime selection table "                                                          \
+          std::cerr << "Duplicate entry: " << typeName << " has been added to runtime selection map in "           \
             << #BaseType << std::endl;                                                                             \
           error::safePrintStack(std::cerr);                                                                        \
         }                                                                                                          \
       }                                                                                                            \
-      ~AddNewFunctionToMap() {                                                                                     \
+      ~NewFunctionAdder() {                                                                                        \
         destroyNewFunctionMap();                                                                                   \
       }                                                                                                            \
     };
@@ -141,20 +134,46 @@ License
   }
 
 /*!
- * \brief 用于在基类中定义 New 这个静态方法，而这个方法返回的就是运行期间动态选择的某一个子类对象的autoPtr
+ * \brief 用于在基类中定义 New 这个静态方法，而这个方法返回的就是运行期间动态选择的某一个子类对象
  * \param AutoPtr 用于封装 sub model 指针的模板，通常就选择 Foam::autoPtr
  * \param BaseType 指定基类
- * \param argList New function 的形参
- * \param parCloud argList 中 cfdemCloud& 类型的实参
- * \param parDict argList 中 const dicttionary& 类型的实参
- * \param parConstructorList 构造函数的实参
+ * \param NewArgList New 这个静态方法的形参
+ * \param paramTypeName NewArgList 中用于指定模型名称的参数
+ * \param paramConstructorList 构造函数的实参
  */
-#define cfdmeDefineBaseTypeNew(AutoPtr, BaseType, argList, parCloud, parDict, parConstructorList)                  \
-  AutoPtr<BaseType> BaseType::New argList {                                                                        \
-    std::string modelType = parDict.found(#BaseType) ? word(parDict.lookup(#BaseType)) : "";                       \
-    Info << "Selecting " << #BaseType << ": " << modelType << endl;                                                \
+#define cfdmeDefineBaseTypeNewWithTypeName(AutoPtr, BaseType, NewArgList, paramTypeName, paramConstructorList)     \
+  AutoPtr<BaseType> BaseType::New NewArgList {                                                                     \
+    const char* pName = std::string(paramTypeName).c_str();                                                        \
+    Info << "\nSelecting " << #BaseType << ": " << pName << endl;                                                  \
+    if (BaseType::newFunctionMapPtr_->find(pName) == BaseType::newFunctionMapPtr_->end()) {                        \
+      FatalError << #BaseType << "::New" << #NewArgList << ": "                                                    \
+        << "unknow " << #BaseType << " type " << pName << ", constructor not in map" << endl                       \
+        << "Valid " << #BaseType << " types are: [";                                                               \
+      for (const std::pair<std::string, BaseType::NewFunctionPtr>& item : *(BaseType::newFunctionMapPtr_)) {       \
+        Info << item.first << ", ";                                                                                \
+      }                                                                                                            \
+      Info << "]" << endl << abort(FatalError);                                                                    \
+    }                                                                                                              \
+    BaseType::NewFunctionPtr selectNewFunction =                                                                   \
+      (BaseType::newFunctionMapPtr_)->operator[](pName);                                                           \
+    Info << "Construct " << pName << " model..."<< endl;                                                           \
+    return selectNewFunction paramConstructorList;                                                                 \
+  }
+
+/*!
+ * \brief 用于在基类中定义 New 这个静态方法，而这个方法返回的就是运行期间动态选择的某一个子类对象
+ * \param AutoPtr 用于封装 sub model 指针的模板，通常就选择 Foam::autoPtr
+ * \param BaseType 指定基类
+ * \param NewArgList New 这个静态方法的形参
+ * \param paramDict NewArgList 中 const dicttionary& 类型的实参
+ * \param paramConstructorList 构造函数的实参
+ */
+#define cfdmeDefineBaseTypeNew(AutoPtr, BaseType, NewArgList, paramDict, paramConstructorList)                     \
+  AutoPtr<BaseType> BaseType::New NewArgList {                                                                     \
+    const char* modelType = paramDict.found(#BaseType) ? word(paramDict.lookup(#BaseType)).c_str() : "";           \
+    Info << "\nSelecting " << #BaseType << ": " << modelType << endl;                                              \
     if (BaseType::newFunctionMapPtr_->find(modelType) == BaseType::newFunctionMapPtr_->end()) {                    \
-      FatalError << #BaseType << "::New" << #argList << ": "                                                       \
+      FatalError << #BaseType << "::New" << #NewArgList << ": "                                                    \
         << "unknow " << #BaseType << " type " << modelType << ", constructor not in map" << endl                   \
         << "Valid " << #BaseType << " types are: [";                                                               \
       for (const std::pair<std::string, BaseType::NewFunctionPtr>& item : *(BaseType::newFunctionMapPtr_)) {       \
@@ -163,36 +182,14 @@ License
       Info << "]" << endl << abort(FatalError);                                                                    \
     }                                                                                                              \
     BaseType::NewFunctionPtr selectNewFunction = (BaseType::newFunctionMapPtr_)->operator[](modelType);            \
-    if (!std::is_same<AutoPtr<BaseType>, decltype(selectNewFunction)>::value) {                                    \
-      FatalError << "New funtion return type should be the same as the funtion in map" << abort(FatalError);       \
-    }                                                                                                              \
-    return selectNewFunction parConstructorList;                                                                   \
+    Info << "Construct " << modelType << " model..."<< endl;                                                       \
+    return selectNewFunction paramConstructorList;                                                                 \
   }
 
-/*!
- * \param parModelName argList 中用于指定模型名称的参数
- */
-#define cfdmeDefineBaseTypeNewWithArg(AutoPtr, BaseType, argList, parCloud, parDict, parModelName, parConstructorList)                                                                                                \
-  AutoPtr<BaseType> BaseType::New argList {                                                                        \
-    Info << "Selecting " << #BaseType << ": " << parModelName << endl;                                             \
-    if (BaseType::newFunctionMapPtr_->find(parModelName) == BaseType::newFunctionMapPtr_->end()) {                 \
-      FatalError << #BaseType << "::New" << #argList << ": "                                                       \
-        << "unknow " << #BaseType << " type " << parModelName << ", constructor not in map" << endl                \
-        << "Valid " << #BaseType << " types are: [";                                                               \
-      for (const std::pair<std::string, BaseType::NewFunctionPtr>& item : *(BaseType::newFunctionMapPtr_)) {       \
-        Info << item.first << ", ";                                                                                \
-      }                                                                                                            \
-      Info << "]" << endl << abort(FatalError);                                                                    \
-    }                                                                                                              \
-    BaseType::NewFunctionPtr selectNewFunction =                                                                   \
-      (BaseType::newFunctionMapPtr_)->operator[](std::string(parModelName));                                       \
-    if (!std::is_same<AutoPtr<BaseType>, decltype(selectNewFunction)>::value) {                                    \
-      FatalError << "New funtion return type should be the same as the funtion in map" << abort(FatalError);       \
-    }                                                                                                              \
-    return selectNewFunction parConstructorList;                                                                   \
-  }
+#define cfdemDefineNewFunctionAdder(BaseType, DerivedType)                                                         \
+  static BaseType::NewFunctionAdder<DerivedType> DerivedType##NewFunctionAdder_;
 
-#define cfdemAddToNewFunctionMap(BaseType, DerivedType)                                                            \
-  BaseType::AddNewFunctionToMap<DerivedType> add##DerivedType##NewFunctionToMap_();
+#define cfdemCreateNewFunctionAdder(BaseType, DerivedType)                                                         \
+  BaseType::NewFunctionAdder<DerivedType> DerivedType::DerivedType##NewFunctionAdder_;
 
 #endif // __RUN_TIME_SELECTION_TABLES_H__

@@ -44,9 +44,17 @@ cfdemDefineConstructNewFunctionMap(forceModel)
 
 cfdemDefineDestroyNewFunctionMap(forceModel)
 
-cfdmeDefineBaseTypeNewWithArg(std::unique_ptr, forceModel,
-                              (cfdemCloud& cloud, const dictionary& dict, const std::string& modelName),
-                              cloud, dict, modelName, (cloud))
+cfdmeDefineBaseTypeNewWithTypeName(
+  std::unique_ptr,
+  forceModel,
+  (
+    cfdemCloud& cloud,
+    const dictionary& dict,
+    const std::string& modelName
+  ),
+  modelName,
+  (cloud)
+)
 
 //! \brief Constructor
 forceModel::forceModel(cfdemCloud& cloud):

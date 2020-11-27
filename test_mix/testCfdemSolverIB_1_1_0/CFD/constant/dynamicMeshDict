@@ -20,7 +20,7 @@ dynamicFvMesh   dynamicRefineFvMesh; // staticFvMesh;
 dynamicRefineFvMeshCoeffs
 {
     refineInterval   1; // refine every refineInterval timesteps
-    field            interFace;
+    field            interface;
     lowerRefineLevel 0.000001;
     upperRefineLevel 0.999999;
     unrefineLevel    10;

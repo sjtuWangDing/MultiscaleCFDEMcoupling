@@ -103,7 +103,6 @@ CouplingProperties::CouplingProperties(const fvMesh& mesh,
   }
 
 #if __MIXCLOUD__
-
   fineParticleRatio_ = couplingPropertiesDict_.lookupOrDefault<double>("fineParticleRatio", 3.0);
   coarseParticleRatio_ = couplingPropertiesDict_.lookupOrDefault<double>("coarseParticleRatio", 0.33);
   usedForSolverIB_ = couplingPropertiesDict_.lookupOrDefault<Switch>("usedForSolverIB", false);
@@ -123,8 +122,8 @@ CouplingProperties::CouplingProperties(const fvMesh& mesh,
   if (mag(flowVelocity_) < SMALL) {
     FatalError << "mag(flowVelocity_) is zero" << abort(FatalError);
   }
-
 #endif // __MIXCLOUD__
+  Info << "Reading coupling properties from dictionary - done" << endl;
 }
 
 } // namespace Foam

@@ -42,17 +42,17 @@ namespace Foam {
 /*!
  * \brief forceSwitch
  *
- * kTreatForceExplicit
+ * kTreadForceExplicitInMomEquation
  *    true - 在CFD的动量方程中，耦合力都为显式力
- *    false - 在CFD的动量方程中，耦合力都为半隐式力 (default)
+ *    false - 在CFD的动量方程中，耦合力都为隐式力 (default)
  *
- * kTreatForceDEM
- *    true - 仅在 DEM 中考虑耦合力，即仅考虑流体对颗粒的作用，不考虑颗粒对流体的反作用
- *           在 resolved 方法中，比如 cfdemSolverIB，ArchimedesIB force and ShirgaonkarIB
- *           会直接设置 treatForceDEM 为 true，因为颗粒对流体的作用力是通过虚拟域方法得到
- *    false - 即 CFD 和 DEM 都考虑耦合力 (default)
+ * kTreatForceBothCFDAndDEM
+ *    true - 即 CFD 和 DEM 都考虑耦合力 (default)
+ *    false - 仅在 DEM 中考虑耦合力，即仅考虑流体对颗粒的作用，不考虑颗粒对流体的反作用
+ *            在 resolved 方法中，比如 cfdemSolverIB，ArchimedesIB force and ShirgaonkarIB
+ *            会直接设置 treatForceDEM 为 true，因为颗粒对流体的作用力是通过虚拟域方法得到
  *
- * kImplForceDEM
+ * kTreatDEMForceImplicit
  *    true - 在每个耦合时间步，流体的速度和阻力系数都被传递到 DEM 中，从而在每个 DEM 时间步中，
  *           使用上一个耦合时间步中的阻力系数和流体速度，与当前颗粒速度一起计算颗粒受到的阻力
  *    false - 在每个耦合时间步中，流体对颗粒的阻力被传递到 DEM 中，并且在接下来
@@ -67,9 +67,9 @@ namespace Foam {
  *    false - 使用 transport dict 指定的动力粘度
  */
 enum ESwitch {
-  kTreatForceExplicit = 0,
-  kTreatForceDEM,
-  kImplForceDEM,
+  kTreadForceExplicitInMomEquation = 0,
+  kTreatForceBothCFDAndDEM,
+  kTreatDEMForceImplicit,
   kVerbose
 };
 
@@ -89,7 +89,8 @@ enum EForceType {
 
 /*!
  * \brief The force sub model is designed to hold the settings a force model can have.
- *        For now it handles the KTreatForceExplicit, kTreatForceDEM, kImplForceDEM and kVerbose option.
+ *        For now it handles the kTreadForceExplicitInMomEquation, kTreatForceBothCFDAndDEM,
+ *        kTreatDEMForceImplicit and kVerbose option.
  */
 class forceSubModel {
 public:
@@ -99,16 +100,16 @@ public:
     static const int kNum;
     static const char* kNameList[];
     Switches(): value_(0) {}
-    void setTrue(ESwitch value) {
+    inline void setTrue(ESwitch value) {
       switch(value) {
-        case kTreatForceExplicit:
-          value_ |= (1 << kTreatForceExplicit);
+        case kTreadForceExplicitInMomEquation:
+          value_ |= (1 << kTreadForceExplicitInMomEquation);
           break;
-        case kTreatForceDEM:
-          value_ |= (1 << kTreatForceDEM);
+        case kTreatForceBothCFDAndDEM:
+          value_ |= (1 << kTreatForceBothCFDAndDEM);
           break;
-        case kImplForceDEM:
-          value_ |= (1 << kImplForceDEM);
+        case kTreatDEMForceImplicit:
+          value_ |= (1 << kTreatDEMForceImplicit);
           break;
         case kVerbose:
           value_ |= (1 << kVerbose);
@@ -118,14 +119,14 @@ public:
             << abort(FatalError);
       }
     }
-    bool isTrue(ESwitch value) const {
+    inline bool isTrue(ESwitch value) const {
       switch(value) {
-        case kTreatForceExplicit:
-          return value_ & (1 << kTreatForceExplicit);
-        case kTreatForceDEM:
-          return value_ & (1 << kTreatForceDEM);
-        case kImplForceDEM:
-          return value_ & (1 << kImplForceDEM);
+        case kTreadForceExplicitInMomEquation:
+          return value_ & (1 << kTreadForceExplicitInMomEquation);
+        case kTreatForceBothCFDAndDEM:
+          return value_ & (1 << kTreatForceBothCFDAndDEM);
+        case kTreatDEMForceImplicit:
+          return value_ & (1 << kTreatDEMForceImplicit);
         case kVerbose:
           return value_ & (1 << kVerbose);
         default:
@@ -133,6 +134,9 @@ public:
             << abort(FatalError);
       }
       return false;
+    }
+    inline bool isFalse(ESwitch value) const {
+      return !isTrue(value);
     }
   private:
     unsigned int value_;
@@ -165,7 +169,7 @@ public:
    */
   void addTorque(int index, const Foam::vector& torque = Foam::vector::zero) const;
 
-  /*! \brief read switches from force model dictionary */
+  //! \brief read switches from force model dictionary
   void readSwitches();
 
   /*!
@@ -200,9 +204,9 @@ public:
     return cloud_.turbulence().nu() * rho_;
 #endif
   }
-  inline bool treatForceExplicit() const { return switches_.isTrue(kTreatForceExplicit); }
-  inline bool treatForceDEM() const { return switches_.isTrue(kTreatForceDEM); }
-  inline bool implForceDEM() const { return switches_.isTrue(kImplForceDEM); }
+  inline bool treatForceExplicit() const { return switches_.isTrue(kTreadForceExplicitInMomEquation); }
+  inline bool treatForceDEM() const { return switches_.isTrue(kTreatForceBothCFDAndDEM); }
+  inline bool implForceDEM() const { return switches_.isTrue(kTreatDEMForceImplicit); }
   inline bool verbose() const { return switches_.isTrue(kVerbose); }
 
 protected:

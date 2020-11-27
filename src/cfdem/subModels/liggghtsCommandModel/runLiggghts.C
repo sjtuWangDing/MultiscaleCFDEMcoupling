@@ -38,7 +38,7 @@ namespace Foam {
 
 cfdemDefineTypeName(runLiggghts)
 
-cfdemAddToNewFunctionMap(liggghtsCommandModel, runLiggghts)
+cfdemCreateNewFunctionAdder(liggghtsCommandModel, runLiggghts)
 
 //! \brief Constructor
 runLiggghts::runLiggghts(cfdemCloud& cloud):

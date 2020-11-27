@@ -45,9 +45,17 @@ cfdemDefineConstructNewFunctionMap(liggghtsCommandModel)
 
 cfdemDefineDestroyNewFunctionMap(liggghtsCommandModel)
 
-cfdmeDefineBaseTypeNewWithArg(std::unique_ptr, liggghtsCommandModel,
-                              (cfdemCloud& cloud, const dictionary& dict, const std::string& modelName),
-                              cloud, dict, modelName, (cloud))
+cfdmeDefineBaseTypeNewWithTypeName(
+  std::unique_ptr,
+  liggghtsCommandModel,
+  (
+    cfdemCloud& cloud,
+    const dictionary& dict,
+    const std::string& modelName
+  ),
+  modelName,
+  (cloud)
+)
 
 //! \brief Constructor
 liggghtsCommandModel::liggghtsCommandModel(cfdemCloud& cloud):

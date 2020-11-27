@@ -39,23 +39,27 @@ namespace Foam {
 
 cfdemDefineTypeName(twoWayMPI)
 
-cfdemAddToNewFunctionMap(dataExchangeModel, twoWayMPI)
+cfdemCreateNewFunctionAdder(dataExchangeModel, twoWayMPI)
 
-twoWayMPI::twoWayMPI(cfdemCloud& cloud):
-  dataExchangeModel(cloud),
-  lmp_(nullptr),
-  subPropsDict_(cloud.couplingPropertiesDict().subDict(typeName_ + "Props")) {
+twoWayMPI::twoWayMPI(cfdemCloud& cloud)
+  : dataExchangeModel(cloud),
+    lmp_(nullptr),
+    subPropsDict_(cloud.couplingPropertiesDict().subDict(typeName_ + "Props")) {
 
-  Info << "Starting up LIGGGHTS for first time execution."<<endl;
+  Info << "Construct twoWayMPI..." << endl;
   MPI_Comm_dup(MPI_COMM_WORLD, &lgs_comm_);
+  lmp_ = new LAMMPS_NS::LAMMPS(0, nullptr, lgs_comm_);
 
   // open LIGGGHTS input script
+  Info << "Starting up LIGGGHTS for first time execution..."<<endl;
+  Info << "Output LIGGGHTS input script:" << endl;
   const fileName lgsPath(subPropsDict_.lookup("liggghtsPath"));
-  lmp_ = new LAMMPS_NS::LAMMPS(0, nullptr, lgs_comm_);
   lmp_->input->file(lgsPath.c_str());
+  Info << "First time LIGGGHTS execution - done" << endl;
 
   // get DEM time step size
   DEMts_ = lmp_->update->dt;
+  Info << "First get DEM time step size: " << DEMts_ << endl;
   checkTimeStepSize();
 }
 

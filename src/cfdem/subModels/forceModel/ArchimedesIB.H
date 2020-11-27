@@ -63,6 +63,8 @@ public:
   //! \brief Runtime type information
   cfdemTypeName("ArchimedesIB")
 
+  cfdemDefineNewFunctionAdder(forceModel, ArchimedesIB)
+
   //! \brief Constructor
   ArchimedesIB(cfdemCloud& cloud);
 
@@ -77,12 +79,12 @@ private:
   dictionary subPropsDict_;
 
   //! \brief name of the finite volume voidfraction field
-  std::string voidFractionFieldName_;
+  std::string volumeFractionFieldName_;
 
   //! \brief name of the finite volume gravity field
   std::string gravityFieldName_;
 
-  const volScalarField& voidFraction_;
+  const volScalarField& volumeFraction_;
 
 #ifdef version21
   const uniformDimensionedVectorField& g_;

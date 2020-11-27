@@ -38,20 +38,20 @@ namespace Foam {
 
 cfdemDefineTypeName(ShirgaonkarIB)
 
-cfdemAddToNewFunctionMap(forceModel, ShirgaonkarIB)
+cfdemCreateNewFunctionAdder(forceModel, ShirgaonkarIB)
 
 /*!
  * \brief Constructor
  * \note The initialization list should be in the same order as the variable declaration
  */
-ShirgaonkarIB::ShirgaonkarIB(cfdemCloud& cloud):
-  forceModel(cloud),
-  subPropsDict_(cloud.couplingPropertiesDict().subDict(typeName_ + "Props")),
-  velFieldName_(subPropsDict_.lookupOrDefault<Foam::word>("velFieldName", "U").c_str()),
-  pressureFieldName_(subPropsDict_.lookupOrDefault<Foam::word>("pressureFieldName", "p").c_str()),
-  U_(cloud.mesh().lookupObject<volVectorField>(velFieldName_)),
-  p_(cloud.mesh().lookupObject<volScalarField>(pressureFieldName_)),
-  useTorque_(subPropsDict_.lookupOrDefault<bool>("useTorque", false)) {
+ShirgaonkarIB::ShirgaonkarIB(cfdemCloud& cloud)
+  : forceModel(cloud),
+    subPropsDict_(cloud.couplingPropertiesDict().subDict(typeName_ + "Props")),
+    velFieldName_(subPropsDict_.lookupOrDefault<Foam::word>("velFieldName", "U").c_str()),
+    pressureFieldName_(subPropsDict_.lookupOrDefault<Foam::word>("pressureFieldName", "p").c_str()),
+    U_(cloud.mesh().lookupObject<volVectorField>(velFieldName_)),
+    p_(cloud.mesh().lookupObject<volScalarField>(pressureFieldName_)),
+    useTorque_(subPropsDict_.lookupOrDefault<bool>("useTorque", false)) {
   createForceSubModels(subPropsDict_, kResolved);
 }
 

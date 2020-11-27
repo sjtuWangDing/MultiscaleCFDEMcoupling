@@ -70,7 +70,9 @@ class IBVoidFraction: public voidFractionModel {
 
 public:
 
-  cfdemTypeName("IBVoidFraction")
+  cfdemTypeName("IB")
+
+  cfdemDefineNewFunctionAdder(voidFractionModel, IBVoidFraction)
 
   //! \brief Constructor
   IBVoidFraction(cfdemCloud& cloud);

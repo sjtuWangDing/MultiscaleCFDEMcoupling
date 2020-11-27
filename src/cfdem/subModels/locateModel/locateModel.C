@@ -44,12 +44,11 @@ cfdemDefineConstructNewFunctionMap(locateModel)
 
 cfdemDefineDestroyNewFunctionMap(locateModel)
 
-cfdmeDefineBaseTypeNew(
-  autoPtr, locateModel, (cfdemCloud& cloud, const dictionary& dict), cloud, dict, (cloud))
+cfdmeDefineBaseTypeNew(autoPtr, locateModel, (cfdemCloud& cloud, const dictionary& dict), dict, (cloud))
 
 //! \brief Constructor
-locateModel::locateModel(cfdemCloud& cloud):
-  cloud_(cloud) {}
+locateModel::locateModel(cfdemCloud& cloud)
+  : cloud_(cloud) {}
 
 //! \brief Destructor
 locateModel::~locateModel() {}

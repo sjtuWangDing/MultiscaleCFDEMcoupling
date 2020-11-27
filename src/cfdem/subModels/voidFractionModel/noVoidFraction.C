@@ -31,7 +31,7 @@ namespace Foam {
 
 cfdemDefineTypeName(noVoidFraction)
 
-cfdemAddToNewFunctionMap(voidFractionModel, noVoidFraction)
+cfdemCreateNewFunctionAdder(voidFractionModel, noVoidFraction)
 
 //! \brief Constructor
 noVoidFraction::noVoidFraction(cfdemCloud& cloud)

@@ -44,8 +44,7 @@ cfdemDefineConstructNewFunctionMap(dataExchangeModel)
 
 cfdemDefineDestroyNewFunctionMap(dataExchangeModel)
 
-cfdmeDefineBaseTypeNew(
-  autoPtr, dataExchangeModel, (cfdemCloud& cloud, const dictionary& dict), cloud, dict, (cloud))
+cfdmeDefineBaseTypeNew(autoPtr, dataExchangeModel, (cfdemCloud& cloud, const dictionary& dict), dict, (cloud))
 
 //! \brief Constructor
 dataExchangeModel::dataExchangeModel(cfdemCloud& cloud)
@@ -58,7 +57,6 @@ dataExchangeModel::dataExchangeModel(cfdemCloud& cloud)
     // twoWayMPI: 通过 LAMMP 读入
     // twoWayFile: 通过字典文件读入
     DEMts_(-1.0) {
-  
 }
 
 //! \brief Destructor

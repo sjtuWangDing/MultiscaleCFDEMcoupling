@@ -51,8 +51,10 @@ public:
   //! \brief Runtime type information
   cfdemTypeName("engine")
 
+  cfdemDefineNewFunctionAdder(locateModel, engineSearch)
+
   //! \brief Constructor
-  engineSearch(cfdemCloud& cloud, const std::string& derivedTypeName);
+  engineSearch(cfdemCloud& cloud, const std::string& derivedTypeName = cTypeName());
 
   //! \brief Destructor
   ~engineSearch();

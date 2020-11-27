@@ -41,6 +41,7 @@ Description
 #include "fvCFD.H"
 #include "dynamicFvMesh.H"
 
+#include "singlePhaseTransportModel.H"
 #if defined(version30)
   #include "turbulentTransportModel.H"
   #include "pisoControl.H"
@@ -62,7 +63,7 @@ int main(int argc, char* argv[]) {
   // create cfdemCloud
   Foam::cfdemCloudIB particleCloud(mesh);
 
-  Info << "Starting time loop" << endl;
+  Info << "\nStarting time loop\n" << endl;
   while(runTime.loop()) {
     Info << "Time = " << runTime.timeName() << endl << endl;
     // 设置动态加密网格

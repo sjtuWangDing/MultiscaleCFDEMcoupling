@@ -26,17 +26,19 @@ modelType none;
 
 couplingInterval 10;
 
+forceModels
+(
+    ShirgaonkarIB
+    ArchimedesIB
+);
+
 voidFractionModel IB;
 
 locateModel engineIB;
 
 dataExchangeModel twoWayMPI;
 
-forceModels
-(
-    ShirgaonkarIB,
-    ArchimedesIB
-);
+turbulenceModelType turbulenceProperties;
 
 /* ---------------------------- sub-model properties ------------------------- */
 
@@ -49,7 +51,7 @@ ShirgaonkarIBProps
 ArchimedesIBProps
 {
     gravityFieldName "g";
-    voidfractionFieldName "voidfractionNext";
+    volumeFractionFieldName "volumeFractionNext";
 }
 
 twoWayMPIProps

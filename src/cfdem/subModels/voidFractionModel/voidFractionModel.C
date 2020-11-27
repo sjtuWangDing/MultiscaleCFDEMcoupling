@@ -44,8 +44,7 @@ cfdemDefineConstructNewFunctionMap(voidFractionModel)
 
 cfdemDefineDestroyNewFunctionMap(voidFractionModel)
 
-cfdmeDefineBaseTypeNew(
-  autoPtr, voidFractionModel, (cfdemCloud& cloud, const dictionary& dict), cloud, dict, (cloud))
+cfdmeDefineBaseTypeNew(autoPtr, voidFractionModel, (cfdemCloud& cloud, const dictionary& dict), dict, (cloud))
 
 //! \brief Constructor
 voidFractionModel::voidFractionModel(cfdemCloud& cloud):

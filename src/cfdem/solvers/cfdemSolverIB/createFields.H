@@ -22,6 +22,42 @@ volVectorField U(
   mesh
 );
 
+Info << "Reading/calculating face flux field phi\n" << endl;
+surfaceScalarField phi(
+  IOobject(
+    "phi",
+    runTime.timeName(),
+    mesh,
+    IOobject::READ_IF_PRESENT,
+    IOobject::AUTO_WRITE
+  ),
+  fvc::flux(U)
+);
+
+Info << "Reading density field rho\n" << endl;
+volScalarField rho(
+  IOobject(
+    "rho",
+    runTime.timeName(),
+    mesh,
+    IOobject::READ_IF_PRESENT,
+    IOobject::AUTO_WRITE
+  ),
+  mesh
+);
+
+Info << "Reading gravity field g\n" << endl;
+uniformDimensionedVectorField g(
+  IOobject
+  (
+    "g",
+    runTime.constant(),
+    mesh,
+    IOobject::MUST_READ,
+    IOobject::NO_WRITE
+  )
+);
+
 Info << "Reading volumeFraction field volumeFraction = (Vgas / Vparticle)\n" << endl;
 volScalarField volumeFraction(
   IOobject(
@@ -59,4 +95,14 @@ volScalarField refineMeshKeepStep(
   ),
   mesh,
   dimensionedScalar("0", dimensionSet(0, 0, 0, 0, 0), 0.0)
+);
+
+label pRefCell = 0;
+scalar pRefValue = 0.0;
+setRefCell(p, mesh.solutionDict().subDict("PISO"), pRefCell, pRefValue);
+
+singlePhaseTransportModel laminarTransport(U, phi);
+
+autoPtr<incompressible::turbulenceModel> turbulence(
+  incompressible::turbulenceModel::New(U, phi, laminarTransport)
 );
