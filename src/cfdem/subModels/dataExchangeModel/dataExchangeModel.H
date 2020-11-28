@@ -139,15 +139,15 @@ public:
    *        那么这三个流体时间步的 timeStepFraction() 分别返回 0, 0.333333, 0.666666
    */
   inline double timeStepFraction() const {
+    // 如果当前流体时间步是耦合时间步中第一个流体时间步
+    if (checkValidCouplingStep()) {
+      return 0;
+    }
     scalar CFDts = cloud_.mesh().time().deltaT().value();
     label timeIndex = cloud_.mesh().time().timeIndex();
-    if (couplingStep_ == 0) {
-      return (timeIndex - timeIndexOffset_) * CFDts / couplingTime();
-    } else {
-      // (timeIndex - timeIndexOffset_) * CFDts: 耦合计算后，CFD 的计算时间
-      // (couplingStep_ - 1) * couplingTime(): 耦合时间步截止到 (couplingStep_ - 1) 的计算时间
-      return ((timeIndex - timeIndexOffset_) * CFDts - (couplingStep_ - 1) * couplingTime()) / couplingTime();
-    }
+    // (timeIndex - timeIndexOffset_ - 1) * CFDts: CFD 的计算步的起始时间
+    // (couplingStep_ - 1) * couplingTime(): 耦合时间步截止到 (couplingStep_ - 1) 的计算时间
+    return ((timeIndex - timeIndexOffset_ - 1) * CFDts - (couplingStep_ - 1) * couplingTime()) / couplingTime();
   }
 
   /*!
@@ -164,7 +164,7 @@ public:
       Info << "CFD time step size = " << CFDts << endl;
       Info << "DEM time step size = " << DEMts_ << endl;
       Info << "Coupling interval = " << cloud_.cProps().couplingInterval() << endl;
-      FatalError << "\nError - CFD time-step bigger than coupling time (= DEM time step * coupling interval)!\n"
+      FatalError << "CFD time-step bigger than coupling time (= DEM time step * coupling interval)!\n"
         << abort(FatalError);
     }
 
@@ -173,28 +173,30 @@ public:
       Info << "CFD time step size = " << CFDts << endl;
       Info << "DEM time step size = " << DEMts_ << endl;
       Info << "Coupling interval = " << cloud_.cProps().couplingInterval() << endl;
-      FatalError << "\nError - Coupling time (= DEM time step * coupling interval) is not a multiple of  CFD time-step!\n"<< abort(FatalError);
+      FatalError << "Coupling time (= DEM time step * coupling interval) is not a multiple of  CFD time-step!\n"<< abort(FatalError);
     }
 
-    // 耦合时间步长 > CFD 时间步长，说明耦合时间步长 != CFD 时间步长
+    // 如果耦合时间步长 != CFD 时间步长
     if (couplingTime() > CFDts + Foam::SMALL) {
       // 如果不允许使用 CFD sub time step 则报错
       if (!cloud_.cProps().allowUseSubCFDTimeStep()) {
-        FatalError << "\nError - Your models require: CFD time-step = coupling interval (= DEM time step * coupling interval)! \n" << abort(FatalError);
+        FatalError << "Your models require: CFD time-step = coupling interval (= DEM time step * coupling interval)! \n" << abort(FatalError);
       }
-      Warning << "\n Warning - You are using sub-time-steps (i.e. CFD time-step < coupling time)" << endl;
+      Warning << "You are using sub-time-steps (i.e. CFD time-step < coupling time)" << endl;
     }
   }
 
-  //! \brief 因为耦合时间步长 = 流体时间步长的整数倍，所以判断当前流体时间步是否同时也是耦合时间步
-  inline bool checkRunTimeStep() const {
-    // couple at first sub TS(耦合发生在耦合时间步中的第一个流体时间步中)
+  /*!
+   * \brief 因为耦合时间步长 = 流体时间步长的整数倍，而耦合发生在耦合时间步中的第一个流体时间步中，
+   *        所以判断当前流体时间步是否同时也是耦合时间步
+   */
+  inline bool checkValidCouplingStep() const {
     scalar CFDts = cloud_.mesh().time().deltaT().value();
     label timeIndex = cloud_.mesh().time().timeIndex();
     // (timeIndex - timeIndexOffset_) * CFDts: 耦合计算后，CFD 的计算时间
     // 如果当前流体时间步不是耦合时间步，则 CFD 计算时间一定小于 couplingStep_ * couplingTime() 计算出的时间
     // timeIndex 从 1 开始，而 couplingStep_ 从 0 开始
-    if ((timeIndex - timeIndexOffset_) * CFDts - SMALL > couplingStep_ * couplingTime()) {
+    if ((timeIndex - timeIndexOffset_) * CFDts > couplingStep_ * couplingTime() + Foam::SMALL) {
       return true;
     }
     return false;

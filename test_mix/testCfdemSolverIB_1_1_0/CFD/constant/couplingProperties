@@ -26,6 +26,9 @@ modelType none;
 
 couplingInterval 10;
 
+// 如果耦合时间间隔 > CFD 时间步，那么允许在一个耦合时间步中存在多个 CFD 时间步
+allowUseSubCFDTimeStep true;
+
 forceModels
 (
     ShirgaonkarIB

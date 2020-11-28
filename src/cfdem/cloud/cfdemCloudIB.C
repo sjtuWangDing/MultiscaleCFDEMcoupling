@@ -56,9 +56,12 @@ void cfdemCloudIB::evolve(volScalarField& volumeFraction,
                           volScalarField& interface) {
   Info << __func__ << ", used for cfdemSolverIB..." << endl;
   // 检查当前流体时间步是否同时也是耦合时间步
-  if (dataExchangeM().checkRunTimeStep()) {
+  if (dataExchangeM().checkValidCouplingStep()) {
     // 创建 counter 用于记录 coupling time step
     auto pCounter = std::make_shared<dataExchangeModel::CouplingStepCounter>(dataExchangeM());
+    // couple(): run liggghts command and get number of particle
+    setNumberOfParticles(dataExchangeM().couple());
+    Info << "number of particle: " << numberOfParticles() << endl;
   }
   Info << __func__ << " - done\n" << endl;
 }

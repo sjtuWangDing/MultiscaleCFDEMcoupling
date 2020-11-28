@@ -195,7 +195,7 @@ public:
       << "Radius of particle " << index << " is < " << "Foam::SMALL";
     return radii()[index];
   }
-
+  inline void setNumberOfParticles(int number) { pCloud_.setNumberOfParticles(number); }
   /* --------------------------------- class variables ----------------------------------- */
 
 protected:

@@ -54,7 +54,7 @@ CouplingProperties::CouplingProperties(const fvMesh& mesh,
       turbulenceModelType_(
         couplingPropertiesDict.lookupOrDefault<Foam::word>("turbulenceModelType", "none").c_str()),
       allowUseSubCFDTimeStep_(
-        couplingPropertiesDict.lookupOrDefault<bool>("allowUseSubCFDTimeStep_", false)),
+        couplingPropertiesDict.lookupOrDefault<bool>("allowUseSubCFDTimeStep", false)),
       couplingInterval_(
         couplingPropertiesDict.lookupOrDefault<int>("couplingInterval", 0)),
       checkPeriodicCells_(
@@ -71,49 +71,49 @@ CouplingProperties::CouplingProperties(const fvMesh& mesh,
   Info << "CFDEM coupling version: " << CFDEM_VERSION <<  endl;
   Info << "LIGGGHTS version: " << LIGGGHTS_VERSION <<  endl;
 
-  if (couplingPropertiesDict_.found("forceModels")) {
-    Foam::wordList fList = couplingPropertiesDict_.lookup("forceModels");
+  if (couplingPropertiesDict.found("forceModels")) {
+    Foam::wordList fList = couplingPropertiesDict.lookup("forceModels");
     for (Foam::wordList::iterator it = fList.begin(); it != fList.end(); ++it) {
       forceModelList_.emplace_back(it->c_str());
     }
   }
 
-  if (couplingPropertiesDict_.found("momCoupleModels")) {
-    Foam::wordList mList = couplingPropertiesDict_.lookup("momCoupleModels");
+  if (couplingPropertiesDict.found("momCoupleModels")) {
+    Foam::wordList mList = couplingPropertiesDict.lookup("momCoupleModels");
     for (Foam::wordList::iterator it = mList.begin(); it != mList.end(); ++it) {
       momCoupleModelList_.emplace_back(it->c_str());
     }
   }
 
-  if (couplingPropertiesDict_.found("liggghtsCommandModels")) {
-    Foam::wordList lForce = couplingPropertiesDict_.lookup("liggghtsCommandModels");
+  if (liggghtsCommandsDict.found("liggghtsCommandModels")) {
+    Foam::wordList lForce = liggghtsCommandsDict.lookup("liggghtsCommandModels");
     for (Foam::wordList::iterator it = lForce.begin(); it != lForce.end(); ++it) {
       liggghtsCommandModelList_.emplace_back(it->c_str());
     }
   }
 
-  refineMeshSkin_ = couplingPropertiesDict_.lookupOrDefault<double>("refineMeshSkin", 1.8);
+  refineMeshSkin_ = couplingPropertiesDict.lookupOrDefault<double>("refineMeshSkin", 1.8);
   if (refineMeshSkin_ < 1.0) {
     FatalError << "refineMeshSkin should be >= 1.0 but get " << refineMeshSkin_ << abort(FatalError);
   }
 
-  refineMeshKeepInterval_ = couplingPropertiesDict_.lookupOrDefault<int>("refineMeshKeepInterval", 0);
+  refineMeshKeepInterval_ = couplingPropertiesDict.lookupOrDefault<int>("refineMeshKeepInterval", 0);
   if (refineMeshKeepInterval_ < 0) {
     FatalError << "refineMeshKeepInterval should be >= 0 but get " << refineMeshKeepInterval_ << abort(FatalError);
   }
 
 #if __MIXCLOUD__
-  fineParticleRatio_ = couplingPropertiesDict_.lookupOrDefault<double>("fineParticleRatio", 3.0);
-  coarseParticleRatio_ = couplingPropertiesDict_.lookupOrDefault<double>("coarseParticleRatio", 0.33);
-  usedForSolverIB_ = couplingPropertiesDict_.lookupOrDefault<Switch>("usedForSolverIB", false);
-  usedForSolverPiso_ = couplingPropertiesDict_.lookupOrDefault<Switch>("usedForSolverPiso", false);
-  useDynamicRefineMesh_ = couplingPropertiesDict_.lookupOrDefault<Switch>("useDynamicRefineMesh", false);
+  fineParticleRatio_ = couplingPropertiesDict.lookupOrDefault<double>("fineParticleRatio", 3.0);
+  coarseParticleRatio_ = couplingPropertiesDict.lookupOrDefault<double>("coarseParticleRatio", 0.33);
+  usedForSolverIB_ = couplingPropertiesDict.lookupOrDefault<Switch>("usedForSolverIB", false);
+  usedForSolverPiso_ = couplingPropertiesDict.lookupOrDefault<Switch>("usedForSolverPiso", false);
+  useDynamicRefineMesh_ = couplingPropertiesDict.lookupOrDefault<Switch>("useDynamicRefineMesh", false);
 
   // 读取 fixed_particle_ 与来流速度
-  fixedParticle_ = couplingPropertiesDict_.lookupOrDefault<bool>("fixedParticle", false);
-  flowVelocity_ = vector(couplingPropertiesDict_.lookupOrDefault<double>("U0x", 0.0),
-                         couplingPropertiesDict_.lookupOrDefault<double>("U0y", 0.0),
-                         couplingPropertiesDict_.lookupOrDefault<double>("U0z", 0.0));
+  fixedParticle_ = couplingPropertiesDict.lookupOrDefault<bool>("fixedParticle", false);
+  flowVelocity_ = vector(couplingPropertiesDict.lookupOrDefault<double>("U0x", 0.0),
+                         couplingPropertiesDict.lookupOrDefault<double>("U0y", 0.0),
+                         couplingPropertiesDict.lookupOrDefault<double>("U0z", 0.0));
 
   if (fixedParticle_) {
     Info << "Using fixed particle, reading flow_velocity_: " << flowVelocity_ << endl;
