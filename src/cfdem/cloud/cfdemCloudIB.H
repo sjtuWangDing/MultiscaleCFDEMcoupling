@@ -63,6 +63,12 @@ public:
   void setInterface(volScalarField& interface,
                     volScalarField& refineMeshKeepStep) const;
 
+  //! \brief 重新分配内存
+  void reAlloc();
+
+  //! \brief 从 DEM 获取数据
+  void getDEMData();
+
   /* ------------------------- interface of class --------------------------------------- */
 
 public:

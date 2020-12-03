@@ -43,57 +43,55 @@ namespace Foam {
 
 //! \brief The basic class for particles
 class ParticleCloud {
-
 public:
-
-  ParticleCloud(int numberOfParticle = -1);
-
+  ParticleCloud(int numberOfParticles = -1)
+    : numberOfParticles_(numberOfParticles),
+      numberOfParticlesChanged_(false),
+      pRadii_(nullptr),
+      pPositions_(nullptr),
+      pVelocities_(nullptr) {}
   // interfaces - getter
   inline int numberOfParticles() const { return numberOfParticles_; }
   inline bool numberOfParticlesChanged() const { return numberOfParticlesChanged_; }
-  inline const base::CITensor1& particleOverMeshNumber() const { return particleOverMeshNumber_; }
-  inline const base::CDTensor1& radii() const { return radii_; }
-  inline const base::CDTensor1& volumes() const { return volumes_; }
-  inline const base::CDTensor1& cds() const { return cds_; }
-  inline const base::CITensor2& cellIDs() const { return cellIDs_; }
-  inline const base::CDTensor2& positions() const { return positions_; }
-  inline const base::CDTensor2& velocities() const { return velocities_; }
-  inline const base::CDTensor2& fluidVel() const { return fluidVel_; }
-  inline const base::CDTensor2& fAcc() const { return fAcc_; }
-  inline const base::CDTensor2& impForces() const { return impForces_; }
-  inline const base::CDTensor2& expForces() const { return expForces_; }
-  inline const base::CDTensor2& DEMForces() const { return DEMForces_; }
-  inline const base::CDTensor2& DEMTorques() const { return DEMTorques_; }
-  inline const base::CDTensor2& voidFractions() const { return voidFractions_; }
-  inline const base::CDTensor2& particleWeights() const { return particleWeights_; }
-  inline const base::CDTensor2& particleVolumes() const { return particleVolumes_; }
-
+  inline base::CITensor1& particleOverMeshNumber() { return particleOverMeshNumber_; }
+  inline base::CDTensor1& radii() { return radii_; }
+  inline base::CDTensor1& volumes() { return volumes_; }
+  inline base::CDTensor1& cds() { return cds_; }
+  inline base::CITensor2& cellIDs() { return cellIDs_; }
+  inline base::CDTensor2& positions() { return positions_; }
+  inline base::CDTensor2& velocities() { return velocities_; }
+  inline base::CDTensor2& fluidVel() { return fluidVel_; }
+  inline base::CDTensor2& fAcc() { return fAcc_; }
+  inline base::CDTensor2& impForces() { return impForces_; }
+  inline base::CDTensor2& expForces() { return expForces_; }
+  inline base::CDTensor2& DEMForces() { return DEMForces_; }
+  inline base::CDTensor2& DEMTorques() { return DEMTorques_; }
+  inline base::CDTensor2& voidFractions() { return voidFractions_; }
+  inline base::CDTensor2& particleWeights() { return particleWeights_; }
+  inline base::CDTensor2& particleVolumes() { return particleVolumes_; }
+  inline double**& pRadii() { return pRadii_; }
+  inline double**& pPositions() { return pPositions_; }
+  inline double**& pVelocities() { return pVelocities_; }
   // interface - setter
   inline void setNumberOfParticles(int number) {
     if (number <= 0) {
       FatalError << "number of particle is <= 0" << abort(FatalError);
     }
+    numberOfParticlesChanged_ = numberOfParticles_ != number ? true : false;
     numberOfParticles_ = number;
   }
 
 private:
-
   //! \brief 颗粒总数
   int numberOfParticles_;
-
   //! \brief 颗粒总数是否发生变化
   bool numberOfParticlesChanged_;
-
 #if CFDEM_USE_TENSOR
-  // cpu int tensor 1D
   base::CITensor1 particleOverMeshNumber_;
-  // cpu double tensor 1D
   base::CDTensor1 radii_;
   base::CDTensor1 volumes_;
   base::CDTensor1 cds_;
-  // cpu int tensor 2D
   base::CITensor2 cellIDs_;
-  // cpu double tensor 2D
   base::CDTensor2 positions_;
   base::CDTensor2 velocities_;
   base::CDTensor2 fluidVel_;
@@ -105,6 +103,9 @@ private:
   base::CDTensor2 voidFractions_;
   base::CDTensor2 particleWeights_;
   base::CDTensor2 particleVolumes_;
+  double** pRadii_;
+  double** pPositions_;
+  double** pVelocities_;
 #else
   //! \brief 颗粒半径
   //! \note radii_[index][0]

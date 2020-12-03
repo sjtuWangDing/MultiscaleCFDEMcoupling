@@ -26,29 +26,25 @@ FoamFile
 //===========================================================================//
 // sub-models & settings
 
-usedForSolverPiso false;
-
-usedForSolverIB true;
-
 modelType none;
 
 couplingInterval 10;
 
 depth 0;
 
-voidFractionModel IB;             // divided // centre // bigParticle
+voidFractionModel IB;//bigParticle;//centre; //
 
-locateModel engineIB;              // standard
+locateModel engineIB;//standard;//
 
 meshMotionModel noMeshMotion;
 
-dataExchangeModel twoWayMPI;    // M2M // twoWayMPI // mixTwoWayMPI
+dataExchangeModel twoWayMPI; // twoWayMPI;//twoWayFiles;
 
 IOModel basicIO;
 
 probeModel off;
 
-averagingModel dense;            // dense // dilute
+averagingModel dilute;
 
 clockModel off;
 
@@ -56,10 +52,8 @@ smoothingModel off;
 
 forceModels
 (
-    ArchimedesIB
     ShirgaonkarIB
-    // mixArchimedesIB
-    // mixShirgaonkarIB
+    ArchimedesIB
 );
 
 momCoupleModels
@@ -72,29 +66,16 @@ turbulenceModelType turbulenceProperties; //OFversion30x
 //===========================================================================//
 // sub-model properties
 
-ArchimedesIBProps
-{
-    gravityFieldName "g";
-    voidfractionFieldName "voidfractionNext";
-}
-
 ShirgaonkarIBProps
 {
     velFieldName "U";
     pressureFieldName "p";
 }
 
-mixArchimedesIBProps
+ArchimedesIBProps
 {
     gravityFieldName "g";
     voidfractionFieldName "voidfractionNext";
-    volumefractionFieldName "volumefractionNext";
-}
-
-mixShirgaonkarIBProps
-{
-    velFieldName "U";
-    pressureFieldName "p";
 }
 
 twoWayFilesProps
@@ -103,7 +84,7 @@ twoWayFilesProps
     DEMts 0.00003;
 }
 
-"(mixTwoWayMPIProps|twoWayMPIProps)"
+twoWayMPIProps
 {
     maxNumberOfParticles 10100;
     liggghtsPath "../DEM/in.liggghts_run";
@@ -111,14 +92,8 @@ twoWayFilesProps
 
 IBProps
 {
-    maxCellsPerParticle 100000;
+    maxCellsPerParticle 1000;
     alphaMin 0.30;
-    scaleUpVol 1.0;
-}
-
-mixProps
-{
-    alphaMin 0.3;
     scaleUpVol 1.0;
 }
 
@@ -128,7 +103,6 @@ bigParticleProps
     alphaMin 0.30;
     scaleUpVol 1.0;
 }
-
 centreProps
 {
     alphaMin 0.30;
@@ -145,6 +119,14 @@ engineIBProps
     treeSearch false;
     zSplit 8;
     xySplit 16;
+}
+
+oneWayVTKProps
+{
+    DEMts 0.00003;
+    relativePath "../DEM/post";
+    couplingFilename "vtk_out%4.4d.vtk";
+    maxNumberOfParticles 30000;
 }
 
 // ************************************************************************* //

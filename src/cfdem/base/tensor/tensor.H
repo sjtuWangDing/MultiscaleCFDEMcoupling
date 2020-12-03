@@ -1,8 +1,9 @@
 #ifndef __TENSOR_H__
 #define __TENSOR_H__
 
-#include "logging.H"
+#include "base/logging.H"
 #include "expression.H"
+#include <initializer_list>
 
 namespace base {
 
@@ -14,24 +15,24 @@ template<int dimension>
 class Shape {
  public:
   /*! \brief dimension of current shape */
-  static const int kDimension = dimension;
+  static const int kDim = dimension;
   /*! \brief dimension of current shape minus one */
   static const int kSubdim = dimension - 1;
   /*! \brief storing the dimension information */
-  index_t shape_[kDimension];
+  index_t shape_[kDim];
   /*! \brief default constructor, do nothing */
   inline Shape(void) {}
   /*! \brief constuctor */
-  inline Shape(const Shape<kDimension>& s) {
+  inline Shape(const Shape<kDim>& s) {
     #pragma unroll
-    for (int i = 0; i < kDimension; ++i) {
+    for (int i = 0; i < kDim; ++i) {
       this->shape_[i] = s.shape_[i];
     }
   }
   /*! \return number of valid elements */
   inline index_t size() const {
     index_t res = this->shape_[0];
-    for (int i = 1; i < kDimension; ++i) {
+    for (int i = 1; i < kDim; ++i) {
       res *= this->shape_[i];
     }
     return res;
@@ -42,20 +43,20 @@ class Shape {
    * \return the corresponding dimension size
    */
   inline index_t& operator[] (int idx) {
-    CHECK(idx >= 0 && idx < kDimension);
+    CHECK(idx >= 0 && idx < kDim);
     return shape_[idx];
   }
   inline index_t operator[] (int idx) const {
-    CHECK(idx >= 0 && idx < kDimension);
+    CHECK(idx >= 0 && idx < kDim);
     return shape_[idx];
   }
   /*!
    * \return whether two shape equals
    * \param s the shape to compare against
    */
-  inline bool operator== (const Shape<kDimension> &s) const {
+  inline bool operator== (const Shape<kDim> &s) const {
     #pragma unroll
-    for (int i = 0; i < kDimension; ++i) {
+    for (int i = 0; i < kDim; ++i) {
       if (s.shape_[i] != this->shape_[i]) { return false; }
     }
     return true;
@@ -64,7 +65,7 @@ class Shape {
    * \return whether two shape not equal
    * \param s the shape to compare against
    */
-  inline bool operator!= (const Shape<kDimension>& s) const {
+  inline bool operator!= (const Shape<kDim>& s) const {
     return !(*this == s);
   }
   /*!
@@ -128,34 +129,52 @@ inline Shape<2> makeShape2(index_t s0, index_t s1) {
   return s;
 }
 
+template<index_t N>
+Shape<N> makeShape(const std::initializer_list<index_t>& li) {
+  CHECK_EQ(N, li.size());
+  Shape<N> temp;
+  int i = 0;
+  for (auto it = li.begin(); it != li.end(); ++it) {
+    temp[i++] = *it;
+  }
+  return temp;
+}
+
 /*!
  * \brief Tensor RValue, this is the super type of all kinds of possible tensors
  * \tparam Container the tensor type
  * \tparam dimension dimension of the tensor
- * \tparam Device which device the tensor is on
  * \tparam DType the type of elements in the tensor
+ * \tparam Device which device the tensor is on
  */
-template<typename Container, int dimension, typename Device, typename DType>
-struct TRValue: public expr::RValueExp<Container, DType> {};
+template<typename Container, int dimension, typename DType, typename Device>
+struct TRValue: public expr::RValueExp<Container, DType> {
+public:
+  /*! \brief data type */
+  typedef DType TData;
+};
 
 /*!
  * \brief general tensor
  * \tparam dimension dimension of the tensor
- * \tparam Device which device the tensor is on
  * \tparam DType the type of elements in the tensor
+ * \tparam Device which device the tensor is on
  */
-template<int dimension, typename Device CFDEM_DEFAULT_DEVICE, typename DType CFDEM_DEFAULT_DTYPE>
-class Tensor: public TRValue<Tensor<dimension, Device, DType>,
-                             dimension, Device, DType> {
+template<int dimension, typename DType CFDEM_DEFAULT_DTYPE, typename Device CFDEM_DEFAULT_DEVICE>
+class Tensor: public TRValue<Tensor<dimension, DType, Device>, dimension, DType, Device> {
  public:
   /*! \brief whether current type lies in cpu */
   static const bool kDevCPU = Device::kDevCPU;
+  /*! \brief dimension */
+  static const int kDim = dimension;
   /*! \brief dimension of subtype */
   static const int  kSubdim = dimension - 1;
   /*! \brief pointer to the data */
   DType *dptr_;
+  /*! \brief shape type of the tensor */
+  typedef Shape<dimension> TShape;
   /*! \brief shape of the tensor */
-  Shape<dimension> shape_;
+  TShape shape_;
   /*!
    * \brief storing the stride information in x dimension
    *        this is used to deal with pitch allocation in gpu or sse(align x dimension to 64bit) for efficiency
@@ -164,16 +183,16 @@ class Tensor: public TRValue<Tensor<dimension, Device, DType>,
   /*! \brief default constructor */
   inline Tensor(): dptr_(nullptr), shape_(), stride_(0) {}
   /*! \brief constructor from shape */
-  inline Tensor(const Shape<dimension>& shape)
+  inline Tensor(const TShape& shape)
       : dptr_(nullptr), shape_(shape), stride_(shape[kSubdim]) {}
   /*! \brief constructor from data pointer and shape, without stride */
-  inline Tensor(DType *dptr, const Shape<dimension>& shape)
+  inline Tensor(DType *dptr, const TShape& shape)
       : dptr_(dptr), shape_(shape), stride_(shape[kSubdim]) {}
   /*! \brief constructor from data pointer and shape */
-  inline Tensor(DType *dptr, const Shape<dimension>& shape, index_t stride)
+  inline Tensor(DType *dptr, const TShape& shape, index_t stride)
       : dptr_(dptr), shape_(shape), stride_(stride) {}
   /*! \brief implement the assignment of same type */
-  inline Tensor<dimension, DType>& operator= (const Tensor<dimension, DType>& exp) {
+  inline Tensor<dimension, DType, Device>& operator= (const Tensor<dimension, DType, Device>& exp) {
     dptr_ = exp.dptr_;
     shape_ = exp.shape_;
     stride_ = exp.stride_;
@@ -181,7 +200,7 @@ class Tensor: public TRValue<Tensor<dimension, Device, DType>,
   }
   /*!
    * \return memory cost of the tensor, including the aligned x dimension
-   * \tparam startdim the starting dimension
+   * \tparam startDim the starting dimension
    */
   template<int startDim>
   inline index_t memSize() const {
@@ -214,16 +233,17 @@ class Tensor: public TRValue<Tensor<dimension, Device, DType>,
    * \param idx index
    * \return the result tensor
    */
-  inline Tensor<kSubdim, Device, DType> operator[] (int idx) const {
-    return Tensor<kSubdim, Device, DType>(dptr_ + this->memSize<1>() * idx, shape_.subShape(), stride_);
+  inline Tensor<kSubdim, DType, Device> operator[] (int idx) const {
+    return Tensor<kSubdim, DType, Device>(dptr_ + this->memSize<1>() * idx, shape_.subShape(), stride_);
   }
 };
 
 /*! \brief respecialized class Tensor1D, thei is due to different implementation in operator[] */
-template<typename Device, typename DType>
-class Tensor<1, Device, DType>: public TRValue<Tensor<1, Device, DType>,
-                                               1, Device, DType> {
+template<typename DType, typename Device>
+class Tensor<1, DType, Device>: public TRValue<Tensor<1, DType, Device>, 1, DType, Device> {
  public:
+  static const int kDim = 1;
+  static const int  kSubdim = 0;
   DType *dptr_;
   Shape<1> shape_;
   index_t stride_;
@@ -262,39 +282,10 @@ class Tensor<1, Device, DType>: public TRValue<Tensor<1, Device, DType>,
   }
 };
 
-using CITensor1 = ::base::Tensor<1, cpu, int>;
-using CDTensor1 = ::base::Tensor<1, cpu, double>;
-using CITensor2 = ::base::Tensor<2, cpu, int>;
+using CITensor1 = ::base::Tensor<1, int, cpu>;
+using CDTensor1 = ::base::Tensor<1, double, cpu>;
+using CITensor2 = ::base::Tensor<2, int, cpu>;
 using CDTensor2 = ::base::Tensor<2>;
-
-//------------------------
-// Function Declarations
-//-----------------------
-
-// /*!
-//  * \brief map a expression to a tensor, this function calls MapPlan
-//  *        implemented in tensor_cpu-inl.H
-//  * \tparam Saver specify storage method
-//  * \tparam TContainer specifies the storage type of the tensor
-//  * \tparam dim dim of the tensor, during usage, there is no need to specify this parameter
-//  * \tparam DType the type of elements in the tensor
-//  * \tparam EContainer specifies the expression type, not need to specify this parameter during usage
-//  * \tparam exp_type expression type
-//  * \param dst destination
-//  * \param exp expression
-//  */
-// template<typename Saver, typename TContainer, int dim,
-//          typename DType, typename EContainer, int exp_type>
-// inline void MapExp(TRValue<TContainer, dim, DType> *dst,
-//                    const expr::Exp<EContainer, DType, exp_type>& exp);
-// {
-//   Shape<dim> expShape = expr::ShapeCheck<dim, EContainer>::Check(exp.self());
-//   Shape<dim> destShape = expr::ShapeCheck<dim, TContainer>::Check(dst->self());
-//   CHECK(expShape[0] == 0 || expShape == destShape)
-//       << "Assignment: Shape of Tensors are not consistent with target, "
-//       << "expression shape: " << expShape
-//       << " dest shape: " << destShape;
-// }
 
 } // namespace base
 

@@ -44,6 +44,7 @@ Class
 #include "IFstream.H"
 #include "error.h"
 
+#include "base/allocator/xAlloc.H"
 #include "base/tensor/tensor.H"
 #include "cloud/OFVersion.H" // choose version
 #include "cloud/cfdemBase.H"
@@ -90,7 +91,6 @@ public:
   }
 
   /* --------------------------------- virtual functions --------------------------------- */
-
 
   /* --------------------------------- member functions ---------------------------------- */
 
@@ -162,24 +162,30 @@ public:
 
   /* ------------------------- interface of particleCloud ------------------------------- */
 
-  inline int numberOfParticles() const { return pCloud_.numberOfParticles(); }
-  inline bool numberOfParticlesChanged() const { return pCloud_.numberOfParticlesChanged(); }
-  inline const base::CITensor1& particleOverMeshNumber()const { return pCloud_.particleOverMeshNumber(); }
-  inline const base::CDTensor1& radii() const { return pCloud_.radii(); }
-  inline const base::CDTensor1& volumes() const { return pCloud_.volumes(); }
-  inline const base::CDTensor1& cds()const { return pCloud_.cds(); }
-  inline const base::CITensor2& cellIDs() const { return pCloud_.cellIDs(); }
-  inline const base::CDTensor2& positions() const { return pCloud_.positions(); }
-  inline const base::CDTensor2& velocities() const { return pCloud_.velocities(); }
-  inline const base::CDTensor2& fluidVel() const { return pCloud_.fluidVel(); }
-  inline const base::CDTensor2& fAcc() const { return pCloud_.fAcc(); }
-  inline const base::CDTensor2& impForces() const { return pCloud_.impForces(); }
-  inline const base::CDTensor2& expForces() const { return pCloud_.expForces(); }
-  inline const base::CDTensor2& DEMForces() const { return pCloud_.DEMForces(); }
-  inline const base::CDTensor2& DEMTorques() const { return pCloud_.DEMTorques(); }
-  inline const base::CDTensor2& voidFractions() const { return pCloud_.voidFractions(); }
-  inline const base::CDTensor2& particleWeights() const { return pCloud_.particleWeights(); }
-  inline const base::CDTensor2& particleVolumes() const { return pCloud_.particleVolumes(); }
+  inline int numberOfParticles() const {
+    return const_cast<ParticleCloud&>(pCloud_).numberOfParticles();
+  }
+  inline bool numberOfParticlesChanged() const {
+    return const_cast<ParticleCloud&>(pCloud_).numberOfParticlesChanged();
+  }
+  inline const base::CITensor1& particleOverMeshNumber() const {
+    return const_cast<ParticleCloud&>(pCloud_).particleOverMeshNumber();
+  }
+  inline const base::CDTensor1& radii() const { return const_cast<ParticleCloud&>(pCloud_).radii(); }
+  inline const base::CDTensor1& volumes() const { return const_cast<ParticleCloud&>(pCloud_).volumes(); }
+  inline const base::CDTensor1& cds()const { return const_cast<ParticleCloud&>(pCloud_).cds(); }
+  inline const base::CITensor2& cellIDs() const { return const_cast<ParticleCloud&>(pCloud_).cellIDs(); }
+  inline const base::CDTensor2& positions() const { return const_cast<ParticleCloud&>(pCloud_).positions(); }
+  inline const base::CDTensor2& velocities() const { return const_cast<ParticleCloud&>(pCloud_).velocities(); }
+  inline const base::CDTensor2& fluidVel() const { return const_cast<ParticleCloud&>(pCloud_).fluidVel(); }
+  inline const base::CDTensor2& fAcc() const { return const_cast<ParticleCloud&>(pCloud_).fAcc(); }
+  inline const base::CDTensor2& impForces() const { return const_cast<ParticleCloud&>(pCloud_).impForces(); }
+  inline const base::CDTensor2& expForces() const { return const_cast<ParticleCloud&>(pCloud_).expForces(); }
+  inline const base::CDTensor2& DEMForces() const { return const_cast<ParticleCloud&>(pCloud_).DEMForces(); }
+  inline const base::CDTensor2& DEMTorques() const { return const_cast<ParticleCloud&>(pCloud_).DEMTorques(); }
+  inline const base::CDTensor2& voidFractions() const { return const_cast<ParticleCloud&>(pCloud_).voidFractions(); }
+  inline const base::CDTensor2& particleWeights() const { return const_cast<ParticleCloud&>(pCloud_).particleWeights(); }
+  inline const base::CDTensor2& particleVolumes() const { return const_cast<ParticleCloud&>(pCloud_).particleVolumes(); }
   inline Foam::vector getPosition(int index) const {
     CHECK_EQ(numberOfParticles(), static_cast<int>(positions().size(0)))
       << "Number of particle is not match";
@@ -196,6 +202,7 @@ public:
     return radii()[index];
   }
   inline void setNumberOfParticles(int number) { pCloud_.setNumberOfParticles(number); }
+
   /* --------------------------------- class variables ----------------------------------- */
 
 protected:

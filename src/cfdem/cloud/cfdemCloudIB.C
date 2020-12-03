@@ -57,13 +57,36 @@ void cfdemCloudIB::evolve(volScalarField& volumeFraction,
   Info << __func__ << ", used for cfdemSolverIB..." << endl;
   // 检查当前流体时间步是否同时也是耦合时间步
   if (dataExchangeM().checkValidCouplingStep()) {
-    // 创建 counter 用于记录 coupling time step
+    // 创建用于记录 coupling time step counter
     auto pCounter = std::make_shared<dataExchangeModel::CouplingStepCounter>(dataExchangeM());
     // couple(): run liggghts command and get number of particle
     setNumberOfParticles(dataExchangeM().couple());
-    Info << "number of particle: " << numberOfParticles() << endl;
+    // realloc memory
+    reAlloc();
+    // 获取 DEM 数据
+    getDEMData();
+    for (int i = 0; i < numberOfParticles(); ++i) {
+      Pout << "radius: " << radii()[i] << endl;
+      Pout << "position: " << positions()[i][0] << ", " << positions()[i][1] << ", " << positions()[i][2] << endl;
+      Pout << "velocity: " << velocities()[i][0] << ", " << velocities()[i][1] << ", " << velocities()[i][2] << endl;
+    }
   }
   Info << __func__ << " - done\n" << endl;
+}
+
+void cfdemCloudIB::reAlloc() {
+  if (numberOfParticlesChanged()) {
+    int number = numberOfParticles();
+    dataExchangeM().reAlloc(pCloud_.radii(), pCloud_.pRadii(), number, 1);
+    dataExchangeM().reAlloc(pCloud_.positions(), pCloud_.pPositions(), number, 3);
+    dataExchangeM().reAlloc(pCloud_.velocities(), pCloud_.pVelocities(), number, 3);
+  }
+}
+
+void cfdemCloudIB::getDEMData() {
+  dataExchangeM().getData("radius", "scalar-atom", pCloud_.pRadii());
+  dataExchangeM().getData("x", "vector-atom", pCloud_.pPositions());
+  dataExchangeM().getData("v", "vector-atom", pCloud_.pVelocities());
 }
 
 //! @brief 确定颗粒周围细化网格的区域(每个方向的尺寸都是颗粒尺寸的两倍)

@@ -5,7 +5,6 @@ subModels = $(path)/subModels
 $(cloud)/cfdemCloud.C
 $(cloud)/cfdemCloudIB.C
 $(cloud)/couplingProperties.C
-$(cloud)/particleCloud.C
 
 $(subModels)/dataExchangeModel/dataExchangeModel.C
 $(subModels)/dataExchangeModel/twoWayMPI.C

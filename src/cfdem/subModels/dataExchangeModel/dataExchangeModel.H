@@ -60,6 +60,7 @@ public:
   //! \brief Destructor
   virtual ~dataExchangeModel();
 
+  //! \brief 耦合时间步计数器
   class CouplingStepCounter {
   public:
     CouplingStepCounter(const dataExchangeModel& model)
@@ -73,65 +74,131 @@ public:
     const dataExchangeModel& model_;
   };
 
+  //! \brief 耦合时间步计数器
+  template<bool UseTwoWayMPI, typename Tensor>
+  void allocate(Tensor& tensor, const typename Tensor::TData& initVal);
+
+  template<int nDim, typename DType, typename Device CFDEM_DEFAULT_DEVICE>
+  inline void reAlloc(base::Tensor<nDim, DType, Device>& tensor,
+                      DType**& pData,
+                      int length, int width) const {
+    CHECK(2 == nDim || 1 == nDim) << "tensor realloc: error tensor dimension";
+    static base::simple_alloc<DType, base::malloc_alloc> alloc1;
+    static base::simple_alloc<DType*, base::malloc_alloc> alloc2;
+    if (nullptr == pData && nullptr == tensor.dptr_) {
+      // 直接调用 LIGGGHTS 分配内存到 pData
+      allocateArray(pData, length, width);
+    } else if (nullptr != pData && nullptr != tensor.dptr_) {
+      CHECK_EQ(pData[0], tensor.dptr_) << "tensor realloc: tensor not match with pData";
+      // 释放 pData[0] 指向的内存
+      alloc1.deallocate(pData[0], tensor.mSize());
+      // 释放 pData 指向的内存
+      alloc2.deallocate(pData, tensor.shape_[0]);
+    } else {
+      CHECK(false) << "tensor realloc: bad realloc";
+    }
+    // 调用 LIGGGHTS 分配内存到 pData
+    allocateArray(pData, length, width);
+    // 将 pData[0] 转移至 tensor
+    tensor.dptr_ = pData[0];
+    tensor.stride_ = 1 == nDim ? length : width;
+    tensor.shape_ = 1 == nDim ? base::makeShape<nDim>({ length }) : base::makeShape<nDim>({ length, width });
+  }
+
   /* --------------------------------- virtual functions --------------------------------- */
 
   //! \return 当前耦合时间步中颗粒的数量
   virtual int couple() = 0;
-
-  //! \brief Allocate and destroy for 2-D double array
-  virtual void destroy(double**& array) {};
-  virtual void destroy(double**& array, int) {};
-  virtual void allocateArray(double**& array, double initVal, int width, int length) {};
-  virtual void allocateArray(double**& array, double initVal, int width, const char* length = "nparticles") {};
-
-  //! \brief Allocate and destroy for 2-D int array
-  virtual void destroy(int**& array) {};
-  virtual void destroy(int**& array, int) {};
-  virtual void allocateArray(int**& array, int initVal, int width, int length) {};
-  virtual void allocateArray(int**& array, int initVal, int width, const char* length  = "nparticles") {};
-
-  //! \brief Allocate and destroy for 1-D double array
-  virtual void destroy(double*& array) {};
-  virtual void allocateArray(double*& array, double initVal, int length) {};
-
-  //! \brief Allocate and destroy for 1-D int array
-  virtual void destroy(int*& array) {};
-  virtual void allocateArray(int*& array, int initVal, int length) {};
-
+  /*!
+   * \brief 从 LAMMPS 中获取数据（数据类型为 double）
+   *        Eg: getData("x", "vector-atom", array);
+   * \param dataName 数据名称
+   * \param dataType 数据类型
+   * \param array 内存地址（LIGGGHTS code 要求 array 为二级指针）
+   */
   virtual void getData(const std::string& dataName,
                        const std::string& dataType,
-                       double** const& field,
-                       label step) = 0;
+                       double** array) const = 0;
+  /*!
+   * \brief 从 LAMMPS 中获取数据（数据类型为 int）
+   * \param dataName 数据名称
+   * \param dataType 数据类型
+   * \param array 内存地址（LIGGGHTS code 要求 array 为二级指针）
+   */
   virtual void getData(const std::string& dataName,
                        const std::string& dataType,
-                       int** const& field,
-                       label step) = 0;
+                       int** array) const = 0;
+  /*!
+   * \brief 传递数据到 LAMMPS 中（数据类型为 double）
+   *        Eg: giveData("dragforce", "vector-atom", array);
+   * \param dataName 数据名称
+   * \param dataType 数据类型
+   * \param array 内存地址（LIGGGHTS code 要求 array 为二级指针）
+   */
   virtual void giveData(const std::string& dataName,
                         const std::string& dataType,
-                        double** const& field,
-                        const char* fieldType = "double") = 0;
+                        double** field) const = 0;
+  /*!
+   * \brief 传递数据到 LAMMPS 中（数据类型为 int）
+   * \param dataName 数据名称
+   * \param dataType 数据类型
+   * \param array 内存地址（LIGGGHTS code 要求 array 为二级指针）
+   */
+  virtual void giveData(const std::string& dataName,
+                        const std::string& dataType,
+                        int** field) const = 0;
+  //! \brief Allocate for 2-D double array
+  virtual void allocateArray(double**& array, int length, int width, double initVal = 0.0) const {}
+  //! \brief Allocate 2-D int array
+  virtual void allocateArray(int**& array, int length, int width, int initVal = 0) const {}
 
-  //! \brief 释放离散内存
-  virtual void destroyDiscreteMemory(double** const& array, int length) {
-    FatalError << "dataExchangeModel::destroyDiscreteMemory(): "
-      << "using base class function, please use derived class function\n"
-      << abort(FatalError);
-  }
-  //! \brief 释放离散内存
-  virtual void destroyDiscreteMemory(int** const& array, int length) {
-    FatalError << "dataExchangeModel::destroyDiscreteMemory(): "
-      << "using base class function, please use derived class function\n"
-      << abort(FatalError);
-  }
+  // //! \brief Allocate and destroy for 2-D double array
+  // virtual void destroy(double**& array) {};
+  // virtual void destroy(double**& array, int) {};
+  // virtual void allocateArray(double**& array, double initVal, int width, int length) {};
+  // virtual void allocateArray(double**& array, double initVal, int width, const char* length = "nparticles") {};
+
+  // //! \brief Allocate and destroy for 2-D int array
+  // virtual void destroy(int**& array) {};
+  // virtual void destroy(int**& array, int) {};
+  // virtual void allocateArray(int**& array, int initVal, int width, int length) {};
+  // virtual void allocateArray(int**& array, int initVal, int width, const char* length  = "nparticles") {};
+
+  // //! \brief Allocate and destroy for 1-D double array
+  // virtual void destroy(double*& array) {};
+  // virtual void allocateArray(double*& array, double initVal, int length) {};
+
+  // //! \brief Allocate and destroy for 1-D int array
+  // virtual void destroy(int*& array) {};
+  // virtual void allocateArray(int*& array, int initVal, int length) {};
+
+  // virtual void getData(const std::string& dataName,
+  //                      const std::string& dataType,
+  //                      double** const& field,
+  //                      label step) = 0;
+  // virtual void getData(const std::string& dataName,
+  //                      const std::string& dataType,
+  //                      int** const& field,
+  //                      label step) = 0;
+  // virtual void giveData(const std::string& dataName,
+  //                       const std::string& dataType,
+  //                       double** const& field,
+  //                       const char* fieldType = "double") = 0;
+
+  // //! \brief 释放离散内存
+  // virtual void destroyDiscreteMemory(double** const& array, int length) {
+  //   FatalError << "dataExchangeModel::destroyDiscreteMemory(): "
+  //     << "using base class function, please use derived class function\n"
+  //     << abort(FatalError);
+  // }
+  // //! \brief 释放离散内存
+  // virtual void destroyDiscreteMemory(int** const& array, int length) {
+  //   FatalError << "dataExchangeModel::destroyDiscreteMemory(): "
+  //     << "using base class function, please use derived class function\n"
+  //     << abort(FatalError);
+  // }
 
   /* --------------------------------- member functions ---------------------------------- */
-
-  template<typename DType>
-  void getData(const std::string& dataName,
-               const std::string& dataType,
-               DType** const& field) {
-    getData(dataName, dataType, field, couplingStep_ - 1);
-  }
 
   /*!
    * \brief 因为耦合时间步长 = 流体时间步长的整数倍，所以 timeStepFraction() 用于计算每个流体时间步在耦合时间步中的所占比例，
@@ -145,13 +212,13 @@ public:
     }
     scalar CFDts = cloud_.mesh().time().deltaT().value();
     label timeIndex = cloud_.mesh().time().timeIndex();
-    // (timeIndex - timeIndexOffset_ - 1) * CFDts: CFD 的计算步的起始时间
+    // (timeIndex - timeIndexOffset_ - 1) * CFDts: 当前流体时间步起始时间，Eg: 0.00, 0.01, 0.02, 0.03
     // (couplingStep_ - 1) * couplingTime(): 耦合时间步截止到 (couplingStep_ - 1) 的计算时间
     return ((timeIndex - timeIndexOffset_ - 1) * CFDts - (couplingStep_ - 1) * couplingTime()) / couplingTime();
   }
 
   /*!
-   * \brief 检查时间步长是否满足耦合要求
+   * \brief 检查时间步长是否满足耦合要求（在初始化模型的时候调用）
    * \note (1) 耦合时间步长应该大于 or 等于 CFD 时间步长
    *       (2) 耦合时间步长应该为 CFD 时间步长的整数倍
    *       (3) 如果耦合时间步长 != CFD 时间步长，则要求 allowUseSubCFDTimeStep() 为 true
@@ -167,7 +234,6 @@ public:
       FatalError << "CFD time-step bigger than coupling time (= DEM time step * coupling interval)!\n"
         << abort(FatalError);
     }
-
     // 耦合时间步长应该为 CFD 时间步长的整数倍
     if (std::fabs((std::round(couplingTime() / CFDts) * CFDts) - couplingTime()) > Foam::SMALL) {
       Info << "CFD time step size = " << CFDts << endl;
@@ -175,7 +241,6 @@ public:
       Info << "Coupling interval = " << cloud_.cProps().couplingInterval() << endl;
       FatalError << "Coupling time (= DEM time step * coupling interval) is not a multiple of  CFD time-step!\n"<< abort(FatalError);
     }
-
     // 如果耦合时间步长 != CFD 时间步长
     if (couplingTime() > CFDts + Foam::SMALL) {
       // 如果不允许使用 CFD sub time step 则报错
@@ -192,11 +257,11 @@ public:
    */
   inline bool checkValidCouplingStep() const {
     scalar CFDts = cloud_.mesh().time().deltaT().value();
+    // OpenFOAM 中 timeIndex 从 1 开始
     label timeIndex = cloud_.mesh().time().timeIndex();
-    // (timeIndex - timeIndexOffset_) * CFDts: 耦合计算后，CFD 的计算时间
-    // 如果当前流体时间步不是耦合时间步，则 CFD 计算时间一定小于 couplingStep_ * couplingTime() 计算出的时间
-    // timeIndex 从 1 开始，而 couplingStep_ 从 0 开始
-    if ((timeIndex - timeIndexOffset_) * CFDts > couplingStep_ * couplingTime() + Foam::SMALL) {
+    // (timeIndex - timeIndexOffset_ - 1) * CFDts: 当前流体时间步起始时间，Eg: 0.00, 0.01, 0.02, 0.03
+    // couplingStep_ * couplingTime(): 当前耦合时间步的起始时间，Eg: 0.00, 0.03, 0.06
+    if ((timeIndex - timeIndexOffset_ - 1) * CFDts + Foam::SMALL > couplingStep_ * couplingTime()) {
       return true;
     }
     return false;

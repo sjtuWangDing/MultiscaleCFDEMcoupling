@@ -57,6 +57,8 @@ dataExchangeModel::dataExchangeModel(cfdemCloud& cloud)
     // twoWayMPI: 通过 LAMMP 读入
     // twoWayFile: 通过字典文件读入
     DEMts_(-1.0) {
+  Info << "dataExchangeMode: timeIndexOffset_ = " << timeIndexOffset_ << endl;
+  Info << "dataExchangeMode: couplingStep_ = " << couplingStep_ << endl;
 }
 
 //! \brief Destructor
