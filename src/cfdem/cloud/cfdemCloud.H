@@ -92,6 +92,8 @@ public:
 
   /* --------------------------------- virtual functions --------------------------------- */
 
+  virtual void reAlloc();
+
   /* --------------------------------- member functions ---------------------------------- */
 
 public:
@@ -131,8 +133,10 @@ public:
   inline std::shared_ptr<forceModel> forceM(int index) const;
   inline const dataExchangeModel& dataExchangeM() const;
   inline const voidFractionModel& voidFractionM() const;
+  inline const locateModel& locateM() const;
   inline dataExchangeModel& dataExchangeM();
   inline voidFractionModel& voidFractionM();
+  inline locateModel& locateM();
 #if defined(version24Dev)
   inline const turbulenceModel& turbulence() const;
 #elif defined(version21) || defined(version16ext)

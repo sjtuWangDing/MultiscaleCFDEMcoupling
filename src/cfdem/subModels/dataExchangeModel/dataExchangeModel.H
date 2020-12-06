@@ -74,36 +74,100 @@ public:
     const dataExchangeModel& model_;
   };
 
-  //! \brief 耦合时间步计数器
-  template<bool UseTwoWayMPI, typename Tensor>
-  void allocate(Tensor& tensor, const typename Tensor::TData& initVal);
+  template<int nDim, typename DType, typename Device, typename Alloc>
+  void free(base::Tensor<nDim, DType, Device, Alloc>& tensor,
+            DType**& pData) const {
+    CHECK(2 == nDim || 1 == nDim) << "tensor free: error tensor dimension";
+    // 这里不能使用二级配置器 base::default_alloc
+    // 使用一级配置器 base::malloc_alloc，因为通过 LIGGGHTS 分配的内存需要一级配置器释放
+    CHECK((std::is_same<Alloc, TENSOR_MALLOC_ALLOC(DType)>::value))
+      << "dataExchangeModel::free: please use malloc_alloc because LIGGGHTS using malloc() to allocate memory";
+    if (nullptr != pData && nullptr != pData[0]) {
+      CHECK_EQ(nullptr, tensor.dptr_)
+        << "dataExchangeModel::free: tensor's dptr_ should be nullptr because of using liggghts's memory allocate";
+      CHECK_EQ(pData[0], tensor.optr_)
+        << "dataExchangeModel::free: tensor's optr_ not match with pData[0]";
+      // 释放 pData[0] 指向的内存
+      Alloc::deallocate(pData[0], tensor.mSize());
+      // 释放 pData 指向的内存
+      Alloc::deallocate(pData, tensor.size(0));
+      // reset pointer
+      // note: must reset pointer of pData to nullptr, otherwise liggghts will allocate memory failed.
+      pData[0] = nullptr;
+      pData = nullptr;
+      tensor.optr_ = nullptr;
+    }
+  }
 
-  template<int nDim, typename DType, typename Device CFDEM_DEFAULT_DEVICE>
-  inline void reAlloc(base::Tensor<nDim, DType, Device>& tensor,
-                      DType**& pData,
-                      int length, int width) const {
+  /*!
+   * \brief 重新分配 tensor 内存（当前 tensor 用于与 LIGGGHTS 交换数据，所以通过 LIGGGHTS 提供的接口分配内存）
+   * \param tensor 需要分配的内存对象
+   * \param shape 指定 tensor 的 shape
+   * \param pData 与该 tensor 强绑定的 pointer
+   * \param initVal 初始值
+   */
+  template<int nDim, typename DType, typename Device, typename Alloc>
+  void realloc(base::Tensor<nDim, DType, Device, Alloc>& tensor,
+               const base::Shape<nDim>& shape,
+               DType**& pData,
+               DType initVal) const {
     CHECK(2 == nDim || 1 == nDim) << "tensor realloc: error tensor dimension";
+    // 这里不能使用二级配置器 base::default_alloc
+    // 使用一级配置器 base::malloc_alloc，因为通过 LIGGGHTS 分配的内存需要一级配置器释放
     static base::simple_alloc<DType, base::malloc_alloc> alloc1;
     static base::simple_alloc<DType*, base::malloc_alloc> alloc2;
-    if (nullptr == pData && nullptr == tensor.dptr_) {
+    index_t nrow = shape[0];
+    index_t ncol = 1 == nDim ? 1 : shape[1];
+    if (nullptr == pData && tensor.isEmpty()) {
       // 直接调用 LIGGGHTS 分配内存到 pData
-      allocateArray(pData, length, width);
-    } else if (nullptr != pData && nullptr != tensor.dptr_) {
-      CHECK_EQ(pData[0], tensor.dptr_) << "tensor realloc: tensor not match with pData";
+      liggghtsAllocate(pData, nrow, ncol, initVal);
+    } else if (nullptr != pData && nullptr != pData[0] && !tensor.isEmpty()) {
+      CHECK_EQ(nullptr, tensor.dptr_)
+        << "dataExchangeModel::realloc: tensor's dptr_ should be nullptr because of using liggghts's memory allocate";
+      CHECK_EQ(pData[0], tensor.optr_)
+        << "dataExchangeModel::realloc: tensor's optr_ not match with pData";
       // 释放 pData[0] 指向的内存
       alloc1.deallocate(pData[0], tensor.mSize());
       // 释放 pData 指向的内存
-      alloc2.deallocate(pData, tensor.shape_[0]);
+      alloc2.deallocate(pData, tensor.size(0));
+      // reset pointer
+      // note: must reset pointer of pData to nullptr, otherwise liggghts will allocate memory failed.
+      pData[0] = nullptr;
+      pData = nullptr;
+      tensor.optr_ = nullptr;
     } else {
-      CHECK(false) << "tensor realloc: bad realloc";
+      CHECK(false) << "dataExchangeModel::realloc: bad realloc check";
     }
     // 调用 LIGGGHTS 分配内存到 pData
-    allocateArray(pData, length, width);
+    liggghtsAllocate(pData, nrow, ncol, initVal);
     // 将 pData[0] 转移至 tensor
-    tensor.dptr_ = pData[0];
-    tensor.stride_ = 1 == nDim ? length : width;
-    tensor.shape_ = 1 == nDim ? base::makeShape<nDim>({ length }) : base::makeShape<nDim>({ length, width });
+    // 这里会匹配 tensor 中的 move assignment
+    tensor = std::move(base::Tensor<nDim, DType, Device, Alloc>(pData[0], shape));
   }
+
+  // /*!
+  //  * \brief 重新分配 tensor 内存（当前 tensor 不用于与 LIGGGHTS 交换数据，所以通过 CFDEM 分配内存）
+  //  * \param tensor 需要分配的内存对象
+  //  * \param pData 与该 tensor 强绑定的 pointer
+  //  * \param shape 指定 tensor 的 shape
+  //  * \param initVal 初始值
+  //  */
+  // template<int nDim, typename DType, typename Device CFDEM_DEFAULT_DEVICE>
+  // void reAlloc(base::Tensor<nDim, DType, Device>& tensor,
+  //              const base::Shape<nDim>& shape, DType initVal) const {
+  //   CHECK_GT(nDim, 0) << "Error dimension of tensor";
+  //   // 默认通过二级配置器分配内存
+  //   static base::simple_alloc<DType, base::default_alloc> alloc;
+  //   if (tensor.dptr_) {
+  //     // 释放 tensor 内存
+  //     alloc.deallocate(tensor.dptr_, tensor.mSize());
+  //   }
+  //   // 分配内存
+  //   tensor.dptr_ = alloc.allocate(shape.size());
+  //   tensor.shape_ = shape;
+  //   tensor.stride_ = shape[nDim - 1];
+  //   std::fill_n(tensor.dptr_, tensor.mSize(), initVal);
+  // }
 
   /* --------------------------------- virtual functions --------------------------------- */
 
@@ -147,10 +211,10 @@ public:
   virtual void giveData(const std::string& dataName,
                         const std::string& dataType,
                         int** field) const = 0;
-  //! \brief Allocate for 2-D double array
-  virtual void allocateArray(double**& array, int length, int width, double initVal = 0.0) const {}
-  //! \brief Allocate 2-D int array
-  virtual void allocateArray(int**& array, int length, int width, int initVal = 0) const {}
+  //! \brief Allocate for 2-D double array using liggghts interface
+  virtual void liggghtsAllocate(double**& array, int length, int width, double initVal = 0.0) const {}
+  //! \brief Allocate 2-D int array using liggghts interface
+  virtual void liggghtsAllocate(int**& array, int length, int width, int initVal = 0) const {}
 
   // //! \brief Allocate and destroy for 2-D double array
   // virtual void destroy(double**& array) {};
@@ -201,71 +265,23 @@ public:
   /* --------------------------------- member functions ---------------------------------- */
 
   /*!
-   * \brief 因为耦合时间步长 = 流体时间步长的整数倍，所以 timeStepFraction() 用于计算每个流体时间步在耦合时间步中的所占比例，
-   *        如果 couplingTime() == 3 * CFDts，那么每一个耦合时间步由 3 个流体时间步构成，
-   *        那么这三个流体时间步的 timeStepFraction() 分别返回 0, 0.333333, 0.666666
-   */
-  inline double timeStepFraction() const {
-    // 如果当前流体时间步是耦合时间步中第一个流体时间步
-    if (checkValidCouplingStep()) {
-      return 0;
-    }
-    scalar CFDts = cloud_.mesh().time().deltaT().value();
-    label timeIndex = cloud_.mesh().time().timeIndex();
-    // (timeIndex - timeIndexOffset_ - 1) * CFDts: 当前流体时间步起始时间，Eg: 0.00, 0.01, 0.02, 0.03
-    // (couplingStep_ - 1) * couplingTime(): 耦合时间步截止到 (couplingStep_ - 1) 的计算时间
-    return ((timeIndex - timeIndexOffset_ - 1) * CFDts - (couplingStep_ - 1) * couplingTime()) / couplingTime();
-  }
-
-  /*!
    * \brief 检查时间步长是否满足耦合要求（在初始化模型的时候调用）
    * \note (1) 耦合时间步长应该大于 or 等于 CFD 时间步长
    *       (2) 耦合时间步长应该为 CFD 时间步长的整数倍
    *       (3) 如果耦合时间步长 != CFD 时间步长，则要求 allowUseSubCFDTimeStep() 为 true
    */
-  inline void checkTimeStepSize() const {
-    scalar CFDts = cloud_.mesh().time().deltaT().value(); // 获取 CFD 时间步长
-    Info << "CFD time step size: " << CFDts << endl;
-    // 耦合时间步长 >= CFD 时间步长
-    if (CFDts > couplingTime() + Foam::SMALL) {
-      Info << "CFD time step size = " << CFDts << endl;
-      Info << "DEM time step size = " << DEMts_ << endl;
-      Info << "Coupling interval = " << cloud_.cProps().couplingInterval() << endl;
-      FatalError << "CFD time-step bigger than coupling time (= DEM time step * coupling interval)!\n"
-        << abort(FatalError);
-    }
-    // 耦合时间步长应该为 CFD 时间步长的整数倍
-    if (std::fabs((std::round(couplingTime() / CFDts) * CFDts) - couplingTime()) > Foam::SMALL) {
-      Info << "CFD time step size = " << CFDts << endl;
-      Info << "DEM time step size = " << DEMts_ << endl;
-      Info << "Coupling interval = " << cloud_.cProps().couplingInterval() << endl;
-      FatalError << "Coupling time (= DEM time step * coupling interval) is not a multiple of  CFD time-step!\n"<< abort(FatalError);
-    }
-    // 如果耦合时间步长 != CFD 时间步长
-    if (couplingTime() > CFDts + Foam::SMALL) {
-      // 如果不允许使用 CFD sub time step 则报错
-      if (!cloud_.cProps().allowUseSubCFDTimeStep()) {
-        FatalError << "Your models require: CFD time-step = coupling interval (= DEM time step * coupling interval)! \n" << abort(FatalError);
-      }
-      Warning << "You are using sub-time-steps (i.e. CFD time-step < coupling time)" << endl;
-    }
-  }
-
+  void checkTimeStepSize() const;
+  /*!
+   * \brief 因为耦合时间步长 = 流体时间步长的整数倍，所以 timeStepFraction() 用于计算每个流体时间步在耦合时间步中的所占比例，
+   *        如果 couplingTime() == 3 * CFDts，那么每一个耦合时间步由 3 个流体时间步构成，
+   *        那么这三个流体时间步的 timeStepFraction() 分别返回 0, 0.333333, 0.666666
+   */
+  double timeStepFraction() const;
   /*!
    * \brief 因为耦合时间步长 = 流体时间步长的整数倍，而耦合发生在耦合时间步中的第一个流体时间步中，
    *        所以判断当前流体时间步是否同时也是耦合时间步
    */
-  inline bool checkValidCouplingStep() const {
-    scalar CFDts = cloud_.mesh().time().deltaT().value();
-    // OpenFOAM 中 timeIndex 从 1 开始
-    label timeIndex = cloud_.mesh().time().timeIndex();
-    // (timeIndex - timeIndexOffset_ - 1) * CFDts: 当前流体时间步起始时间，Eg: 0.00, 0.01, 0.02, 0.03
-    // couplingStep_ * couplingTime(): 当前耦合时间步的起始时间，Eg: 0.00, 0.03, 0.06
-    if ((timeIndex - timeIndexOffset_ - 1) * CFDts + Foam::SMALL > couplingStep_ * couplingTime()) {
-      return true;
-    }
-    return false;
-  }
+  bool checkValidCouplingStep() const;
 
   /* --------------------------------- public interfaces --------------------------------- */
 

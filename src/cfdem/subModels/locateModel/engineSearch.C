@@ -70,7 +70,7 @@ engineSearch::~engineSearch() {}
  * \param cellIDs   <[in] 颗粒覆盖网格的编号
  */
 void engineSearch::findCell(int numberOfParticles,
-                            const ::base::CITensor2& cellIDs) const {
+                            const base::CITensor2& cellIDs) const {
   CHECK_EQ(numberOfParticles, static_cast<int>(cellIDs.size(0)))
     << "Number of particle is not match";
   for (index_t i = 0; i < numberOfParticles; ++i) {

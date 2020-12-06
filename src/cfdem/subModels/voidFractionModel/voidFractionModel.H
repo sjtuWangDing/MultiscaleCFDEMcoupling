@@ -122,6 +122,15 @@ protected:
   volScalarField volumeFractionPrev_;
 
   volScalarField volumeFractionNext_;
+
+  //! \brief fine颗粒覆盖的网格数量的上限
+  int maxCellsNumPerFineParticle_;
+
+  //! \brief middle 颗粒覆盖的网格数量的上限
+  int maxCellsNumPerMiddleParticle_;
+
+  //! \brief coarse 颗粒覆盖的网格数量的上限
+  int maxCellsNumPerCoarseParticle_;
 };
 
 } // namespace Foam

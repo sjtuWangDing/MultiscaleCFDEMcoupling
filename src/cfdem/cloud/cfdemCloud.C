@@ -113,6 +113,8 @@ cfdemCloud::cfdemCloud(const fvMesh& mesh)
 
 cfdemCloud::~cfdemCloud() {}
 
+void cfdemCloud::reAlloc() {}
+
 /*!
  * \brief 更新函数
  * \note used for cfdemSolverPiso

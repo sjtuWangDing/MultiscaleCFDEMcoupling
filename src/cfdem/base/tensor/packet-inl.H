@@ -12,9 +12,9 @@ enum PacketArch {
 };
 
 #if CFDEM_USE_SSE
-#define CFDEM_DEFAULT_PACKET ::base::packet::kSSE2
+#define CFDEM_DEFAULT_PACKET base::packet::kSSE2
 #else
-#define CFDEM_DEFAULT_PACKET ::base::packet::kPlain
+#define CFDEM_DEFAULT_PACKET base::packet::kPlain
 #endif
 
 template<typename DType, PacketArch Arch = CFDEM_DEFAULT_PACKET>

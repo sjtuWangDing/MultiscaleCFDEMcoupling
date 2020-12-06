@@ -19,11 +19,9 @@ namespace base {
 
 template<typename PrimitiveType>
 class Traits: public PrimitiveType {
-
 public:
   //! \brief Construct from primitive type
   Traits(const PrimitiveType& p): PrimitiveType(p) {}
-
   //! \brief Construct from Istream
   Traits(Istream& is): PrimitiveType(is) {}
 };

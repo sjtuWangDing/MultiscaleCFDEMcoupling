@@ -14,6 +14,8 @@ PFLAGS += -Wno-old-style-cast
 PFLAGS += -Wno-unknown-pragmas
 PFLAGS += -Wunused-variable
 
+PFLAGS += -fno-elide-constructors
+
 UDEF_CFDEM_SRC_DIR = $(CFDEM_SRC_DIR)/cfdem
 MAKE_DIR = $(UDEF_CFDEM_SRC_DIR)/Make
 

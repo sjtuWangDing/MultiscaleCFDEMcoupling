@@ -73,7 +73,7 @@ public:
    * \param cellIDs 颗粒覆盖网格的编号
    */
   virtual void findCell(int numberOfParticles,
-                        const ::base::CITensor2& cellIDs) const = 0;
+                        const base::CITensor2& cellIDs) const = 0;
 
   virtual label findSingleCell(const Foam::vector& position, label oldCellID) const = 0;
 

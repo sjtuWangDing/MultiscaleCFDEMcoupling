@@ -1,30 +1,3 @@
-/*---------------------------------------------------------------------------*\
-    CFDEMcoupling - Open Source CFD-DEM coupling
-    CFDEMcoupling is part of the CFDEMproject
-    www.cfdem.com
-                                Christoph Goniva, christoph.goniva@cfdem.com
-                                Copyright 2009-2012 JKU Linz
-                                Copyright 2012-     DCS Computing GmbH, Linz
--------------------------------------------------------------------------------
-License
-    This file is part of CFDEMcoupling.
-    CFDEMcoupling is free software; you can redistribute it and/or modify it
-    under the terms of the GNU General Public License as published by the
-    Free Software Foundation; either version 3 of the License, or (at your
-    option) any later version.
-    CFDEMcoupling is distributed in the hope that it will be useful, but WITHOUT
-    ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or
-    FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License
-    for more details.
-    You should have received a copy of the GNU General Public License
-    along with CFDEMcoupling; if not, write to the Free Software Foundation,
-    Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA
-Description
-    Defines logging of cfdem
-File
-    logging.H
-\*---------------------------------------------------------------------------*/
-
 #ifndef __LOGGING_H__
 #define __LOGGING_H__
 
@@ -32,7 +5,7 @@ File
 #include <time.h>
 #include <stdarg.h> // va_list
 #include <iostream>
-#include <cstdlib> // abort()
+#include <cstdlib>  // abort()
 #include <sys/types.h>
 #include <unistd.h>
 #include <pthread.h>
@@ -98,34 +71,34 @@ public:
                                 const char* format,
                                 int logLevel,
                                 ...) {
-    // 格式化当期系统日期和时间字符串
-    char dataTime[128];
-    time_t now = time((time_t*)nullptr);
-    strftime(dataTime, sizeof(dataTime), "%Y-%m-%d %H:%M:%S", localtime(&now));
-
-    fprintf(stdout, "[%s][%s][pid = %u][tid = %lu][%s : %d]\n",
-            dataTime, LEVELS[logLevel], getpid(), pthread_self(), getFileName(filePath).c_str(), line);
-    switch (logLevel) {
-      case LEVEL_CRT:
-        fprintf(stdout, RED "%s: " NONE, "Critical Error");
-        break;
-      case LEVEL_ERR:
-        fprintf(stdout, RED "%s: " NONE, "Error");
-        break;
-      case LEVEL_WAR:
-        fprintf(stdout, YELLOW "%s: " NONE, "Warming");
-        break;
-      case LEVEL_DBG:
-        fprintf(stdout, GREEN "%s: " NONE, "Debug");
-        break;
-      default:
-        fprintf(stdout, NONE "%s: " NONE, "Info");
-    }
-    va_list args; // 变长参数表
-    va_start(args, format); // 用format以后的参数初始化变长参数表
-    vfprintf(stdout, format, args); // 按format格式打印变长参数表中的内容
-    va_end(args); // 销毁变长参数表
-    fprintf (stdout, "\n\n");
+//    // 格式化当期系统日期和时间字符串
+//    char dataTime[128];
+//    time_t now = time((time_t*)nullptr);
+//    strftime(dataTime, sizeof(dataTime), "%Y-%m-%d %H:%M:%S", localtime(&now));
+//
+//    fprintf(stdout, "[%s][%s][pid = %u][tid = %lu][%s : %d]\n",
+//            dataTime, LEVELS[logLevel], getpid(), pthread_self(), getFileName(filePath).c_str(), line);
+//    switch (logLevel) {
+//      case LEVEL_CRT:
+//        fprintf(stdout, RED "%s: " NONE, "Critical Error");
+//        break;
+//      case LEVEL_ERR:
+//        fprintf(stdout, RED "%s: " NONE, "Error");
+//        break;
+//      case LEVEL_WAR:
+//        fprintf(stdout, YELLOW "%s: " NONE, "Warming");
+//        break;
+//      case LEVEL_DBG:
+//        fprintf(stdout, GREEN "%s: " NONE, "Debug");
+//        break;
+//      default:
+//        fprintf(stdout, NONE "%s: " NONE, "Info");
+//    }
+//    va_list args; // 变长参数表
+//    va_start(args, format); // 用format以后的参数初始化变长参数表
+//    vfprintf(stdout, format, args); // 按format格式打印变长参数表中的内容
+//    va_end(args); // 销毁变长参数表
+//    fprintf (stdout, "\n\n");
   }
 };
 
@@ -194,41 +167,31 @@ struct gpu {
 
 /*! \brief whether do padding during allocation */
 #ifndef CFDEM_ALLOC_PAD
-#define CFDEM_ALLOC_PAD true
+#define CFDEM_ALLOC_PAD false
 #endif
 
 /*! \brief whether use SSE */
 #ifndef CFDEM_USE_SSE
-  #define CFDEM_USE_SSE 1
+#define CFDEM_USE_SSE 1
 #endif
 
 #if CFDEM_INT64_TENSOR_SIZE == 1
-  typedef int64_t index_t;
+typedef int64_t index_t;
 #else
-  typedef int32_t index_t;
+typedef int32_t index_t;
 #endif
 
-/*! \brief default data type for tensor string */
-#ifndef CFDEM_DEFAULT_DTYPE
-#define CFDEM_DEFAULT_DTYPE = ::base::d_real_t
-#endif
-
-/*! \brief default device type */
-#ifndef CFDEM_DEFAULT_DEVICE
-#define CFDEM_DEFAULT_DEVICE = ::base::cpu
-#endif
-
-#define CHECK(x)                                                                                                   \
-  if (!(x))                                                                                                        \
-    base::LogMessageFatal(base::Logger::getFileName(__FILE__).c_str(), __LINE__).stream()                          \
-      << "Check (" << #x << ") faild! "
+#define CHECK(x)                                                                                           \
+if (!(x))                                                                                                  \
+base::LogMessageFatal(base::Logger::getFileName(__FILE__).c_str(), __LINE__).stream()                      \
+  << "Check (" << #x << ") faild! "
 #define CHECK_GT(x, y) CHECK((x) > (y))
 #define CHECK_LE(x, y) CHECK((x) <= (y))
 #define CHECK_GE(x, y) CHECK((x) >= (y))
 #define CHECK_EQ(x, y) CHECK((x) == (y))
 #define CHECK_NE(x, y) CHECK((x) != (y))
-#define CHECK_NOTNULL(x)                                                                                           \
-  ((x) == NULL ? base::LogMessageFatal(base::Logger::getFileName(__FILE__).c_str(), __LINE__).stream()             \
-    << "Check not null failed: " #x, (x) : (x))
+#define CHECK_NOTNULL(x)                                                                                   \
+((x) == NULL ? base::LogMessageFatal(base::Logger::getFileName(__FILE__).c_str(), __LINE__).stream()       \
+  << "Check not null failed: " #x, (x) : (x))
 
 #endif // __LOGGING_H__

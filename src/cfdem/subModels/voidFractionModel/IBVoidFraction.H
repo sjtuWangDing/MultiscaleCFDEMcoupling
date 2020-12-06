@@ -86,18 +86,59 @@ protected:
    * \brief 设置单个颗粒的体积分数场
    * \param index 颗粒索引
    */
-  void setVolumeFractionForSingleParticle(int index) const;
+  void setVolumeFractionForSingleParticle(int index);
 
   /*!
-   * \brief 计算距离系数
-   * \param index           <[in] 颗粒索引
-   * \param pointInside     <[in] 网格中心
-   * \param pointOutside    <[in] 网格角点
+   * \brief 构建颗粒覆盖的所有网格的哈希集合
+   * \note 设置为递归函数,  通过哈希器将网格编号转换为哈希值,  并存入 set 中以便于搜索
+   * \param index          <[in] 颗粒索引
+   * \param cellID         <[in] 递归循环中要检索网格编号
+   * \param radius         <[in] 颗粒半径
+   * \param particleCentre <[in] 颗粒中心位置
+   * \param hashSett       <[in, out] 需要构建的哈希集
    */
-  double segmentParticleIntersection(int index,
+  void buildLabelHashSetForVolumeFraction(int index,
+                                          const label cellID,
+                                          const double radius,
+                                          const Foam::vector& particleCentre,
+                                          labelHashSet& hashSett);
+
+  /*!
+   * \brief 计算距离系数，对任意一个网格, 如果网格中心 c 在颗粒内部, 但是它的某个角点 p
+   *   不在颗粒内部, 则计算 c 与 p 的连线与颗粒表面的交点 i 到网格中心 c 的距离, 即
+   *   求解 x 的二元一次方程
+   *   (x * (vector_p - vector_c) - vector_particle) & 
+   *   (x * (vector_p - vector_c) - vector_particle) == radius * radius
+   *   等价于函数体中定义的: a*(x^2) - b*x + c = 0
+   * \param radius         <[in] 颗粒半径
+   * \param particleCentre <[in] 颗粒中心
+   * \param pointInside    <[in] 网格中心
+   * \param pointOutside   <[in] 网格角点
+   */
+  double segmentParticleIntersection(double radius,
+                                     const Foam::vector& particleCentre,
                                      const Foam::vector& pointInside,
                                      const Foam::vector& pointOutside) const;
 
+  /*!
+   * \brief 获取 Corona Point
+   * \note Corona Point 是在以网格中心为中心, 半径为 corona 的球面上, 距离颗粒中心最远的点
+   *       其中, 半径 corona = 0.5 * sqrt(3) * 网格等效半径
+   *       网格等效半径 = pow(cellVolume, 1.0 / 3.0)
+   * \param particleCentre  <[in] 指定颗粒中心
+   * \param cellCentre      <[in] 指定网格中心
+   * \param corona          <[in] 指定网格的等效半径
+   */
+  Foam::vector getCoronaPointPosition(const Foam::vector& particleCentre,
+                                      const Foam::vector& cellCentre,
+                                      const scalar corona) const;
+
+private:
+  dictionary subPropsDict_;
+
+  const double alphaMin_;
+
+  const double alphaMax_;
 };
 
 } // namespace Foam

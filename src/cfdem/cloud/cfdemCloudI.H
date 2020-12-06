@@ -49,6 +49,7 @@ Class
 #include "subModels/dataExchangeModel/dataExchangeModel.H"
 #include "subModels/averagingModel/averagingModel.H"
 #include "subModels/voidFractionModel/voidFractionModel.H"
+#include "subModels/locateModel/locateModel.H"
 
 namespace Foam {
 
@@ -75,6 +76,8 @@ inline std::shared_ptr<forceModel> cfdemCloud::forceM(int index) const {
 inline const dataExchangeModel& cfdemCloud::dataExchangeM() const { return dataExchangeModel_; }
 
 inline const voidFractionModel& cfdemCloud::voidFractionM() const { return voidFractionModel_; }
+
+inline const locateModel& cfdemCloud::locateM() const { return locateModel_; }
 
 inline dataExchangeModel& cfdemCloud::dataExchangeM() {
   return const_cast<dataExchangeModel&>(static_cast<const dataExchangeModel&>(dataExchangeModel_));

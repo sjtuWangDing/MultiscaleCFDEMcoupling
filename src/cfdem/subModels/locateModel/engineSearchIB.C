@@ -74,7 +74,7 @@ engineSearchIB::~engineSearchIB() {}
  * \param cellIDs 颗粒覆盖网格的编号
  */
 void engineSearchIB::findCell(int numberOfParticles,
-                              const ::base::CITensor2& cellIDs) const {
+                              const base::CITensor2& cellIDs) const {
   CHECK_EQ(numberOfParticles, static_cast<int>(cellIDs.size(0)))
     << "Number of particle is not match";
 
@@ -121,9 +121,10 @@ void engineSearchIB::findCell(int numberOfParticles,
       label oldCellID = cellIDs[index][0];
       // findSingleCell is defined in engineSearch and return the found cell id.
       cellIDs[index][0] = findSingleCell(periodicPos, oldCellID);
-      // not found with periodicPos
+      // not found
       if (cellIDs[index][0] < 0) {
         label altStartID = -1;
+        // 遍历当前颗粒的所有 satellitePoint
         for (size_t i = 0; i < satellitePoints_.size(); ++i) {
           Foam::vector pos = getSatellitePointPos(index, static_cast<int>(i));
           isInside = isInsideRectangularDomain(pos, Foam::SMALL);
@@ -131,11 +132,9 @@ void engineSearchIB::findCell(int numberOfParticles,
           if (isInside) {
             altStartID = findSingleCell(pos, oldCellID);
           }
-
           if (cloud_.checkPeriodicCells()) {
             FatalError << "Error: not support periodic check!" << abort(FatalError);
           }
-
           if (altStartID >= 0) {
             // found cell id
             cellIDs[index][0] = altStartID;

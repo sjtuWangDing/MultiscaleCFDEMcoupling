@@ -136,12 +136,12 @@ public:
                 int** field) const {
     data_of_to_liggghts(dataName.c_str(), dataType.c_str(), lmp_, (void*)field, (const char*)"int");
   }
-  //! \brief Allocate for 2-D double array
-  virtual void allocateArray(double**& array, int length, int width, double initVal = 0.0) const {
+  //! \brief Allocate for 2-D double array using liggghts interface
+  virtual void liggghtsAllocate(double**& array, int length, int width, double initVal = 0.0) const {
     allocate_external_double(array, width, length, initVal, lmp_);
   }
-  //! \brief Allocate 2-D int array
-  virtual void allocateArray(int**& array, int length, int width, int initVal = 0) const {
+  //! \brief Allocate 2-D int array using liggghts interface
+  virtual void liggghtsAllocate(int**& array, int length, int width, int initVal = 0) const {
     allocate_external_int(array, width, length, initVal, lmp_);
   }
 

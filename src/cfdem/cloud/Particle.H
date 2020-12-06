@@ -50,61 +50,34 @@ enum ScaleType {
 
 /*!
  * \brief base class for particle
- * \tparam PType inheritated class must put their type into this parameter
+ * \tparam ParticleType inheritated class must put their type into this parameter
  */
-template<typename PType>
+template<typename ParticleType>
 class Particle {
 public:
   //! \return  subtype instance of current class
-  inline const PType& self() const {
-    return *static_cast<const PType*>(this);
+  inline const ParticleType& self() const {
+    return *static_cast<const ParticleType*>(this);
   }
   //! \return reference of subtype instance of current class
-  inline PType* ptrSelf() {
-    return static_cast<PType*>(this);
+  inline ParticleType* ptrSelf() {
+    return static_cast<ParticleType*>(this);
   }
-  //! \brief Constructor
-  inline Particle(index_t index, ScaleType scaleType = KUnknown)
-      : index_(index), scaleType_(scaleType) {}
-  //! \brief Copy constructor
-  inline Particle(const Particle<PType>& p)
-      : index_(p.index_), scaleType_(p.scaleType_) {}
-  //! \brief operator=
-  inline Particle& operator= (const Particle<PType>& p) {
-    if (*this != p) {
-      index_ = p.index_;
-      scaleType_ = p.scaleType_;
-    }
-  }
-  /*!
-   * \return whether two particle equals
-   * \param p the particle to compare against
-   * \note 由于同一个颗粒在每一个cpu核心中都有一个，所以这里不使用 this == &p 来比较
-   */
-  inline bool operator== (const Particle<PType>& p) const {
-    return index_ == p.index_;
-  }
-  inline bool operator!= (const Particle<PType>& p) const {
-    return !(*this == p);
-  }
-protected:
-  //! \brief 颗粒索引，颗粒的唯一标识
-  index_t index_;
-  //! \brief 颗粒尺度类型
-  ScaleType scaleType_;
 };
 
-class CoarseParticle: public Particle<CoarseParticle> {
+class SphereParticle: public Particle<SphereParticle> {
 public:
-  inline CoarseParticle(index_t index)
-      : Particle<CoarseParticle>(index, kCoarse),
-        radius_(0.0) {}
-
-private:
+  inline SphereParticle()
+      : dimensionRatio_(-1.0), radius_(0.0) {}
+protected:
+  double dimensionRatio_;
   double radius_;
-  base::CITensor1 cellID_;
   base::CDTensor1 position_;
-  base::CDTensor1 voidFraction_;
+  base::CDTensor1 veloctity_;
+  base::CDTensor1 DEMForce_;
+  base::CDTensor1 impForce_;
+  base::CDTensor1 expForce_;
+  base::CITensor1 cellID_;
 };
 
 } // namespace Foam

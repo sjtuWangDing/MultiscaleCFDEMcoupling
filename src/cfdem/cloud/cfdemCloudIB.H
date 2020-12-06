@@ -64,10 +64,12 @@ public:
                     volScalarField& refineMeshKeepStep) const;
 
   //! \brief 重新分配内存
-  void reAlloc();
+  virtual void reAlloc();
 
   //! \brief 从 DEM 获取数据
   void getDEMData();
+
+  void getDimensionRatio();
 
   /* ------------------------- interface of class --------------------------------------- */
 

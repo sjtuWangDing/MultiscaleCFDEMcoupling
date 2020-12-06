@@ -47,56 +47,59 @@ cfdemDefineDestroyNewFunctionMap(voidFractionModel)
 cfdmeDefineBaseTypeNew(autoPtr, voidFractionModel, (cfdemCloud& cloud, const dictionary& dict), dict, (cloud))
 
 //! \brief Constructor
-voidFractionModel::voidFractionModel(cfdemCloud& cloud):
-  cloud_(cloud),
-  voidFractionPrev_(
-    IOobject(
-      "voidFractionPrev",
-      cloud.mesh().time().timeName(),
+voidFractionModel::voidFractionModel(cfdemCloud& cloud)
+  : cloud_(cloud),
+    voidFractionPrev_(
+      IOobject(
+        "voidFractionPrev",
+        cloud.mesh().time().timeName(),
+        cloud.mesh(),
+        IOobject::READ_IF_PRESENT, // or MUST_READ,
+        IOobject::AUTO_WRITE
+      ),
+      // cloud.mesh().lookupObject<volScalarField>("voidFraction")
       cloud.mesh(),
-      IOobject::READ_IF_PRESENT, // or MUST_READ,
-      IOobject::AUTO_WRITE
+      dimensionedScalar("zero", dimensionSet(0, 0, 0, 0, 0), 1)
     ),
-    // cloud.mesh().lookupObject<volScalarField>("voidFraction")
-    cloud.mesh(),
-    dimensionedScalar("zero", dimensionSet(0, 0, 0, 0, 0), 1)
-  ),
-  voidFractionNext_(
-    IOobject(
-      "voidFractionNext",
-      cloud.mesh().time().timeName(),
+    voidFractionNext_(
+      IOobject(
+        "voidFractionNext",
+        cloud.mesh().time().timeName(),
+        cloud.mesh(),
+        IOobject::READ_IF_PRESENT, // or MUST_READ,
+        IOobject::AUTO_WRITE
+      ),
+      // cloud.mesh().lookupObject<volScalarField>("voidFraction")
       cloud.mesh(),
-      IOobject::READ_IF_PRESENT, // or MUST_READ,
-      IOobject::AUTO_WRITE
+      dimensionedScalar("zero", dimensionSet(0, 0, 0, 0, 0), 1)
     ),
-    // cloud.mesh().lookupObject<volScalarField>("voidFraction")
-    cloud.mesh(),
-    dimensionedScalar("zero", dimensionSet(0, 0, 0, 0, 0), 1)
-  ),
-  volumeFractionPrev_(
-    IOobject(
-      "volumeFractionPrev",
-      cloud.mesh().time().timeName(),
+    volumeFractionPrev_(
+      IOobject(
+        "volumeFractionPrev",
+        cloud.mesh().time().timeName(),
+        cloud.mesh(),
+        IOobject::READ_IF_PRESENT, // or MUST_READ,
+        IOobject::AUTO_WRITE
+      ),
+      // cloud.mesh().lookupObject<volScalarField>("volumeFraction")
       cloud.mesh(),
-      IOobject::READ_IF_PRESENT, // or MUST_READ,
-      IOobject::AUTO_WRITE
+      dimensionedScalar("zero", dimensionSet(0, 0, 0, 0, 0), 1)
     ),
-    // cloud.mesh().lookupObject<volScalarField>("volumeFraction")
-    cloud.mesh(),
-    dimensionedScalar("zero", dimensionSet(0, 0, 0, 0, 0), 1)
-  ),
-  volumeFractionNext_(
-    IOobject(
-      "volumeFractionNext",
-      cloud.mesh().time().timeName(),
+    volumeFractionNext_(
+      IOobject(
+        "volumeFractionNext",
+        cloud.mesh().time().timeName(),
+        cloud.mesh(),
+        IOobject::READ_IF_PRESENT, // or MUST_READ,
+        IOobject::AUTO_WRITE
+      ),
+      // cloud.mesh().lookupObject<volScalarField>("volumeFraction")
       cloud.mesh(),
-      IOobject::READ_IF_PRESENT, // or MUST_READ,
-      IOobject::AUTO_WRITE
+      dimensionedScalar("zero", dimensionSet(0, 0, 0, 0, 0), 1)
     ),
-    // cloud.mesh().lookupObject<volScalarField>("volumeFraction")
-    cloud.mesh(),
-    dimensionedScalar("zero", dimensionSet(0, 0, 0, 0, 0), 1)
-  ) {}
+    maxCellsNumPerFineParticle_(1),
+    maxCellsNumPerMiddleParticle_(1),
+    maxCellsNumPerCoarseParticle_(1) {}
 
 //! \brief Destructor
 voidFractionModel::~voidFractionModel() {}

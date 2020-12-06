@@ -84,7 +84,7 @@ public:
    * \param cellIDs   <[in] 颗粒覆盖网格的编号
    */
   void findCell(int numberOfParticles,
-                const ::base::CITensor2& cellIDs) const;
+                const base::CITensor2& cellIDs) const;
 
 private:
 

@@ -44,7 +44,26 @@ cfdemCloudIB::cfdemCloudIB(const fvMesh& mesh)
 }
 
 //! \brief Destructor
-cfdemCloudIB::~cfdemCloudIB() {}
+cfdemCloudIB::~cfdemCloudIB() {
+
+}
+
+void cfdemCloudIB::reAlloc() {
+  if (numberOfParticlesChanged()) {
+    int number = numberOfParticles();
+    // allocate memory of data exchanged with liggghts
+    dataExchangeM().realloc(pCloud_.radii(), base::makeShape1(number), pCloud_.pRadii(), 0.0);
+    dataExchangeM().realloc(pCloud_.positions(), base::makeShape2(number, 3), pCloud_.pPositions(), 0.0);
+    dataExchangeM().realloc(pCloud_.velocities(), base::makeShape2(number, 3), pCloud_.pVelocities(), 0.0);
+    // allocate memory of data not exchanged with liggghts
+  }
+}
+
+void cfdemCloudIB::getDEMData() {
+  dataExchangeM().getData("radius", "scalar-atom", pCloud_.pRadii());
+  dataExchangeM().getData("x", "vector-atom", pCloud_.pPositions());
+  dataExchangeM().getData("v", "vector-atom", pCloud_.pVelocities());
+}
 
 /*!
  * \brief 更新函数
@@ -65,28 +84,10 @@ void cfdemCloudIB::evolve(volScalarField& volumeFraction,
     reAlloc();
     // 获取 DEM 数据
     getDEMData();
-    for (int i = 0; i < numberOfParticles(); ++i) {
-      Pout << "radius: " << radii()[i] << endl;
-      Pout << "position: " << positions()[i][0] << ", " << positions()[i][1] << ", " << positions()[i][2] << endl;
-      Pout << "velocity: " << velocities()[i][0] << ", " << velocities()[i][1] << ", " << velocities()[i][2] << endl;
-    }
+    // 获取到在当前 processor 上颗粒覆盖的某一个网格编号，如果获取到的网格编号为 -1，则表示颗粒不覆盖当前 processor
+    // locateM().findCell(numberOfParticles(), pCloud_.cellIDs());
   }
   Info << __func__ << " - done\n" << endl;
-}
-
-void cfdemCloudIB::reAlloc() {
-  if (numberOfParticlesChanged()) {
-    int number = numberOfParticles();
-    dataExchangeM().reAlloc(pCloud_.radii(), pCloud_.pRadii(), number, 1);
-    dataExchangeM().reAlloc(pCloud_.positions(), pCloud_.pPositions(), number, 3);
-    dataExchangeM().reAlloc(pCloud_.velocities(), pCloud_.pVelocities(), number, 3);
-  }
-}
-
-void cfdemCloudIB::getDEMData() {
-  dataExchangeM().getData("radius", "scalar-atom", pCloud_.pRadii());
-  dataExchangeM().getData("x", "vector-atom", pCloud_.pPositions());
-  dataExchangeM().getData("v", "vector-atom", pCloud_.pVelocities());
 }
 
 //! @brief 确定颗粒周围细化网格的区域(每个方向的尺寸都是颗粒尺寸的两倍)
