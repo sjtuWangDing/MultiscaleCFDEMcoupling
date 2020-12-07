@@ -82,20 +82,25 @@ public:
     // 使用一级配置器 base::malloc_alloc，因为通过 LIGGGHTS 分配的内存需要一级配置器释放
     CHECK((std::is_same<Alloc, TENSOR_MALLOC_ALLOC(DType)>::value))
       << "dataExchangeModel::free: please use malloc_alloc because LIGGGHTS using malloc() to allocate memory";
-    if (nullptr != pData && nullptr != pData[0]) {
+    if (nullptr == pData && tensor.isEmpty()) {
+      // no need to free
+      return;
+    } else if (nullptr != pData && nullptr != pData[0]) {
       CHECK_EQ(nullptr, tensor.dptr_)
         << "dataExchangeModel::free: tensor's dptr_ should be nullptr because of using liggghts's memory allocate";
       CHECK_EQ(pData[0], tensor.optr_)
         << "dataExchangeModel::free: tensor's optr_ not match with pData[0]";
       // 释放 pData[0] 指向的内存
-      Alloc::deallocate(pData[0], tensor.mSize());
+      TENSOR_MALLOC_ALLOC(DType)::deallocate(pData[0], tensor.mSize());
       // 释放 pData 指向的内存
-      Alloc::deallocate(pData, tensor.size(0));
+      TENSOR_MALLOC_ALLOC(DType*)::deallocate(pData, tensor.size(0));
       // reset pointer
       // note: must reset pointer of pData to nullptr, otherwise liggghts will allocate memory failed.
       pData[0] = nullptr;
       pData = nullptr;
       tensor.optr_ = nullptr;
+    } else {
+      CHECK(false) << "dataExchangeModel::free: bad free";
     }
   }
 
@@ -112,32 +117,9 @@ public:
                DType**& pData,
                DType initVal) const {
     CHECK(2 == nDim || 1 == nDim) << "tensor realloc: error tensor dimension";
-    // 这里不能使用二级配置器 base::default_alloc
-    // 使用一级配置器 base::malloc_alloc，因为通过 LIGGGHTS 分配的内存需要一级配置器释放
-    static base::simple_alloc<DType, base::malloc_alloc> alloc1;
-    static base::simple_alloc<DType*, base::malloc_alloc> alloc2;
+    this->free(tensor, pData);
     index_t nrow = shape[0];
     index_t ncol = 1 == nDim ? 1 : shape[1];
-    if (nullptr == pData && tensor.isEmpty()) {
-      // 直接调用 LIGGGHTS 分配内存到 pData
-      liggghtsAllocate(pData, nrow, ncol, initVal);
-    } else if (nullptr != pData && nullptr != pData[0] && !tensor.isEmpty()) {
-      CHECK_EQ(nullptr, tensor.dptr_)
-        << "dataExchangeModel::realloc: tensor's dptr_ should be nullptr because of using liggghts's memory allocate";
-      CHECK_EQ(pData[0], tensor.optr_)
-        << "dataExchangeModel::realloc: tensor's optr_ not match with pData";
-      // 释放 pData[0] 指向的内存
-      alloc1.deallocate(pData[0], tensor.mSize());
-      // 释放 pData 指向的内存
-      alloc2.deallocate(pData, tensor.size(0));
-      // reset pointer
-      // note: must reset pointer of pData to nullptr, otherwise liggghts will allocate memory failed.
-      pData[0] = nullptr;
-      pData = nullptr;
-      tensor.optr_ = nullptr;
-    } else {
-      CHECK(false) << "dataExchangeModel::realloc: bad realloc check";
-    }
     // 调用 LIGGGHTS 分配内存到 pData
     liggghtsAllocate(pData, nrow, ncol, initVal);
     // 将 pData[0] 转移至 tensor

@@ -35,7 +35,6 @@ Class
 #ifndef __PARTICLE_H__
 #define __PARTICLE_H__
 
-#include "error.H"
 #include "base/tensor/tensor.H"
 
 namespace Foam {

@@ -64,7 +64,7 @@ cfdemCloud::cfdemCloud(const fvMesh& mesh)
       )
     ),
     cProps_(mesh, couplingPropertiesDict_, liggghtsCommandsDict_),
-    pCloud_(0),
+    parCloud_(0),
     dataExchangeModel_(dataExchangeModel::New(*this, couplingPropertiesDict_)),
     voidFractionModel_(voidFractionModel::New(*this, couplingPropertiesDict_)),
     locateModel_(locateModel::New(*this, couplingPropertiesDict_)),
@@ -132,8 +132,8 @@ void cfdemCloud::evolve(volScalarField& VoidF,
   // if (dataExchangeM().doCoupleNow()) {
   //   Info << "evolve coupling..." << endl;
   //   // couple() 函数执行 liggghts 脚本，并获取新的颗粒数量
-  //   pCloud_.setNumberOfParticles(dataExchangeM().couple());
-  //   Info << "get number of particles: " << pCloud_.numberOfParticles()<< " at coupling step: "
+  //   parCloud_.setNumberOfParticles(dataExchangeM().couple());
+  //   Info << "get number of particles: " << parCloud_.numberOfParticles()<< " at coupling step: "
   //     << dataExchangeM().couplingStep() << endl;
   //   // 重置局部平均颗粒速度
   //   averagingM().resetUs();

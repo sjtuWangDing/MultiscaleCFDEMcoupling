@@ -35,48 +35,70 @@ Class
 #ifndef __PARTICLE_CLOUD_H__
 #define __PARTICLE_CLOUD_H__
 
-#include "error.H"
+#include "fvCFD.H"
 #include "base/tensor/tensor.H"
 #include "cloud/cfdemBase.H"
 
 namespace Foam {
 
+class cfdemCloud;
+
 //! \brief The basic class for particles
 class ParticleCloud {
+
+  friend class cfdemCloud;
+
 public:
   ParticleCloud(int numberOfParticles = -1)
     : numberOfParticles_(numberOfParticles),
       numberOfParticlesChanged_(false),
-      pRadii_(nullptr),
-      pPositions_(nullptr),
-      pVelocities_(nullptr) {}
-  // interfaces - getter
-  inline int numberOfParticles() const { return numberOfParticles_; }
-  inline bool numberOfParticlesChanged() const { return numberOfParticlesChanged_; }
+      radiiPtr_(nullptr),
+      positionsPtr_(nullptr),
+      velocitiesPtr_(nullptr) {}
+
+  inline int& numberOfParticles() { return numberOfParticles_; }
+  inline bool& numberOfParticlesChanged() { return numberOfParticlesChanged_; }
   inline base::CITensor1& particleOverMeshNumber() { return particleOverMeshNumber_; }
-  inline base::CDTensor1& radii() { return radii_; }
   inline base::CDTensor1& volumes() { return volumes_; }
-  inline base::CDTensor1& cds() { return cds_; }
   inline base::CITensor2& cellIDs() { return cellIDs_; }
-  inline base::CDTensor2& positions() { return positions_; }
-  inline base::CDTensor2& velocities() { return velocities_; }
-  inline base::CDTensor2& fluidVel() { return fluidVel_; }
   inline base::CDTensor2& fAcc() { return fAcc_; }
   inline base::CDTensor2& impForces() { return impForces_; }
   inline base::CDTensor2& expForces() { return expForces_; }
-  inline base::CDTensor2& DEMForces() { return DEMForces_; }
-  inline base::CDTensor2& DEMTorques() { return DEMTorques_; }
   inline base::CDTensor2& voidFractions() { return voidFractions_; }
   inline base::CDTensor2& particleWeights() { return particleWeights_; }
   inline base::CDTensor2& particleVolumes() { return particleVolumes_; }
-  inline double**& pRadii() { return pRadii_; }
-  inline double**& pPositions() { return pPositions_; }
-  inline double**& pVelocities() { return pVelocities_; }
-  // interface - setter
+  inline double**& radiiPtr() { return radiiPtr_; }
+  inline double**& cdsPtr() { return cdsPtr_; }
+  inline double**& positionsPtr() { return positionsPtr_; }
+  inline double**& velocitiesPtr() { return velocitiesPtr_; }
+  inline double**& DEMForcesPtr() { return DEMForcesPtr_; }
+  inline double**& DEMTorquesPtr() { return DEMTorquesPtr_; }
+  inline double**& fluidVelPtr() { return fluidVelPtr_; }
+  inline base::CDExTensor1& cds() { return cds_; }
+  inline base::CDExTensor1& radii() { return radii_; }
+  inline base::CDExTensor2& positions() { return positions_; }
+  inline base::CDExTensor2& velocities() { return velocities_; }
+  inline base::CDExTensor2& DEMForces() { return DEMForces_; }
+  inline base::CDExTensor2& DEMTorques() { return DEMTorques_; }
+  inline base::CDExTensor2& fluidVel() { return fluidVel_; }
+
+  inline Foam::vector getPosition(int index) const {
+    CHECK_EQ(numberOfParticles_, static_cast<int>(positions_.size(0)))
+      << "getPosition: Number of particle is not match";
+    Foam::vector pos = Foam::vector::zero;
+    #pragma unroll
+    for (int i = 0; i < 3; ++i) { pos[i] = positions_[index][i]; }
+    return pos;
+  }
+
+  inline double getRadius(int index) const {
+    CHECK_EQ(numberOfParticles_, static_cast<int>(radii_.size(0))) << "getRadius: Number of particle is not match";
+    CHECK_GT(radii_[index], Foam::SMALL) << "getRadius: Radius of particle " << index << " is < " << "Foam::SMALL";
+    return radii_[index];
+  }
+
   inline void setNumberOfParticles(int number) {
-    if (number <= 0) {
-      FatalError << "number of particle is <= 0" << abort(FatalError);
-    }
+    CHECK_GE(number, 0) << "setNumberOfParticles: number of particle is <= 0";
     numberOfParticlesChanged_ = numberOfParticles_ != number ? true : false;
     numberOfParticles_ = number;
   }
@@ -88,24 +110,29 @@ private:
   bool numberOfParticlesChanged_;
 #if CFDEM_USE_TENSOR
   base::CITensor1 particleOverMeshNumber_;
-  base::CDTensor1 radii_;
   base::CDTensor1 volumes_;
-  base::CDTensor1 cds_;
   base::CITensor2 cellIDs_;
-  base::CDTensor2 positions_;
-  base::CDTensor2 velocities_;
-  base::CDTensor2 fluidVel_;
   base::CDTensor2 fAcc_;
   base::CDTensor2 impForces_;
   base::CDTensor2 expForces_;
-  base::CDTensor2 DEMForces_;
-  base::CDTensor2 DEMTorques_;
   base::CDTensor2 voidFractions_;
   base::CDTensor2 particleWeights_;
   base::CDTensor2 particleVolumes_;
-  double** pRadii_;
-  double** pPositions_;
-  double** pVelocities_;
+  double** radiiPtr_;
+  double** cdsPtr_;
+  double** positionsPtr_;
+  double** velocitiesPtr_;
+  double** DEMForcesPtr_;
+  double** DEMTorquesPtr_;
+  double** fluidVelPtr_;
+  base::CDExTensor1 radii_;
+  base::CDExTensor1 cds_;
+  base::CDExTensor2 positions_;
+  base::CDExTensor2 velocities_;
+  base::CDExTensor2 DEMForces_;
+  base::CDExTensor2 DEMTorques_;
+  base::CDExTensor2 fluidVel_;
+
 #else
   //! \brief 颗粒半径
   //! \note radii_[index][0]

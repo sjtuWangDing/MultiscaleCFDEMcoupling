@@ -45,24 +45,29 @@ cfdemCloudIB::cfdemCloudIB(const fvMesh& mesh)
 
 //! \brief Destructor
 cfdemCloudIB::~cfdemCloudIB() {
-
+  dataExchangeM().free(parCloud_.radii(), parCloud_.radiiPtr());
+  dataExchangeM().free(parCloud_.positions(), parCloud_.positionsPtr());
+  dataExchangeM().free(parCloud_.velocities(), parCloud_.velocitiesPtr());
 }
 
 void cfdemCloudIB::reAlloc() {
   if (numberOfParticlesChanged()) {
     int number = numberOfParticles();
     // allocate memory of data exchanged with liggghts
-    dataExchangeM().realloc(pCloud_.radii(), base::makeShape1(number), pCloud_.pRadii(), 0.0);
-    dataExchangeM().realloc(pCloud_.positions(), base::makeShape2(number, 3), pCloud_.pPositions(), 0.0);
-    dataExchangeM().realloc(pCloud_.velocities(), base::makeShape2(number, 3), pCloud_.pVelocities(), 0.0);
+    dataExchangeM().realloc(parCloud_.radii(), base::makeShape1(number), parCloud_.radiiPtr(), 0.0);
+    dataExchangeM().realloc(parCloud_.positions(), base::makeShape2(number, 3), parCloud_.positionsPtr(), 0.0);
+    dataExchangeM().realloc(parCloud_.velocities(), base::makeShape2(number, 3), parCloud_.velocitiesPtr(), 0.0);
     // allocate memory of data not exchanged with liggghts
   }
 }
 
 void cfdemCloudIB::getDEMData() {
-  dataExchangeM().getData("radius", "scalar-atom", pCloud_.pRadii());
-  dataExchangeM().getData("x", "vector-atom", pCloud_.pPositions());
-  dataExchangeM().getData("v", "vector-atom", pCloud_.pVelocities());
+  dataExchangeM().getData("radius", "scalar-atom", parCloud_.radiiPtr());
+  dataExchangeM().getData("x", "vector-atom", parCloud_.positionsPtr());
+  dataExchangeM().getData("v", "vector-atom", parCloud_.velocitiesPtr());
+  // for (int i = 0; i < numberOfParticles(); ++i) {
+  //   Pout << positions()[i][0] << ", " << positions()[i][1] << ", " << positions()[i][2] << endl;
+  // }
 }
 
 /*!
@@ -85,7 +90,7 @@ void cfdemCloudIB::evolve(volScalarField& volumeFraction,
     // 获取 DEM 数据
     getDEMData();
     // 获取到在当前 processor 上颗粒覆盖的某一个网格编号，如果获取到的网格编号为 -1，则表示颗粒不覆盖当前 processor
-    // locateM().findCell(numberOfParticles(), pCloud_.cellIDs());
+    // locateM().findCell(numberOfParticles(), parCloud_.cellIDs());
   }
   Info << __func__ << " - done\n" << endl;
 }
