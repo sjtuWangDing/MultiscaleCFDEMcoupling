@@ -44,6 +44,8 @@ Class
 #include "IFstream.H"
 #include "error.h"
 
+#include "base/logging.H"
+#include "base/typeCast.H"
 #include "base/allocator/xAlloc.H"
 #include "base/tensor/tensor.H"
 #include "cloud/OFVersion.H" // choose version
@@ -137,6 +139,7 @@ public:
   inline const locateModel& locateM() const;
   inline dataExchangeModel& dataExchangeM();
   inline voidFractionModel& voidFractionM();
+  inline locateModel& locateM();
 #if defined(version24Dev)
   inline const turbulenceModel& turbulence() const;
 #elif defined(version21) || defined(version16ext)

@@ -65,7 +65,7 @@ engineSearchIB::engineSearchIB(cfdemCloud& cloud, const std::string& derivedType
   }
 }
 
-  //! \brief Destructor
+//! \brief Destructor
 engineSearchIB::~engineSearchIB() {}
 
 /*!

@@ -79,13 +79,11 @@ inline const voidFractionModel& cfdemCloud::voidFractionM() const { return voidF
 
 inline const locateModel& cfdemCloud::locateM() const { return locateModel_; }
 
-inline dataExchangeModel& cfdemCloud::dataExchangeM() {
-  return const_cast<dataExchangeModel&>(static_cast<const dataExchangeModel&>(dataExchangeModel_));
-}
+inline dataExchangeModel& cfdemCloud::dataExchangeM() { return dataExchangeModel_(); }
 
-inline voidFractionModel& cfdemCloud::voidFractionM() {
-  return const_cast<voidFractionModel&>(static_cast<const voidFractionModel&>(voidFractionModel_));
-}
+inline voidFractionModel& cfdemCloud::voidFractionM() { return voidFractionModel_(); }
+
+inline locateModel& cfdemCloud::locateM() { return locateModel_(); }
 
 #if defined(version24Dev)
 inline const turbulenceModel& cfdemCloud::turbulence() const

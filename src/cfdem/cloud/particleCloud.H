@@ -136,7 +136,6 @@ private:
   base::CDExTensor2 DEMForces_;
   base::CDExTensor2 DEMTorques_;
   base::CDExTensor2 fluidVel_;
-
 #else
   //! \brief 颗粒半径
   //! \note radii_[index][0]
