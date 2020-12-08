@@ -50,15 +50,19 @@ cfdemCloudIB::~cfdemCloudIB() {
   dataExchangeM().free(parCloud_.velocities(), parCloud_.velocitiesPtr());
 }
 
-void cfdemCloudIB::reAlloc() {
-  if (numberOfParticlesChanged()) {
+//! \brief 重新分配内存
+void cfdemCloudIB::reallocate() {
+  // if (numberOfParticlesChanged()) {
     int number = numberOfParticles();
     // allocate memory of data exchanged with liggghts
     dataExchangeM().realloc(parCloud_.radii(), base::makeShape1(number), parCloud_.radiiPtr(), 0.0);
     dataExchangeM().realloc(parCloud_.positions(), base::makeShape2(number, 3), parCloud_.positionsPtr(), 0.0);
     dataExchangeM().realloc(parCloud_.velocities(), base::makeShape2(number, 3), parCloud_.velocitiesPtr(), 0.0);
     // allocate memory of data not exchanged with liggghts
-  }
+    parCloud_.particleOverMeshNumber() = std::move(base::CITensor1(base::makeShape1(number), 0));
+    parCloud_.findCellIDs() = std::move(base::CITensor1(base::makeShape1(number), -1));
+    parCloud_.dimensionRatios() = std::move(base::CDTensor1(base::makeShape1(number), 0.0));
+  // }
 }
 
 void cfdemCloudIB::getDEMData() {
@@ -86,11 +90,11 @@ void cfdemCloudIB::evolve(volScalarField& volumeFraction,
     // couple(): run liggghts command and get number of particle
     setNumberOfParticles(dataExchangeM().couple());
     // realloc memory
-    reAlloc();
+    reallocate();
     // 获取 DEM 数据
     getDEMData();
     // 获取到在当前 processor 上颗粒覆盖的某一个网格编号，如果获取到的网格编号为 -1，则表示颗粒不覆盖当前 processor
-    // locateM().findCell(numberOfParticles(), parCloud_.cellIDs());
+    locateM().findCell(parCloud_.findCellIDs());
   }
   Info << __func__ << " - done\n" << endl;
 }

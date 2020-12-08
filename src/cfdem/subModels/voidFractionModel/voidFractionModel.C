@@ -104,4 +104,6 @@ voidFractionModel::voidFractionModel(cfdemCloud& cloud)
 //! \brief Destructor
 voidFractionModel::~voidFractionModel() {}
 
+
+
 } // namespace Foam

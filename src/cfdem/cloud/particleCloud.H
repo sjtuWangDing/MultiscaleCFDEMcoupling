@@ -59,14 +59,16 @@ public:
   inline int& numberOfParticles() { return numberOfParticles_; }
   inline bool& numberOfParticlesChanged() { return numberOfParticlesChanged_; }
   inline base::CITensor1& particleOverMeshNumber() { return particleOverMeshNumber_; }
+  inline base::CITensor1& findCellIDs() { return findCellIDs_; }
+  inline base::CDTensor1& dimensionRatios() { return dimensionRatios_; }
   inline base::CDTensor1& volumes() { return volumes_; }
-  inline base::CITensor2& cellIDs() { return cellIDs_; }
   inline base::CDTensor2& fAcc() { return fAcc_; }
   inline base::CDTensor2& impForces() { return impForces_; }
   inline base::CDTensor2& expForces() { return expForces_; }
-  inline base::CDTensor2& voidFractions() { return voidFractions_; }
   inline base::CDTensor2& particleWeights() { return particleWeights_; }
   inline base::CDTensor2& particleVolumes() { return particleVolumes_; }
+  inline std::vector<base::CITensor1>& cellIDs() { return cellIDs_; }
+  inline std::vector<base::CDTensor1>& voidFractions() { return voidFractions_; }
   inline double**& radiiPtr() { return radiiPtr_; }
   inline double**& cdsPtr() { return cdsPtr_; }
   inline double**& positionsPtr() { return positionsPtr_; }
@@ -110,14 +112,16 @@ private:
   bool numberOfParticlesChanged_;
 #if CFDEM_USE_TENSOR
   base::CITensor1 particleOverMeshNumber_;
+  base::CITensor1 findCellIDs_;
+  base::CDTensor1 dimensionRatios_;
   base::CDTensor1 volumes_;
-  base::CITensor2 cellIDs_;
   base::CDTensor2 fAcc_;
   base::CDTensor2 impForces_;
   base::CDTensor2 expForces_;
-  base::CDTensor2 voidFractions_;
   base::CDTensor2 particleWeights_;
   base::CDTensor2 particleVolumes_;
+  std::vector<base::CITensor1> cellIDs_;
+  std::vector<base::CDTensor1> voidFractions_;
   double** radiiPtr_;
   double** cdsPtr_;
   double** positionsPtr_;

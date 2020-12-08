@@ -98,6 +98,9 @@ public:
     return Foam::magSqr(point - centerPos) / (scale * scale * radius * radius) - 1;
   }
 
+  /*! \brief 计算颗粒尺寸与其周围网格平均尺寸的比值, 并将颗粒索引按照颗粒尺寸归类 */
+  void getDimensionRatios() const;
+
   /* --------------------------------- public interfaces --------------------------------- */
 
 public:

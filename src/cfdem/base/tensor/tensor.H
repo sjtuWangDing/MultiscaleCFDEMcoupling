@@ -214,6 +214,15 @@ public:
     dptr_ = Alloc::allocate(shape.size());
   }
 
+  /*! \brief constructor from shape and initial value */
+  inline Tensor(const TShape& shape, DType initVal)
+  : dptr_(nullptr), optr_(nullptr), shape_(shape), stride_(shape[kSubdim]) {
+    CHECK_GE(shape.size(), 0) << "Error shape size";
+    // allocate memory
+    dptr_ = Alloc::allocate(shape.size());
+    std::fill_n(dptr_, shape.size(), initVal);
+  }
+
   /*! \brief constructor from data pointer and shape, without stride */
   inline Tensor(DType *optr, const TShape& shape)
   : dptr_(nullptr), optr_(optr), shape_(shape), stride_(shape[kSubdim]) {}
@@ -338,6 +347,14 @@ public:
     CHECK_GE(shape.size(), 0) << "Error shape size";
     // allocate memory
     dptr_ = Alloc::allocate(shape.size());
+  }
+
+  inline Tensor(const Shape<1>& shape, DType initVal)
+  : dptr_(nullptr), optr_(nullptr), shape_(shape), stride_(shape[0]) {
+    CHECK_GE(shape.size(), 0) << "Error shape size";
+    // allocate memory
+    dptr_ = Alloc::allocate(shape.size());
+    std::fill_n(dptr_, shape.size(), initVal);
   }
 
   inline Tensor(DType *optr, const Shape<1> &shape)

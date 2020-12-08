@@ -127,30 +127,6 @@ public:
     tensor = std::move(base::Tensor<nDim, DType, Device, Alloc>(pData[0], shape));
   }
 
-  // /*!
-  //  * \brief 重新分配 tensor 内存（当前 tensor 不用于与 LIGGGHTS 交换数据，所以通过 CFDEM 分配内存）
-  //  * \param tensor 需要分配的内存对象
-  //  * \param pData 与该 tensor 强绑定的 pointer
-  //  * \param shape 指定 tensor 的 shape
-  //  * \param initVal 初始值
-  //  */
-  // template<int nDim, typename DType, typename Device CFDEM_DEFAULT_DEVICE>
-  // void reAlloc(base::Tensor<nDim, DType, Device>& tensor,
-  //              const base::Shape<nDim>& shape, DType initVal) const {
-  //   CHECK_GT(nDim, 0) << "Error dimension of tensor";
-  //   // 默认通过二级配置器分配内存
-  //   static base::simple_alloc<DType, base::default_alloc> alloc;
-  //   if (tensor.dptr_) {
-  //     // 释放 tensor 内存
-  //     alloc.deallocate(tensor.dptr_, tensor.mSize());
-  //   }
-  //   // 分配内存
-  //   tensor.dptr_ = alloc.allocate(shape.size());
-  //   tensor.shape_ = shape;
-  //   tensor.stride_ = shape[nDim - 1];
-  //   std::fill_n(tensor.dptr_, tensor.mSize(), initVal);
-  // }
-
   /* --------------------------------- virtual functions --------------------------------- */
 
   //! \return 当前耦合时间步中颗粒的数量

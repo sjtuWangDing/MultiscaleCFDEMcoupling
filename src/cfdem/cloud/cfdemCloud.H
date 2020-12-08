@@ -92,7 +92,8 @@ public:
 
   /* --------------------------------- virtual functions --------------------------------- */
 
-  virtual void reAlloc();
+  //! \brief 重新分配内存
+  virtual void reallocate();
 
   /* --------------------------------- member functions ---------------------------------- */
 
@@ -136,7 +137,6 @@ public:
   inline const locateModel& locateM() const;
   inline dataExchangeModel& dataExchangeM();
   inline voidFractionModel& voidFractionM();
-  inline locateModel& locateM();
 #if defined(version24Dev)
   inline const turbulenceModel& turbulence() const;
 #elif defined(version21) || defined(version16ext)
@@ -169,14 +169,16 @@ public:
   inline int numberOfParticles() const { return parCloud_.numberOfParticles_; }
   inline bool numberOfParticlesChanged() const { return parCloud_.numberOfParticlesChanged_; }
   inline const base::CITensor1& particleOverMeshNumber() const { return parCloud_.particleOverMeshNumber_; }
+  inline const base::CITensor1& findCellIDs() const { return parCloud_.findCellIDs_; }
+  inline const base::CDTensor1& dimensionRatios() const { return parCloud_.dimensionRatios_; }
   inline const base::CDTensor1& volumes() const { return parCloud_.volumes_; }
-  inline const base::CITensor2& cellIDs() const { return parCloud_.cellIDs_; }
   inline const base::CDTensor2& fAcc() const { return parCloud_.fAcc_; }
   inline const base::CDTensor2& impForces() const { return parCloud_.impForces_; }
   inline const base::CDTensor2& expForces() const { return parCloud_.expForces_; }
-  inline const base::CDTensor2& voidFractions() const { return parCloud_.voidFractions_; }
   inline const base::CDTensor2& particleWeights() const { return parCloud_.particleWeights_; }
   inline const base::CDTensor2& particleVolumes() const { return parCloud_.particleVolumes_; }
+  inline const std::vector<base::CITensor1>& cellIDs() const { return parCloud_.cellIDs_; }
+  inline const std::vector<base::CDTensor1>& voidFractions() const { return parCloud_.voidFractions_; }
   inline double** radiiPtr() const { return parCloud_.radiiPtr_; }
   inline double** cdsPtr() const { return parCloud_.cdsPtr_; }
   inline double** positionsPtr() const { return parCloud_.positionsPtr_; }

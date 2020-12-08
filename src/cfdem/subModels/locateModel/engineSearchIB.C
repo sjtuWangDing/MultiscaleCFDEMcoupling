@@ -70,14 +70,9 @@ engineSearchIB::~engineSearchIB() {}
 
 /*!
  * \brief use search engine to get cell id of particle center
- * \param numberOfParticles 颗粒数量
- * \param cellIDs 颗粒覆盖网格的编号
+ * \param findCellIDs 颗粒覆盖网格的编号
  */
-void engineSearchIB::findCell(int numberOfParticles,
-                              const base::CITensor2& cellIDs) const {
-  CHECK_EQ(numberOfParticles, static_cast<int>(cellIDs.size(0)))
-    << "Number of particle is not match";
-
+void engineSearchIB::findCell(const base::CITensor1& findCellIDs) const {
   // const boundBox& globalBox = cloud_.mesh().bounds();
   // 在使用 dynamic mesh 的时候，如果网格更新，则重新设置 boundBox
   if (dynamic_cast<cfdemCloudIB&>(cloud_).meshHasUpdated()) {
@@ -88,13 +83,12 @@ void engineSearchIB::findCell(int numberOfParticles,
       Pout << "Max bounds (x, y, z): " << boundBoxPtr_().max() << endl;
     }
   }
-
-  for (int index = 0; index < numberOfParticles; ++index) {
+  for (int index = 0; index < cloud_.numberOfParticles(); ++index) {
     // 颗粒中心坐标
     Foam::vector particleCenterPos = cloud_.getPosition(index);
-    Foam::vector periodicPos = particleCenterPos;
     // 颗粒半径
     double radius = cloud_.getRadius(index);
+    Foam::vector periodicPos = particleCenterPos;
     bool isInside = isInsideRectangularDomain(periodicPos, coef_ * radius);
     if (!isInside && cloud_.checkPeriodicCells()) {
       FatalError << "Error: not support periodic check!" << abort(FatalError);
@@ -118,11 +112,11 @@ void engineSearchIB::findCell(int numberOfParticles,
       // } // end of check periodic
     }
     if (isInside) {
-      label oldCellID = cellIDs[index][0];
+      int oldCellID = findCellIDs[index];
       // findSingleCell is defined in engineSearch and return the found cell id.
-      cellIDs[index][0] = findSingleCell(periodicPos, oldCellID);
+      findCellIDs[index] = findSingleCell(periodicPos, oldCellID);
       // not found
-      if (cellIDs[index][0] < 0) {
+      if (findCellIDs[index] < 0) {
         label altStartID = -1;
         // 遍历当前颗粒的所有 satellitePoint
         for (size_t i = 0; i < satellitePoints_.size(); ++i) {
@@ -137,13 +131,13 @@ void engineSearchIB::findCell(int numberOfParticles,
           }
           if (altStartID >= 0) {
             // found cell id
-            cellIDs[index][0] = altStartID;
+            findCellIDs[index] = altStartID;
             break;
           }
         }
       }
     } else {
-      cellIDs[index][0] = -1;
+      findCellIDs[index] = -1;
       Pout << "Found particle " << index << " not in the CFD domian, this could means that the particle and fluid has no coupling." << endl;
     }
   } // end loop of particle

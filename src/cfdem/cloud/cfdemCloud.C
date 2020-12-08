@@ -113,7 +113,20 @@ cfdemCloud::cfdemCloud(const fvMesh& mesh)
 
 cfdemCloud::~cfdemCloud() {}
 
-void cfdemCloud::reAlloc() {}
+//! \brief 重新分配内存
+void cfdemCloud::reallocate() {
+  if (numberOfParticlesChanged()) {
+    int number = numberOfParticles();
+    // allocate memory of data exchanged with liggghts
+    dataExchangeM().realloc(parCloud_.radii(), base::makeShape1(number), parCloud_.radiiPtr(), 0.0);
+    dataExchangeM().realloc(parCloud_.positions(), base::makeShape2(number, 3), parCloud_.positionsPtr(), 0.0);
+    dataExchangeM().realloc(parCloud_.velocities(), base::makeShape2(number, 3), parCloud_.velocitiesPtr(), 0.0);
+    // allocate memory of data not exchanged with liggghts
+    parCloud_.particleOverMeshNumber() = std::move(base::CITensor1(base::makeShape1(number), 0));
+    parCloud_.findCellIDs() = std::move(base::CITensor1(base::makeShape1(number), -1));
+    parCloud_.dimensionRatios() = std::move(base::CDTensor1(base::makeShape1(number), 0.0));
+  }
+}
 
 /*!
  * \brief 更新函数

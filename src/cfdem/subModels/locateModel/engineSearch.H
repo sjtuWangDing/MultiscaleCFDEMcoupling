@@ -61,12 +61,15 @@ public:
 
   /*!
    * \brief use search engine to get cell id of particle center
-   * \param numberOfParticles 颗粒数量
-   * \param cellIDs   <[in] 颗粒覆盖网格的编号
+   * \param findCellIDs 颗粒覆盖网格的编号
    */
-  void findCell(int numberOfParticles,
-                const base::CITensor2& cellIDs) const;
+  void findCell(const base::CITensor1& findCellIDs) const;
 
+  /*!
+   * \brief use search engine to get cell id of certain vector
+   * \param position 颗粒中心的位置
+   * \param oldCellID old cell ID
+   */
   label findSingleCell(const Foam::vector& position, label oldCellID) const;
 
 protected:

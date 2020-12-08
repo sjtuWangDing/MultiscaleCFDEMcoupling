@@ -61,31 +61,29 @@ engineSearch::engineSearch(cfdemCloud& cloud, const std::string& derivedTypeName
 #endif
 {}
 
-  //! \brief Destructor
+//! \brief Destructor
 engineSearch::~engineSearch() {}
 
 /*!
  * \brief use search engine to get cell id of particle center
- * \param numberOfParticles 颗粒数量
- * \param cellIDs   <[in] 颗粒覆盖网格的编号
+ * \param findCellIDs 颗粒覆盖网格的编号
  */
-void engineSearch::findCell(int numberOfParticles,
-                            const base::CITensor2& cellIDs) const {
-  CHECK_EQ(numberOfParticles, static_cast<int>(cellIDs.size(0)))
-    << "Number of particle is not match";
-  for (index_t i = 0; i < numberOfParticles; ++i) {
-    if (cloud_.getRadius(i) > Foam::SMALL) {
-      Foam::vector particleCenterPos = cloud_.getPosition(i);
-      // particleCenterPos: location vector
-      // -1: old cell id
-      // treeSearch_: use octree search
-      cellIDs[i][0] = searchEngine_.findCell(particleCenterPos, -1, treeSearch_);
-    } else {
-      cellIDs[i][0] = -1;
-    }
+void engineSearch::findCell(const base::CITensor1& findCellIDs) const {
+  // 初始化 findCellIDs
+  std::fill_n(findCellIDs.ptr(), findCellIDs.mSize(), -1);
+  for (int index = 0; index < cloud_.numberOfParticles(); ++index) {
+    // arg1: location vector
+    // arg2: old cell id
+    // arg3: whether use octree search
+    findCellIDs[index] = searchEngine_.findCell(cloud_.getPosition(index), -1, treeSearch_);
   }
 }
 
+/*!
+ * \brief use search engine to get cell id of certain vector
+ * \param position 颗粒中心的位置
+ * \param oldCellID old cell ID
+ */
 label engineSearch::findSingleCell(const Foam::vector& position, label oldCellID) const {
   return searchEngine_.findCell(position, oldCellID, treeSearch_);
 }
