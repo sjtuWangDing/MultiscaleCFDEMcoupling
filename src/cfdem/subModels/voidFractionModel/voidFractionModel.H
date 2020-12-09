@@ -85,21 +85,41 @@ public:
 
   /*!
    * \brief 判断某一点是否在颗粒中
-   * \param index 颗粒索引
-   * \param point 点的坐标
+   * \param point
+   * \param particlePos 颗粒中心坐标
+   * \param radius 颗粒半径
    * \param scale 半径因子
    * \return < 0: 在颗粒中，范围为 [-1, 0)
    *         > 0: 在颗粒外
    *         == 0: 在颗粒表面
    */
-  inline double pointInParticle(int index, const Foam::vector& point, double scale = 1.0) const {
-    double radius = cloud_.getRadius(index);
-    Foam::vector centerPos = cloud_.getPosition(index);
-    return Foam::magSqr(point - centerPos) / (scale * scale * radius * radius) - 1;
+  inline double pointInParticle(const Foam::vector& point,
+                                const Foam::vector& particlePos,
+                                const double radius,
+                                const double scale = 1.0) const {
+    return Foam::magSqr(point - particlePos) / (scale * scale * radius * radius) - 1;
   }
 
-  /*! \brief 计算颗粒尺寸与其周围网格平均尺寸的比值, 并将颗粒索引按照颗粒尺寸归类 */
-  void getDimensionRatios() const;
+  //! \brief 计算颗粒尺寸与其周围网格平均尺寸的比值, 并将颗粒索引按照颗粒尺寸归类
+  void getDimensionRatios(const base::CITensor1& findCellIDs,
+                          const base::CDTensor1& dimensionRatios) const;
+
+protected:
+
+  /*!
+   * \brief 构建颗粒覆盖的所有网格的哈希集合
+   * \note 设置为递归函数，通过哈希器将网格编号转换为哈希值，并存入 set 中以便于搜索
+   * \param hashSett    <[in, out] 需要构建的哈希集
+   * \param cellID      <[in] 递归循环中要检索网格编号
+   * \param particlePos <[in] 颗粒中心位置
+   * \param radius      <[in] 颗粒半径
+   * \param scale       <[in] 颗粒半径扩大系数
+   */
+  void buildLabelHashSetForCoveredCell(labelHashSet& hashSett,
+                                       const int cellID,
+                                       const Foam::vector& particlePos,
+                                       const double radius,
+                                       const double scale) const;
 
   /* --------------------------------- public interfaces --------------------------------- */
 

@@ -65,13 +65,13 @@ void IBVoidFraction::setVolumeFractionForSingleParticle(const int index) {
     // 获取网格中心坐标
     Foam::vector cellCentre = cloud_.mesh().C()[firstCellID];
     // 判断网格中心是否在颗粒中
-    scalar fc = pointInParticle(index, cellCentre);
+    scalar fc = pointInParticle(particleCentre, cellCentre, radius);
     // 计算网格的等效半径
     scalar corona = 0.5 * sqrt(3.0) * cbrt(cloud_.mesh().V()[firstCellID]);
     // 获取网格的 corona point
     Foam::vector coronaPoint = getCoronaPointPosition(particleCentre, cellCentre, corona);
 
-    if (pointInParticle(index, coronaPoint) < 0.0) {
+    if (pointInParticle(particleCentre, coronaPoint, radius) < 0.0) {
       // 如果 coronaPoint 在颗粒中, 则认为整个网格在颗粒中
       volumeFractionNext_[firstCellID] = 0.0;
     } else {
@@ -83,7 +83,7 @@ void IBVoidFraction::setVolumeFractionForSingleParticle(const int index) {
         // 获取第 i 角点坐标
         vector vertexPosition = cloud_.mesh().points()[vertexPoints[i]];
         // 判断角点是否在颗粒中
-        scalar fv = pointInParticle(index, vertexPosition);
+        scalar fv = pointInParticle(particleCentre, vertexPosition, radius);
 
         if (fc < 0.0 && fv < 0.0) {
           // 网格中心在颗粒中, 角点也在颗粒中
@@ -104,7 +104,7 @@ void IBVoidFraction::setVolumeFractionForSingleParticle(const int index) {
     // 颗粒中心所在网格的体积分数已经计算完成, 下面开始递归构建相邻网格
     labelHashSet hashSett;
     // 构建哈希集合
-    buildLabelHashSetForVolumeFraction(index, firstCellID, radius, particleCentre, hashSett);
+    buildLabelHashSetForVolumeFraction(firstCellID, particleCentre, radius, hashSett);
     if (hashSett.size() > maxCellsNumPerCoarseParticle_) {  // 如果集合中元素个数大于颗粒覆盖网格数限制
       FatalError << "Big particle found " << hashSett.size() << " cells more than permittd maximun number of cells per paticle " << maxCellsNumPerCoarseParticle_ << abort(FatalError);
     } else if (hashSett.size() > 0) {
@@ -118,16 +118,14 @@ void IBVoidFraction::setVolumeFractionForSingleParticle(const int index) {
 /*!
  * \brief 构建颗粒覆盖的所有网格的哈希集合
  * \note 设置为递归函数,  通过哈希器将网格编号转换为哈希值,  并存入 set 中以便于搜索
- * \param index          <[in] 颗粒索引
  * \param cellID         <[in] 递归循环中要检索网格编号
- * \param radius         <[in] 颗粒半径
  * \param particleCentre <[in] 颗粒中心位置
+ * \param radius         <[in] 颗粒半径
  * \param hashSett       <[in, out] 需要构建的哈希集
  */
-void IBVoidFraction::buildLabelHashSetForVolumeFraction(int index,
-                                                        const label cellID,
-                                                        const double radius,
+void IBVoidFraction::buildLabelHashSetForVolumeFraction(const label cellID,
                                                         const Foam::vector& particleCentre,
+                                                        const double radius,
                                                         labelHashSet& hashSett) {
   hashSett.insert(cellID);
   // 获取 cellID 网格的所有 neighbour cell 的链表
@@ -140,7 +138,7 @@ void IBVoidFraction::buildLabelHashSetForVolumeFraction(int index,
     // 获取相邻网格中心坐标
     Foam::vector neighbourCentre = cloud_.mesh().C()[neighbour];
     // 判断相邻网格中心是否在颗粒中
-    scalar fc = pointInParticle(index, neighbourCentre);
+    scalar fc = pointInParticle(particleCentre, neighbourCentre, radius);
     // 计算相邻网格的等效半径
     scalar coronaRaidus = 0.5 * sqrt(3.0) * cbrt(cloud_.mesh().V()[neighbour]);
     // 获取 corona point
@@ -149,11 +147,11 @@ void IBVoidFraction::buildLabelHashSetForVolumeFraction(int index,
     // 如果在哈希集合中没有插入 neighbour 网格
     if (false == hashSett.found(neighbour)) {
       // 计算 neighbour 网格的体积分数
-      if (pointInParticle(index, coronaPoint) < 0.0) {
+      if (pointInParticle(particleCentre, coronaPoint, radius) < 0.0) {
         // 如果相邻网格的 coronaPoint 在颗粒中, 则说明该网格完全被颗粒覆盖
         volumeFractionNext_[neighbour] = 0.0;
         // 以相邻网格为中心继续递归构建哈希集合
-        buildLabelHashSetForVolumeFraction(index, neighbour, radius, particleCentre, hashSett);
+        buildLabelHashSetForVolumeFraction(neighbour, particleCentre, radius, hashSett);
       } else {
         // 如果相邻网格的 coronaPoint 不在颗粒中, 则需要遍历该网格的所有角点
         // 定义单个角点对空隙率的影响率
@@ -166,7 +164,7 @@ void IBVoidFraction::buildLabelHashSetForVolumeFraction(int index,
           // 获取角点坐标
           Foam::vector vertexPosition = cloud_.mesh().points()[vertexPoints[j]];
           // 判断角点是否在颗粒中
-          scalar fv = pointInParticle(index, vertexPosition);
+          scalar fv = pointInParticle(particleCentre, vertexPosition, radius);
           if (fc < 0.0 && fv < 0.0) { // 如果网格 neighbour 中心在颗粒中, 角点 j 也在颗粒中
             scale -= ratio;
           } else if (fc < 0.0 && fv > 0.0) { // 如果网格 neighbour 中心在颗粒中, 角点 j 不在颗粒中
@@ -192,7 +190,7 @@ void IBVoidFraction::buildLabelHashSetForVolumeFraction(int index,
         }
         if (!(fabs(scale - 1.0) < 1e-15)) {
           // 如果体积分数不为 1.0, 则说明该 neighbour 需要递归循环构建哈希集合
-          buildLabelHashSetForVolumeFraction(index, neighbour, radius, particleCentre, hashSett);
+          buildLabelHashSetForVolumeFraction(neighbour, particleCentre, radius, hashSett);
         }
       }
     } // not found neighbour in hashSett

@@ -104,6 +104,56 @@ voidFractionModel::voidFractionModel(cfdemCloud& cloud)
 //! \brief Destructor
 voidFractionModel::~voidFractionModel() {}
 
+/*!
+ * \brief 构建颗粒覆盖的所有网格的哈希集合
+ * \note 设置为递归函数，通过哈希器将网格编号转换为哈希值，并存入 set 中以便于搜索
+ * \param hashSett    <[in, out] 需要构建的哈希集
+ * \param cellID      <[in] 递归循环中要检索网格编号
+ * \param particlePos <[in] 颗粒中心位置
+ * \param radius      <[in] 颗粒半径
+ * \param scale       <[in] 颗粒半径扩大系数
+ */
+void voidFractionModel::buildLabelHashSetForCoveredCell(labelHashSet& hashSett,
+                                                        const int cellID,
+                                                        const Foam::vector& particlePos,
+                                                        const double radius,
+                                                        const double scale) const {
+  // 如果搜索到网格的边界，则结束搜索
+  if (cellID < 0) { return; }
+  // 将 cellID 插入到哈希集合中
+  hashSett.insert(cellID);
+  // 获取网格中心坐标
+  Foam::vector cellCentrePos = cloud_.mesh().C()[cellID];
+  // 获取 cellID 网格的所有 neighbour cell 的链表
+  const labelList& nc = cloud_.mesh().cellCells()[cellID];
+  // 遍历链表
+  for (int i = 0; i < nc.size(); ++i) {
+    int neighbour = nc[i];
+    if (false == hashSett.found(neighbour) && pointInParticle(cellCentrePos, particlePos, radius) < 0.0) {
+      // 如果 neighbour 网格中心在颗粒中, 并且在哈希集合中没有 neighbour 网格的索引
+      // 以 neighbour 为中心递归构建哈希集合
+      buildLabelHashSetForCoveredCell(hashSett, neighbour, particlePos, radius, scale);
+    }
+  } // end loop of neighbour list
+}
 
+//! \brief 计算颗粒尺寸与其周围网格平均尺寸的比值, 并将颗粒索引按照颗粒尺寸归类
+void voidFractionModel::getDimensionRatios(const base::CITensor1& findCellIDs,
+                                           const base::CDTensor1& dimensionRatios) const {
+  std::fill_n(dimensionRatios.ptr(), dimensionRatios.mSize(), 0.0);
+  for (int index = 0; index < cloud_.numberOfParticles(); ++index) {
+    int findCellID = findCellIDs[index];
+    // 获取颗粒半径
+    double radius = cloud_.getRadius(index);
+    // 获取颗粒中心位置
+    Foam::vector particlePos = cloud_.getPosition(index);
+    // 定义哈希集合
+    labelHashSet initHashSett;
+    // 构建初始化哈希集合
+    buildLabelHashSetForCoveredCell(initHashSett, findCellID, particlePos, radius, 1.0);
+    // 计算颗粒周围网格的平均尺寸
+    Pout << findCellID << ", " << initHashSett.size() << endl;
+  } // end loop of particles
+}
 
 } // namespace Foam

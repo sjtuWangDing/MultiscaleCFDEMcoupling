@@ -323,8 +323,9 @@ public:
    */
   inline Tensor<kSubdim, DType, Device, Alloc> operator[] (int idx) const {
     CHECK(idx >= 0 && idx < static_cast<int>(shape_[0]));
-    return std::move(
-      Tensor<kSubdim, DType, Device, Alloc>(ptr() + this->memSize<1>() * idx, shape_.subShape(), stride_));
+    // Note: not use std::move() here, because this will force invoke move constructor
+    // and diable return value optimization(RVO)
+    return Tensor<kSubdim, DType, Device, Alloc>(ptr() + this->memSize<1>() * idx, shape_.subShape(), stride_);
   }
 };
 

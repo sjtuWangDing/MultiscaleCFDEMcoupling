@@ -69,9 +69,9 @@ void cfdemCloudIB::getDEMData() {
   dataExchangeM().getData("radius", "scalar-atom", parCloud_.radiiPtr());
   dataExchangeM().getData("x", "vector-atom", parCloud_.positionsPtr());
   dataExchangeM().getData("v", "vector-atom", parCloud_.velocitiesPtr());
-  // for (int i = 0; i < numberOfParticles(); ++i) {
-  //   Pout << positions()[i][0] << ", " << positions()[i][1] << ", " << positions()[i][2] << endl;
-  // }
+  for (int i = 0; i < numberOfParticles(); ++i) {
+    Pout << positions()[i][0] << ", " << positions()[i][1] << ", " << positions()[i][2] << endl;
+  }
 }
 
 /*!
@@ -95,6 +95,8 @@ void cfdemCloudIB::evolve(volScalarField& volumeFraction,
     getDEMData();
     // 获取到在当前 processor 上颗粒覆盖的某一个网格编号，如果获取到的网格编号为 -1，则表示颗粒不覆盖当前 processor
     locateM().findCell(parCloud_.findCellIDs());
+    // 计算颗粒的 dimensionRatios
+    voidFractionM().getDimensionRatios(parCloud_.findCellIDs(), parCloud_.dimensionRatios());
   }
   Info << __func__ << " - done\n" << endl;
 }
@@ -120,7 +122,7 @@ void cfdemCloudIB::setInterface(volScalarField& interface,
         FatalError << "Error: not support periodic check!" << abort(FatalError);
       }
       // 判断网格中心是否在 index 颗粒中
-      double value = voidFractionM().pointInParticle(index, cellPos, refineMeshSkin());
+      double value = voidFractionM().pointInParticle(getPosition(index), cellPos, getRadius(index), refineMeshSkin());
       if (0 == refineMeshKeepInterval()) {
         if (value <= 0.0) {
           interface[cellI] = std::max(interface[cellI], value + 1);

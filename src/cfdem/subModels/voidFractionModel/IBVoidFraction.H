@@ -91,16 +91,14 @@ protected:
   /*!
    * \brief 构建颗粒覆盖的所有网格的哈希集合
    * \note 设置为递归函数,  通过哈希器将网格编号转换为哈希值,  并存入 set 中以便于搜索
-   * \param index          <[in] 颗粒索引
    * \param cellID         <[in] 递归循环中要检索网格编号
-   * \param radius         <[in] 颗粒半径
    * \param particleCentre <[in] 颗粒中心位置
+   * \param radius         <[in] 颗粒半径
    * \param hashSett       <[in, out] 需要构建的哈希集
    */
-  void buildLabelHashSetForVolumeFraction(int index,
-                                          const label cellID,
-                                          const double radius,
+  void buildLabelHashSetForVolumeFraction(const label cellID,
                                           const Foam::vector& particleCentre,
+                                          const double radius,
                                           labelHashSet& hashSett);
 
   /*!
