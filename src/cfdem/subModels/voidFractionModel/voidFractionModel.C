@@ -123,13 +123,14 @@ void voidFractionModel::buildLabelHashSetForCoveredCell(labelHashSet& hashSett,
   // 将 cellID 插入到哈希集合中
   hashSett.insert(cellID);
   // 获取网格中心坐标
-  Foam::vector cellCentrePos = cloud_.mesh().C()[cellID];
+  Foam::vector neighbourPos = Foam::vector::zero;
   // 获取 cellID 网格的所有 neighbour cell 的链表
   const labelList& nc = cloud_.mesh().cellCells()[cellID];
   // 遍历链表
   for (int i = 0; i < nc.size(); ++i) {
     int neighbour = nc[i];
-    if (false == hashSett.found(neighbour) && pointInParticle(cellCentrePos, particlePos, radius) < 0.0) {
+    neighbourPos = cloud_.mesh().C()[neighbour];
+    if (false == hashSett.found(neighbour) && pointInParticle(neighbourPos, particlePos, radius, scale) < 0.0) {
       // 如果 neighbour 网格中心在颗粒中, 并且在哈希集合中没有 neighbour 网格的索引
       // 以 neighbour 为中心递归构建哈希集合
       buildLabelHashSetForCoveredCell(hashSett, neighbour, particlePos, radius, scale);

@@ -68,13 +68,12 @@ int main(int argc, char* argv[]) {
     Info << "Starting current loop..." << endl;
     Info << "Time = " << runTime.timeName() << endl << endl;
     // 设置动态加密网格
-    particleCloud.setInterface(interface, refineMeshKeepStep);
+    particleCloud.setInterface(interface);
     interface.correctBoundaryConditions();
     refineMeshKeepStep.correctBoundaryConditions();
 
     // 如果 mesh.update() 返回 true，则表明 mesh 被更新了
     particleCloud.setMeshHasUpdated(mesh.update());
-    cfdemCloud::Barrier();
     Info << "set interface for mesh update - done\n" << endl;
 
     particleCloud.evolve(volumeFraction, interface);

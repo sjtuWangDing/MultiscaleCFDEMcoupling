@@ -169,9 +169,9 @@ Foam::vector engineSearchIB::generateSatellitePoint(int index) const {
   Foam::vector res(0.0, 0.0, 0.0);
   // one satellite point at bottom, one satellite point at top
   if (index == 0) {
-    res[2] = -1.0;
-  } else if (index == 1) {
     res[2] = 1.0;
+  } else if (index == 1) {
+    res[2] = -1.0;
   } else {
     int thetaIndex = (index - 2) / xySplit_;
     int phiIndex = (index - 2) % xySplit_;

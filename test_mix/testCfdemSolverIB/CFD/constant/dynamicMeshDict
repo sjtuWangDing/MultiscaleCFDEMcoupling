@@ -21,8 +21,8 @@ dynamicRefineFvMeshCoeffs
 {
     refineInterval  1;//refine every refineInterval timesteps
     field           interFace;
-    lowerRefineLevel .0001;
-    upperRefineLevel 0.99;
+    lowerRefineLevel 0.000001;
+    upperRefineLevel 0.999999;
     unrefineLevel   10;
     nBufferLayers   1;
     maxRefinement   2;//maximum refinement level (starts from 0)

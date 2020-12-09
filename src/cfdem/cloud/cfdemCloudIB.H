@@ -59,7 +59,10 @@ public:
   void evolve(volScalarField& volumeFraction,
               volScalarField& interface);
 
-  //! @brief 确定颗粒周围细化网格的区域(每个方向的尺寸都是颗粒尺寸的两倍)
+  //! @brief 确定颗粒周围 refined 网格的区域
+  void setInterface(volScalarField& interface) const;
+
+  //! @brief 确定颗粒周围 refined 网格的区域(每个方向的尺寸都是颗粒尺寸的两倍)
   void setInterface(volScalarField& interface,
                     volScalarField& refineMeshKeepStep) const;
 

@@ -116,16 +116,17 @@
  */
 #define cfdmeDefineBaseTypeNewWithTypeName(AutoPtr, BaseType, NewArgList, paramTypeName, paramConstructorList)     \
   AutoPtr<BaseType> BaseType::New NewArgList {                                                                     \
-    const char* pName = std::string(paramTypeName).c_str();                                                        \
+    std::string name(paramTypeName);                                                                               \
+    const char* pName = name.c_str();                                                                              \
     Info << "\nSelecting " << #BaseType << ": " << pName << endl;                                                  \
     if (BaseType::newFunctionMapPtr_->find(pName) == BaseType::newFunctionMapPtr_->end()) {                        \
       FatalError << #BaseType << "::New" << #NewArgList << ": "                                                    \
         << "unknow " << #BaseType << " type " << pName << ", constructor not in map" << endl                       \
         << "Valid " << #BaseType << " types are: [";                                                               \
       for (const std::pair<std::string, BaseType::NewFunctionPtr>& item : *(BaseType::newFunctionMapPtr_)) {       \
-        Info << item.first << ", ";                                                                                \
+        FatalError << item.first << ", ";                                                                          \
       }                                                                                                            \
-      Info << "]" << endl << abort(FatalError);                                                                    \
+      FatalError << "]" << endl << abort(FatalError);                                                              \
     }                                                                                                              \
     BaseType::NewFunctionPtr selectNewFunction =                                                                   \
       (BaseType::newFunctionMapPtr_)->operator[](pName);                                                           \
@@ -143,19 +144,20 @@
  */
 #define cfdmeDefineBaseTypeNew(AutoPtr, BaseType, NewArgList, paramDict, paramConstructorList)                     \
   AutoPtr<BaseType> BaseType::New NewArgList {                                                                     \
-    const char* modelType = paramDict.found(#BaseType) ? word(paramDict.lookup(#BaseType)).c_str() : "";           \
-    Info << "\nSelecting " << #BaseType << ": " << modelType << endl;                                              \
-    if (BaseType::newFunctionMapPtr_->find(modelType) == BaseType::newFunctionMapPtr_->end()) {                    \
+    std::string name = paramDict.found(#BaseType) ? word(paramDict.lookup(#BaseType)).c_str() : "";                \
+    const char* pName = name.c_str();                                                                              \
+    Info << "\nSelecting " << #BaseType << ": " << pName << endl;                                                  \
+    if (BaseType::newFunctionMapPtr_->find(pName) == BaseType::newFunctionMapPtr_->end()) {                        \
       FatalError << #BaseType << "::New" << #NewArgList << ": "                                                    \
-        << "unknow " << #BaseType << " type " << modelType << ", constructor not in map" << endl                   \
+        << "unknow " << #BaseType << " type " << pName << ", constructor not in map" << endl                       \
         << "Valid " << #BaseType << " types are: [";                                                               \
       for (const std::pair<std::string, BaseType::NewFunctionPtr>& item : *(BaseType::newFunctionMapPtr_)) {       \
         Info << item.first << ", ";                                                                                \
       }                                                                                                            \
       Info << "]" << endl << abort(FatalError);                                                                    \
     }                                                                                                              \
-    BaseType::NewFunctionPtr selectNewFunction = (BaseType::newFunctionMapPtr_)->operator[](modelType);            \
-    Info << "Construct " << modelType << " model..."<< endl;                                                       \
+    BaseType::NewFunctionPtr selectNewFunction = (BaseType::newFunctionMapPtr_)->operator[](pName);                \
+    Info << "Construct " << pName << " model..."<< endl;                                                           \
     return selectNewFunction paramConstructorList;                                                                 \
   }
 

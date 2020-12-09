@@ -97,7 +97,7 @@ public:
                                 const Foam::vector& particlePos,
                                 const double radius,
                                 const double scale = 1.0) const {
-    return Foam::magSqr(point - particlePos) / (scale * scale * radius * radius) - 1;
+    return Foam::magSqr(point - particlePos) / (scale * scale * radius * radius) - 1.0;
   }
 
   //! \brief 计算颗粒尺寸与其周围网格平均尺寸的比值, 并将颗粒索引按照颗粒尺寸归类

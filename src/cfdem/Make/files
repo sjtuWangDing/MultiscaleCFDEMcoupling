@@ -21,6 +21,7 @@ $(subModels)/voidFractionModel/IBVoidFraction.C
 $(subModels)/forceModel/forceModel.C
 $(subModels)/forceModel/forceSubModel.C
 $(subModels)/forceModel/ArchimedesIB.C
+$(subModels)/forceModel/ArchimedesIBTest.C
 $(subModels)/forceModel/ShirgaonkarIB.C
 
 $(subModels)/locateModel/locateModel.C

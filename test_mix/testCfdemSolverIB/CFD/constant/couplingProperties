@@ -26,6 +26,8 @@ FoamFile
 //===========================================================================//
 // sub-models & settings
 
+solveFlow false;
+
 modelType none;
 
 couplingInterval 10;

@@ -106,6 +106,7 @@ void cfdemCloudIB::evolve(volScalarField& volumeFraction,
     locateM().findCell(parCloud_.findCellIDs());
     // 计算颗粒的 dimensionRatios
     voidFractionM().getDimensionRatios(parCloud_.findCellIDs(), parCloud_.dimensionRatios());
+
     // reset forces
     std::fill_n(parCloud_.DEMForces().ptr(), parCloud_.DEMForces().mSize(), 0.0);
     // set particles forces
@@ -118,13 +119,30 @@ void cfdemCloudIB::evolve(volScalarField& volumeFraction,
   Info << __func__ << " - done\n" << endl;
 }
 
-//! @brief 确定颗粒周围细化网格的区域(每个方向的尺寸都是颗粒尺寸的两倍)
+//! @brief 确定颗粒周围 refined 网格的区域
+void cfdemCloudIB::setInterface(volScalarField& interface) const {
+  interface = dimensionedScalar("zero", interface.dimensions(), 0.0);
+  for (int index = 0; index < numberOfParticles(); ++index) {
+    Foam::vector particlePos = getPosition(index);
+    double radius = getRadius(index);
+    forAll(mesh_.C(), cellI) {
+      double value = voidFractionM().pointInParticle(mesh_.C()[cellI], particlePos, radius, 1.8);
+      if (value <= 0.0) {
+        interface[cellI] = value + 1.0;
+      }
+    }
+  }
+}
+
+//! @brief 确定颗粒周围 refined 网格的区域(每个方向的尺寸都是颗粒尺寸的两倍)
 void cfdemCloudIB::setInterface(volScalarField& interface,
                                 volScalarField& refineMeshKeepStep) const {
   // 确保 call_once 函数中的 lambda 表达式只会被执行一次
   static std::once_flag flag;
   std::call_once(flag, [&interface, &refineMeshKeepStep]() {
     // reset interface and refineMeshKeepStep field
+    // only set at first step ?
+    // ????????????????????????????????????
     interface = dimensionedScalar("zero", interface.dimensions(), 0.0);
     refineMeshKeepStep = dimensionedScalar("zero", refineMeshKeepStep.dimensions(), 0.0);
   });
