@@ -52,8 +52,7 @@ smoothingModel off;
 
 forceModels
 (
-    ShirgaonkarIB
-    ArchimedesIB
+    ArchimedesIBDebug
 );
 
 momCoupleModels
@@ -73,6 +72,12 @@ ShirgaonkarIBProps
 }
 
 ArchimedesIBProps
+{
+    gravityFieldName "g";
+    voidfractionFieldName "voidfractionNext";
+}
+
+ArchimedesIBDebugProps
 {
     gravityFieldName "g";
     voidfractionFieldName "voidfractionNext";

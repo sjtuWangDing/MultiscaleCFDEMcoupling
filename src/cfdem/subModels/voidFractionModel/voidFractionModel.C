@@ -152,8 +152,9 @@ void voidFractionModel::getDimensionRatios(const base::CITensor1& findCellIDs,
     // 构建初始化哈希集合
     buildLabelHashSetForCoveredCell(initHashSett, findCellID, particlePos, radius, 1.0);
     // 计算颗粒周围网格的平均尺寸
-    Pout << findCellID << ", " << initHashSett.size() << endl;
+    Pout << "particleCenterCellID: " << findCellID << ", " << initHashSett.size() << endl;
   } // end loop of particles
+  cloud_.Barrier(0.5);
 }
 
 } // namespace Foam

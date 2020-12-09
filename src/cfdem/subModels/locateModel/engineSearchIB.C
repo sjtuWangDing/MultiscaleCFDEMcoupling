@@ -55,7 +55,9 @@ engineSearchIB::engineSearchIB(cfdemCloud& cloud, const std::string& derivedType
   numberOfSatellitePoints_ = (zSplit_ - 1) * xySplit_ + 2;
   for (int i = 0; i < numberOfSatellitePoints_; ++i) {
     satellitePoints_.push_back(generateSatellitePoint(i));
+    Info << satellitePoints_[i] << endl;
   }
+  cloud_.Barrier(0.5);
 
   // set boundBox
   boundBoxPtr_.reset(new boundBox(cloud_.mesh().points(), false));
@@ -84,11 +86,14 @@ void engineSearchIB::findCell(const base::CITensor1& findCellIDs) const {
     }
   }
   for (int index = 0; index < cloud_.numberOfParticles(); ++index) {
+    // reset findCellIDs
+    findCellIDs[index] = -1;
     // 颗粒中心坐标
     Foam::vector particleCenterPos = cloud_.getPosition(index);
     // 颗粒半径
     double radius = cloud_.getRadius(index);
     Foam::vector periodicPos = particleCenterPos;
+    // 判断颗粒中心是否在求解域中
     bool isInside = isInsideRectangularDomain(periodicPos, coef_ * radius);
     if (!isInside && cloud_.checkPeriodicCells()) {
       FatalError << "Error: not support periodic check!" << abort(FatalError);
@@ -112,9 +117,8 @@ void engineSearchIB::findCell(const base::CITensor1& findCellIDs) const {
       // } // end of check periodic
     }
     if (isInside) {
-      int oldCellID = findCellIDs[index];
       // findSingleCell is defined in engineSearch and return the found cell id.
-      findCellIDs[index] = findSingleCell(periodicPos, oldCellID);
+      findCellIDs[index] = findSingleCell(periodicPos, -1);
       // not found
       if (findCellIDs[index] < 0) {
         label altStartID = -1;
@@ -124,7 +128,7 @@ void engineSearchIB::findCell(const base::CITensor1& findCellIDs) const {
           isInside = isInsideRectangularDomain(pos, Foam::SMALL);
           // 如果当前 satellite point is in rectangular domain
           if (isInside) {
-            altStartID = findSingleCell(pos, oldCellID);
+            altStartID = findSingleCell(pos, -1);
           }
           if (cloud_.checkPeriodicCells()) {
             FatalError << "Error: not support periodic check!" << abort(FatalError);
@@ -144,7 +148,7 @@ void engineSearchIB::findCell(const base::CITensor1& findCellIDs) const {
 }
 
 /*!
- * \brief 判断 pos 是否位于长方体区域中
+ * \brief 判断 pos 是否位于求解域中
  * \param pos 颗粒中心位置
  * \param offsetValue 位置偏移量
  */

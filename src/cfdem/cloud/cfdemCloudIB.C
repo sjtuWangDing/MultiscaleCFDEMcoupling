@@ -34,6 +34,7 @@ Class
 #include <mutex> // std::call_once
 #include "cloud/cfdemCloudIB.H"
 #include "subModels/dataExchangeModel/dataExchangeModel.H"
+#include "subModels/forceModel/forceModel.H"
 
 namespace Foam {
 
@@ -52,17 +53,17 @@ cfdemCloudIB::~cfdemCloudIB() {
 
 //! \brief 重新分配内存
 void cfdemCloudIB::reallocate() {
-  // if (numberOfParticlesChanged()) {
-    int number = numberOfParticles();
-    // allocate memory of data exchanged with liggghts
-    dataExchangeM().realloc(parCloud_.radii(), base::makeShape1(number), parCloud_.radiiPtr(), 0.0);
-    dataExchangeM().realloc(parCloud_.positions(), base::makeShape2(number, 3), parCloud_.positionsPtr(), 0.0);
-    dataExchangeM().realloc(parCloud_.velocities(), base::makeShape2(number, 3), parCloud_.velocitiesPtr(), 0.0);
-    // allocate memory of data not exchanged with liggghts
-    parCloud_.particleOverMeshNumber() = std::move(base::CITensor1(base::makeShape1(number), 0));
-    parCloud_.findCellIDs() = std::move(base::CITensor1(base::makeShape1(number), -1));
-    parCloud_.dimensionRatios() = std::move(base::CDTensor1(base::makeShape1(number), 0.0));
-  // }
+  int number = numberOfParticles();
+  // allocate memory of data exchanged with liggghts
+  dataExchangeM().realloc(parCloud_.radii(), base::makeShape1(number), parCloud_.radiiPtr(), 0.0);
+  dataExchangeM().realloc(parCloud_.positions(), base::makeShape2(number, 3), parCloud_.positionsPtr(), 0.0);
+  dataExchangeM().realloc(parCloud_.velocities(), base::makeShape2(number, 3), parCloud_.velocitiesPtr(), 0.0);
+  dataExchangeM().realloc(parCloud_.DEMForces(), base::makeShape2(number, 3), parCloud_.DEMForcesPtr(), 0.0);
+
+  // allocate memory of data not exchanged with liggghts
+  parCloud_.particleOverMeshNumber() = std::move(base::CITensor1(base::makeShape1(number), 0));
+  parCloud_.findCellIDs() = std::move(base::CITensor1(base::makeShape1(number), -1));
+  parCloud_.dimensionRatios() = std::move(base::CDTensor1(base::makeShape1(number), 0.0));
 }
 
 void cfdemCloudIB::getDEMData() {
@@ -70,8 +71,15 @@ void cfdemCloudIB::getDEMData() {
   dataExchangeM().getData("x", "vector-atom", parCloud_.positionsPtr());
   dataExchangeM().getData("v", "vector-atom", parCloud_.velocitiesPtr());
   for (int i = 0; i < numberOfParticles(); ++i) {
-    Pout << positions()[i][0] << ", " << positions()[i][1] << ", " << positions()[i][2] << endl;
+    Info << positions()[i][0] << ", " << positions()[i][1] << ", " << positions()[i][2] << endl;
   }
+  for (int i = 0; i < numberOfParticles(); ++i) {
+    Info << velocities()[i][0] << ", " << velocities()[i][1] << ", " << velocities()[i][2] << endl;
+  }
+}
+
+void cfdemCloudIB::giveDEMData() const {
+  dataExchangeM().giveData("dragforce", "vector-atom", DEMForcesPtr());
 }
 
 /*!
@@ -82,9 +90,10 @@ void cfdemCloudIB::getDEMData() {
  */
 void cfdemCloudIB::evolve(volScalarField& volumeFraction,
                           volScalarField& interface) {
-  Info << __func__ << ", used for cfdemSolverIB..." << endl;
+  Info << __func__ << ": used for cfdemSolverIB..." << endl;
   // 检查当前流体时间步是否同时也是耦合时间步
   if (dataExchangeM().checkValidCouplingStep()) {
+    Info << __func__ << ": coupling..." << endl;
     // 创建用于记录 coupling time step counter
     auto pCounter = std::make_shared<dataExchangeModel::CouplingStepCounter>(dataExchangeM());
     // couple(): run liggghts command and get number of particle
@@ -97,6 +106,14 @@ void cfdemCloudIB::evolve(volScalarField& volumeFraction,
     locateM().findCell(parCloud_.findCellIDs());
     // 计算颗粒的 dimensionRatios
     voidFractionM().getDimensionRatios(parCloud_.findCellIDs(), parCloud_.dimensionRatios());
+    // reset forces
+    std::fill_n(parCloud_.DEMForces().ptr(), parCloud_.DEMForces().mSize(), 0.0);
+    // set particles forces
+    for (auto& ptr : forceModels_) {
+      ptr->setForce();
+    }
+    // write DEM data
+    giveDEMData();
   }
   Info << __func__ << " - done\n" << endl;
 }

@@ -53,8 +53,12 @@ public:
     : numberOfParticles_(numberOfParticles),
       numberOfParticlesChanged_(false),
       radiiPtr_(nullptr),
+      cdsPtr_(nullptr),
       positionsPtr_(nullptr),
-      velocitiesPtr_(nullptr) {}
+      velocitiesPtr_(nullptr),
+      DEMForcesPtr_(nullptr),
+      DEMTorquesPtr_(nullptr),
+      fluidVelPtr_(nullptr) {}
 
   inline int& numberOfParticles() { return numberOfParticles_; }
   inline bool& numberOfParticlesChanged() { return numberOfParticlesChanged_; }

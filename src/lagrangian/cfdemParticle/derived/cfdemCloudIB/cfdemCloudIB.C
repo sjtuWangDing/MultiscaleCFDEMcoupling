@@ -178,12 +178,26 @@ bool Foam::cfdemCloudIB::evolve
         {
             if(verbose_) Info << "- getDEMdata()" << endl;
             getDEMdata();
-            Info << "nr particles = " << numberOfParticles() << endl;
 
             // search cellID of particles
             if(verbose_) Info << "- findCell()" << endl;
             locateM().findCell(NULL,positions_,cellIDs_,numberOfParticles());
             if(verbose_) Info << "findCell done." << endl;
+
+            Info << "nr particles = " << numberOfParticles() << endl;
+            Barrier(0.5);
+            for (int i = 0; i < numberOfParticles(); ++i) {
+                Pout << "findCell: " << cellIDs_[i][0] << endl;
+            }
+            Barrier(0.5);
+            for (int i = 0; i < numberOfParticles(); ++i) {
+                Info << positions_[i][0] << ", " << positions_[i][1] << ", " << positions_[i][2] << endl;
+            }
+            Barrier(0.5);
+            for (int i = 0; i < numberOfParticles(); ++i) {
+                Info << velocities_[i][0] << ", " << velocities_[i][1] << ", " << velocities_[i][2] << endl;
+            }
+            Barrier(0.5);
 
             // set void fraction field
             if(verbose_) Info << "- setvoidFraction()" << endl;

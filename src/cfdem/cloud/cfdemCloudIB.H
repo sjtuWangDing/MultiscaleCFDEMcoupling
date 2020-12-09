@@ -69,6 +69,9 @@ public:
   //! \brief 从 DEM 获取数据
   void getDEMData();
 
+  //! \brief 传递数据到 DEM
+  void giveDEMData() const;
+
   void getDimensionRatio();
 
   /* ------------------------- interface of class --------------------------------------- */

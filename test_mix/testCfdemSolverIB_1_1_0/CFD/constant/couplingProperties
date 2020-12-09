@@ -31,7 +31,6 @@ allowUseSubCFDTimeStep true;
 
 forceModels
 (
-    ShirgaonkarIB
     ArchimedesIB
 );
 
@@ -68,7 +67,7 @@ IBProps
 
 engineIBProps
 {
-    treeSearch true;
+    treeSearch false;
     zSplit 8;
     xySplit 16;
 }

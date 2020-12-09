@@ -84,16 +84,25 @@ ArchimedesIB::~ArchimedesIB() {}
 void ArchimedesIB::setForce() {
   Info << "Setting ShirgaonkarIB force..." << endl;
   Foam::vector buoyancy = Foam::vector::zero;
+
   for (int index = 0; index < cloud_.numberOfParticles(); ++index) {
     // init
     buoyancy = Foam::vector::zero;
     // loop all mesh of current particle
-    for (int subCell = 0; subCell < cloud_.particleOverMeshNumber()[index]; ++subCell) {
-      label cellI = cloud_.cellIDs()[index][subCell];
-      if (cellI > -1) { // cell found
-        buoyancy += -g_.value() * forceSubModel_->rhoField()[cellI] * cloud_.mesh().V()[cellI] * (1.0 - volumeFraction_[cellI]);
-      }
-    }
+    // for (int subCell = 0; subCell < cloud_.particleOverMeshNumber()[index]; ++subCell) {
+    //   label cellI = cloud_.cellIDs()[index][subCell];
+    //   if (cellI > -1) { // cell found
+    //     buoyancy += -g_.value() * forceSubModel_->rhoField()[cellI] * cloud_.mesh().V()[cellI] * (1.0 - volumeFraction_[cellI]);
+    //   }
+    // }
+
+        scalar radius = cloud_.getRadius(index);
+        scalar volume = (4.0 / 3.0) * M_PI * radius * radius * radius / 4.0;
+        scalar rho = 1;
+        buoyancy = - g_.value() * rho * volume;
+        Pout << "force: " << buoyancy[0] << ", " << buoyancy[1] << ", " << buoyancy[2] << endl;
+        cloud_.Barrier(0.5);
+
     // write particle data to global array
     // index - particle index
     // buoyancy - total buoyancy

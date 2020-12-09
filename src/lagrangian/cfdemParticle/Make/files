@@ -49,6 +49,7 @@ $(cfdTools)/newGlobal.C
 
 $(forceModels)/Archimedes/Archimedes.C
 $(forceModels)/ArchimedesIB/ArchimedesIB.C
+$(forceModels)/ArchimedesIBDebug/ArchimedesIBDebug.C
 $(forceModels)/checkCouplingInterval/checkCouplingInterval.C
 $(forceModels)/DiFeliceDrag/DiFeliceDrag.C
 $(forceModels)/fieldStore/fieldStore.C

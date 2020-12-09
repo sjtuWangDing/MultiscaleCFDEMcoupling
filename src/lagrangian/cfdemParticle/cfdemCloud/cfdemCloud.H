@@ -49,6 +49,9 @@ SourceFiles
 #include "fvCFD.H"
 #include "IFstream.H"
 
+#include <unistd.h> // usleep
+#include "mpi.h" // MPI
+
 #if defined(version21) || defined(version16ext)
   #include "turbulenceModel.H"
 #elif defined(version15)
@@ -81,6 +84,13 @@ class liggghtsCommandModel;
 \*---------------------------------------------------------------------------*/
 
 class cfdemCloud {
+
+public:
+
+  static void Barrier(int times = 0.1) {
+    usleep(times * 1000000);
+    MPI_Barrier(MPI_COMM_WORLD);
+  }
 
 #if __MIXCLOUD__
 
