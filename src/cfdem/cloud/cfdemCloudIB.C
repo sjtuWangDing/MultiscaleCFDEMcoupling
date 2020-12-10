@@ -32,6 +32,7 @@ Class
 \*---------------------------------------------------------------------------*/
 
 #include <mutex> // std::call_once
+#include "dynamicRefineFvMesh.H"
 #include "cloud/cfdemCloudIB.H"
 #include "subModels/dataExchangeModel/dataExchangeModel.H"
 #include "subModels/forceModel/forceModel.H"
@@ -59,7 +60,6 @@ void cfdemCloudIB::reallocate() {
   dataExchangeM().realloc(parCloud_.positions(), base::makeShape2(number, 3), parCloud_.positionsPtr(), 0.0);
   dataExchangeM().realloc(parCloud_.velocities(), base::makeShape2(number, 3), parCloud_.velocitiesPtr(), 0.0);
   dataExchangeM().realloc(parCloud_.DEMForces(), base::makeShape2(number, 3), parCloud_.DEMForcesPtr(), 0.0);
-
   // allocate memory of data not exchanged with liggghts
   parCloud_.particleOverMeshNumber() = std::move(base::CITensor1(base::makeShape1(number), 0));
   parCloud_.findCellIDs() = std::move(base::CITensor1(base::makeShape1(number), -1));
@@ -83,6 +83,33 @@ void cfdemCloudIB::giveDEMData() const {
 }
 
 /*!
+ * \brief 更新网格，如果 mesh 是 Foam::dynamicRefineFvMesh 类型，则更新网格，
+ *   如果是 Foam::staticFvMesh 或者其他类型，则不更新
+ * \note 如果网格更新，则一定要修正 searchEngine
+ */
+void cfdemCloudIB::updateMesh(volScalarField& interface) {
+  fvMesh& mesh = const_cast<fvMesh&>(mesh_);
+  Info << __func__ << ": get DEM data and update mesh..." << endl;
+  try {
+    // 采用动态网格
+    Foam::dynamicRefineFvMesh& dyMesh = dynamic_cast<Foam::dynamicRefineFvMesh&>(mesh);
+    Info << "use " << dyMesh.type() << endl;
+    // 设置 interface
+    setInterface(interface);
+    interface.correctBoundaryConditions();
+    // 如果 dyMesh.update() 返回 true，则表明 mesh 被更新了
+    meshHasUpdated_ = dyMesh.update();
+    if (meshHasUpdated_) {
+      // mesh update, need to correct search engine.
+      locateM().correctSearchEngine();
+    }
+  } catch(const std::bad_cast& ex2) {
+    Info << "Not use Foam::dynamicRefineFvMesh" << endl;
+    return;
+  }
+}
+
+/*!
  * \brief 更新函数
  * \note used for cfdemSolverIB
  * \param volumeFraction  <[in, out] 大颗粒体积分数
@@ -97,16 +124,19 @@ void cfdemCloudIB::evolve(volScalarField& volumeFraction,
     // 创建用于记录 coupling time step counter
     auto pCounter = std::make_shared<dataExchangeModel::CouplingStepCounter>(dataExchangeM());
     // couple(): run liggghts command and get number of particle
+    Info << "/ * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * /" << endl;
     setNumberOfParticles(dataExchangeM().couple());
+    Info << "/ * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * /" << endl;
     // realloc memory
     reallocate();
-    // 获取 DEM 数据
+    // 获取 DEM data
     getDEMData();
+    // 根据 DEM data，设置 interface 并更新网格
+    updateMesh(interface);
     // 获取到在当前 processor 上颗粒覆盖的某一个网格编号，如果获取到的网格编号为 -1，则表示颗粒不覆盖当前 processor
     locateM().findCell(parCloud_.findCellIDs());
     // 计算颗粒的 dimensionRatios
     voidFractionM().getDimensionRatios(parCloud_.findCellIDs(), parCloud_.dimensionRatios());
-
     // reset forces
     std::fill_n(parCloud_.DEMForces().ptr(), parCloud_.DEMForces().mSize(), 0.0);
     // set particles forces
@@ -115,6 +145,11 @@ void cfdemCloudIB::evolve(volScalarField& volumeFraction,
     }
     // write DEM data
     giveDEMData();
+  } else {
+    Info << __func__ << ": no need couple, just update mesh..." << endl;
+    // 使用上一个耦合时间步的 DEM data 更新 mesh
+    // 虽然 DEM data 没有改变，但是 这里仍然需要 update mesh，因为 mesh 需要根据自身的 maxRefinement 等属性更新
+    updateMesh(interface);
   }
   Info << __func__ << " - done\n" << endl;
 }

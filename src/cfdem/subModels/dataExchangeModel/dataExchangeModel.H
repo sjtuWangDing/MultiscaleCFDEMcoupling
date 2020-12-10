@@ -63,13 +63,12 @@ public:
   //! \brief 耦合时间步计数器
   class CouplingStepCounter {
   public:
-    CouplingStepCounter(const dataExchangeModel& model)
-      : model_(model) {
-      Info << "Current coupling time step = " << model_.couplingStep() << endl;
-    }
-    ~CouplingStepCounter() {
-      const_cast<dataExchangeModel&>(model_).couplingStep_ += 1;
-    }
+    CouplingStepCounter(const dataExchangeModel& model) : model_(model) {}
+    ~CouplingStepCounter() { const_cast<dataExchangeModel&>(model_).couplingStep_ += 1; }
+    CouplingStepCounter(const CouplingStepCounter&) = delete;
+    CouplingStepCounter& operator= (const CouplingStepCounter&) = delete;
+    CouplingStepCounter(CouplingStepCounter&&) = delete;
+    CouplingStepCounter& operator= (CouplingStepCounter&&) = delete;
   private:
     const dataExchangeModel& model_;
   };

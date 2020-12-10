@@ -106,6 +106,17 @@ private:
    */
   inline Foam::vector getSatellitePointPos(int index, int satellitePointIndex) const;
 
+  //! \brief 如果网格更新，则调用该函数修正 searchEngine_ 以及重新设置 boundBox
+  virtual void correctSearchEngine() {
+    engineSearch::correctSearchEngine();
+    // searchEngine_.correct();
+    boundBoxPtr_.reset(new boundBox(cloud_.mesh().points(), false));
+    if (verbose_) {
+      Pout << "Min bounds (x, y, z): " << boundBoxPtr_().min() << endl;
+      Pout << "Max bounds (x, y, z): " << boundBoxPtr_().max() << endl;
+    }
+  }
+
 private:
 
   bool verbose_;

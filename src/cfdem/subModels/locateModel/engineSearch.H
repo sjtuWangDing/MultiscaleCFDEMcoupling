@@ -72,6 +72,9 @@ public:
    */
   label findSingleCell(const Foam::vector& position, label oldCellID) const;
 
+  //! \brief 如果网格更新，则调用该函数修正 searchEngine_
+  virtual void correctSearchEngine() { searchEngine_.correct(); }
+
 protected:
 
   dictionary subPropsDict_;

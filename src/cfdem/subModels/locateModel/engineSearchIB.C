@@ -37,7 +37,8 @@ cfdemCreateNewFunctionAdder(locateModel, engineSearchIB)
 
 //! \brief Constructor
 engineSearchIB::engineSearchIB(cfdemCloud& cloud, const std::string& derivedTypeName)
-    : engineSearch(cloud, derivedTypeName), coef_(2.0) {
+  : engineSearch(cloud, derivedTypeName),
+    coef_(2.0) {
   // read properties from dictionary
   verbose_ = subPropsDict_.lookupOrDefault<bool>("verbose", false);
   zSplit_ = subPropsDict_.lookupOrDefault<int>("zSplit", 8);
@@ -55,7 +56,6 @@ engineSearchIB::engineSearchIB(cfdemCloud& cloud, const std::string& derivedType
   numberOfSatellitePoints_ = (zSplit_ - 1) * xySplit_ + 2;
   for (int i = 0; i < numberOfSatellitePoints_; ++i) {
     satellitePoints_.push_back(generateSatellitePoint(i));
-    Info << satellitePoints_[i] << endl;
   }
   cloud_.Barrier(0.5);
 
@@ -75,16 +75,6 @@ engineSearchIB::~engineSearchIB() {}
  * \param findCellIDs 颗粒覆盖网格的编号
  */
 void engineSearchIB::findCell(const base::CITensor1& findCellIDs) const {
-  // const boundBox& globalBox = cloud_.mesh().bounds();
-  // 在使用 dynamic mesh 的时候，如果网格更新，则重新设置 boundBox
-  if (dynamic_cast<cfdemCloudIB&>(cloud_).meshHasUpdated()) {
-    const_cast<engineSearchIB*>(this)->searchEngine_.correct();
-    const_cast<engineSearchIB*>(this)->boundBoxPtr_.reset(new boundBox(cloud_.mesh().points(), false));
-    if (verbose_) {
-      Pout << "Min bounds (x, y, z): " << boundBoxPtr_().min() << endl;
-      Pout << "Max bounds (x, y, z): " << boundBoxPtr_().max() << endl;
-    }
-  }
   for (int index = 0; index < cloud_.numberOfParticles(); ++index) {
     // reset findCellIDs
     findCellIDs[index] = -1;

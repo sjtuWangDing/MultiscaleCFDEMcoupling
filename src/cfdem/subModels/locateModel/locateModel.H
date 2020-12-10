@@ -75,6 +75,11 @@ public:
 
   virtual label findSingleCell(const Foam::vector& position, label oldCellID) const = 0;
 
+  virtual void correctSearchEngine() {
+    FatalError << "locateModel::correctSearchEngine(): in current locate model has no search engine."
+      << abort(FatalError);
+  }
+
   /* --------------------------------- member functions ---------------------------------- */
 
   /* --------------------------------- public interfaces --------------------------------- */

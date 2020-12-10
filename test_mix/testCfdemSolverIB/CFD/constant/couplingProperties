@@ -28,6 +28,8 @@ FoamFile
 
 solveFlow false;
 
+verbose true;
+
 modelType none;
 
 couplingInterval 10;
@@ -123,7 +125,7 @@ dividedProps
 
 engineIBProps
 {
-    treeSearch false;
+    treeSearch true;
     zSplit 8;
     xySplit 16;
 }
